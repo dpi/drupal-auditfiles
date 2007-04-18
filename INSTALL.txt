@@ -1,0 +1,5 @@
+auditfiles.module installation instructions
+==========++===============================
+
+Install this module as normal by copying it to your modules directory.
+It will add a new option "Audit files" to bottom of the the Administer > Logs menu

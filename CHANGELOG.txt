@@ -1,0 +1,8 @@
+11 April 2007
+-------------
+More helpful if the Files not on server report lists sorted by filename, not
+nid. Easier to use the report if you want to compare with an FTP listing etc
+
+10 April 2007
+-------------
+First version for Drupal 5
