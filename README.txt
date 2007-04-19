@@ -28,3 +28,8 @@ of everything in one hit!
 
 Be careful with the delete feature - the deletion is permanent - be sure the
 file is no longer needed before erasing it!
+
+_______________________
+Stuart Greenfield
+web@stuartandnicola.com
+www.stuartandnicola.com

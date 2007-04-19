@@ -13,18 +13,20 @@
 function auditfiles_help($section) {
   switch ($section) {
     case 'admin/help#auditfiles':
-      return '<p>'. t('The audit files module performs an audit of the file table and the files directory to check for inconsistencies.') .'</p>';
+      return '<p>' . t('The audit files module performs an audit of the file table and the files directory to check for inconsistencies.') . '</p>';
     case 'admin/logs/auditfiles':
-      return '<p>'. t('These reports allow you to audit the consistency of the {files} table and your physical files. Choose from the two reports offered below.') .'</p>';
+      return '<p>' . t('These reports allow you to audit the consistency of the {files} table and your physical files. Choose from the two reports offered below.') . '</p>';
     case 'admin/logs/auditfiles/notonserver':
-      $output .= '<p>'.t('The files listed below are in the {files} table but the physical files do not exist on the server. This might mean the file has been deleted using a program such as FTP, or it may mean there is an error in the database. You can click on the node numbers to view the item to which the missing file relates to try and determine what action needs to be taken. For example, you may need to edit the node to re-attach the file.').'</p>';
-      $output .= '<p>'.t('Files in this list are relative to the files directory %directorypath.', array( '%directorypath' => file_directory_path())).'</p>';
+      $output .= '<p>' . t('The files listed below are in the {files} table but the physical files do not exist on the server. This might mean the file has been deleted using a program such as FTP, or it may mean there is an error in the database. You can click on the node numbers to view the item to which the missing file relates to try and determine what action needs to be taken. For example, you may need to edit the node to re-attach the file.') . '</p>';
+      $output .= '<p>' . t('Files in this list are relative to the files directory %directorypath.', array( '%directorypath' => file_directory_path())).'</p>';
       return $output;
     case 'admin/logs/auditfiles/notindb':
-      $output .= '<p>'.t('The files listed below are in the files directory on the server but appear to have no corresponding entry in the {files} table. Files in "temporary" folders such as those created by the image module are included in order to check that they are not filling up. You can choose to delete files from this report but remember that if you do this the action cannot be undone.').'</p>';
-      $output .= '<p>'.t('Files in this list are relative to the files directory %directorypath.', array( '%directorypath' => file_directory_path())).'</p>';
+      $output .= '<p>' . t('The files listed below are in the files directory on the server but appear to have no corresponding entry in the {files} table. Files in "temporary" folders such as those created by the image module are included in order to check that they are not filling up. You can choose to delete files from this report but remember that if you do this the action cannot be undone.') . '</p>';
+      $output .= '<p>' . t('Files in this list are relative to the files directory %directorypath.', array( '%directorypath' => file_directory_path())) . '</p>';
       // If on the delete confirmation form then suppress the help message
-      if ( $_POST['operation'] == 'delete' && $_POST['files'] ) $output = '';
+      if ( $_POST['operation'] == 'delete' && $_POST['files'] ) {
+      	$output = '';
+      }
       return $output;
   }
 }
@@ -85,7 +87,7 @@ function auditfiles_notonserver() {
     array('data' => t('File')),
   );
   $rows = array();
-  $notonserver = 0;
+  $notonserver = false;
 
   // Get all the files from the files table
   $result = db_query("SELECT filepath, nid FROM {files} ORDER BY filepath ASC");
@@ -98,7 +100,7 @@ function auditfiles_notonserver() {
     $target = file_create_path($file->filepath);
 
     // Check to see if the file exists
-    if ( !file_exists($target) ) {
+    if (!file_exists($target)) {
 
       // If it doesn't strip out the directory path and store the result
       $file->filepath = preg_replace('@^'.preg_quote(file_directory_path()).'/@', '', $file->filepath);
@@ -106,18 +108,17 @@ function auditfiles_notonserver() {
         array('data' => l($file->nid, 'node/'.$file->nid)),
         array('data' => $file->filepath),
       );
-      $notonserver++;
+      $notonserver=true;
     }
-
   }
 
   // If no problems were found show a meaningful message
-  if ( !$notonserver ) {
+  if (!$notonserver) {
     $rows[] = array(array('data' => t('No problems found.'), 'colspan' => '2'));
   }
 
   // Output the results
-  $output = theme('table', $header, $rows);
+  $output .= theme('table', $header, $rows);
   return $output;
 }
 
@@ -126,9 +127,7 @@ function auditfiles_notonserver() {
  * Menu callback: audit files not in the database.
  */
 function auditfiles_notindb_form() {
-
   global $form_values;
-
   $form['options'] = array(
     '#type' => 'fieldset',
     '#title' => t('Action'),
@@ -136,8 +135,8 @@ function auditfiles_notindb_form() {
     '#suffix' => '</div>',
   );
   $options = array(
-    'donothing' => 'Do nothing',
-    'delete' => 'Delete checked files',
+    'donothing' => t('Do nothing'),
+    'delete' => t('Delete checked files'),
   );
   $form['options']['operation'] = array('#type' => 'select', '#options' => $options,  '#default_value' => 'donothing');
   $form['options']['submit'] = array('#type' => 'submit', '#value' => t('Update'));
@@ -160,11 +159,9 @@ function auditfiles_notindb_form() {
  * Theme auditfiles_notindb_form
  */
 function theme_auditfiles_notindb_form($form) {
-
-  //$header = array(theme('table_select_header_cell'), t('File'));
   $header = array(
     t('Delete?'),
-    t('File')
+    t('File'),
   );
 
   $output .= drupal_render($form['options']);
@@ -176,14 +173,12 @@ function theme_auditfiles_notindb_form($form) {
       $row[] = drupal_render($form['file'][$key]);
       $rows[] = $row;
     }
-
   }
   else  {
     $rows[] = array(array('data' => t('No files found.'), 'colspan' => '2'));
   }
 
   $output .= theme('table', $header, $rows);
-
   $output .= drupal_render($form);
 
   return $output;
@@ -194,7 +189,6 @@ function theme_auditfiles_notindb_form($form) {
  * Menu callback; audit files not in the database.
  */
 function auditfiles_notindb() {
-
   // If delete action was selected then return confirmation form
   if ($_POST['operation'] == 'delete' && $_POST['files']) {
     return drupal_get_form('auditfiles_multiple_delete_confirm');
@@ -211,7 +205,7 @@ function auditfiles_notindb() {
 
 /**
  * Helper function - recurse directories and files in to an array
- * http://snippets.dzone.com/posts/show/155
+ * Code from snippets.dzone.com/posts/show/155
  */
 function _auditfiles_directorytoarray($directory, $recursive) {
   $array_items = array();
@@ -242,7 +236,6 @@ function _auditfiles_directorytoarray($directory, $recursive) {
  * but not in the database
  */
 function _auditfiles_filesnotindb() {
-
   // Prepare array to hold results
   $filesnotindb = array();
 
@@ -284,7 +277,6 @@ function _auditfiles_filesnotindb() {
       }
     }
   }
-
   return $filesnotindb;
 }
 
@@ -305,8 +297,10 @@ function auditfiles_multiple_delete_confirm() {
   return confirm_form(
     $form,
     t('Are you sure you want to delete these items?'),
-    'admin/logs/auditfiles/notindb', '<strong>'. t('This action cannot be undone.') .'</strong>',
-    t('Delete all'), t('Cancel')
+    'admin/logs/auditfiles/notindb',
+    '<strong>' . t('This action cannot be undone.') . '</strong>',
+    t('Delete all'),
+    t('Cancel')
   );
 }
 
@@ -318,10 +312,10 @@ function auditfiles_multiple_delete_confirm_submit($form_id, $form_values) {
   if ($form_values['confirm']) {
     foreach ($form_values['files'] as $file) {
       if ( file_delete(file_create_path($file)) ) {
-      	watchdog('audit', t('%file was deleted', array( '%file' => $file)));
+      	watchdog('audit', t('%file was deleted', array('%file' => $file)));
       }
       else {
-      	drupal_set_message(t('Failed to delete %file', array( '%file' => $file )));
+      	drupal_set_message(t('Failed to delete %file', array('%file' => $file)));
       }
     }
     drupal_set_message(t('The items have been deleted.'));
