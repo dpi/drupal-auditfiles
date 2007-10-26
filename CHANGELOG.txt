@@ -1,3 +1,8 @@
+26 October 2007
+---------------
+#183730 - add an "edit" link for files not on the server.
+#183725 - provide count of files found in each category when report is viewed.
+
 11 April 2007
 -------------
 More helpful if the Files not on server report lists sorted by filename, not

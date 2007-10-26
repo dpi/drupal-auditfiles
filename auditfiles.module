@@ -83,6 +83,7 @@ function auditfiles_notonserver() {
   $header = array(
     array('data' => t('Node')),
     array('data' => t('File')),
+    array('data' => t('Operations')),
   );
   $rows = array();
   $notonserver = 0;
@@ -105,19 +106,22 @@ function auditfiles_notonserver() {
       $rows[] = array(
         array('data' => l($file->nid, 'node/'.$file->nid)),
         array('data' => $file->filepath),
+        array('data' => l(t('edit'), 'node/'.$file->nid.'/edit'))
       );
       $notonserver++;
     }
 
   }
 
-  // If no problems were found show a meaningful message
-  if ( !$notonserver ) {
-    $rows[] = array(array('data' => t('No problems found.'), 'colspan' => '2'));
+  // Output the results
+  if ($notonserver) {
+    $output .= format_plural($notonserver, '1 file found.', '@count files found.');
+    $output .= theme('table', $header, $rows);
+  }
+  else {
+    $output .= t('No files found.');
   }
 
-  // Output the results
-  $output = theme('table', $header, $rows);
   return $output;
 }
 
@@ -129,6 +133,22 @@ function auditfiles_notindb_form() {
 
   global $form_values;
 
+  // Get the list of files that aren't in the database
+  $filesnotindb = _auditfiles_filesnotindb();
+
+  // Output count at top of form
+  if ($filesnotindb) {
+    $form['count'] = array(
+      '#value' => format_plural(count($filesnotindb), '1 file found.', '@count files found.'),
+    );
+  }
+  else {
+    $form['count'] = array(
+      '#value' => t('No files found.'),
+    );
+  }
+
+  // Action button
   $form['options'] = array(
     '#type' => 'fieldset',
     '#title' => t('Action'),
@@ -136,16 +156,13 @@ function auditfiles_notindb_form() {
     '#suffix' => '</div>',
   );
   $options = array(
-    'donothing' => 'Do nothing',
-    'delete' => 'Delete checked files',
+    'donothing' => t('Do nothing'),
+    'delete' => t('Delete checked files'),
   );
   $form['options']['operation'] = array('#type' => 'select', '#options' => $options,  '#default_value' => 'donothing');
   $form['options']['submit'] = array('#type' => 'submit', '#value' => t('Update'));
 
-  // Get the list of files that aren't in the database
-  $filesnotindb = _auditfiles_filesnotindb();
-
-  // Process each result in turn
+  // Process each result in turn and build check box list
   foreach ($filesnotindb as $file) {
     $files[$file] = '';
     $form['file'][$file] = array('#value' => $file);
@@ -161,13 +178,14 @@ function auditfiles_notindb_form() {
  */
 function theme_auditfiles_notindb_form($form) {
 
-  //$header = array(theme('table_select_header_cell'), t('File'));
+  // Render count and action drop down
+  $output .= drupal_render($form['count']);
+
+  // Construct table of files
   $header = array(
     t('Delete?'),
     t('File')
   );
-
-  $output .= drupal_render($form['options']);
 
   if (isset($form['file']) && is_array($form['file'])) {
     foreach (element_children($form['file']) as $key) {
@@ -177,15 +195,13 @@ function theme_auditfiles_notindb_form($form) {
       $rows[] = $row;
     }
 
+    // Render themed table
+    $output .= drupal_render($form['options']);
+    $output .= theme('table', $header, $rows);
+
   }
-  else  {
-    $rows[] = array(array('data' => t('No files found.'), 'colspan' => '2'));
-  }
 
-  $output .= theme('table', $header, $rows);
-
-  $output .= drupal_render($form);
-
+  // Return output
   return $output;
 }
 

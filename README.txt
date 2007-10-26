@@ -2,7 +2,8 @@ Audit files for Drupal 5.x
 ==========================
 
 Audit files is a module that is designed to help keep your upload files in
-check. It can run two reports:
+check. It can run two reports, which are access from Administer > Logs >
+Audit Files:
 
 
 Audit files not on the server
@@ -12,8 +13,8 @@ but that do not exist on the server. These missing files may mean that
 nodes do not display as expected, for example, images may not display or
 downloads may not be available.
 
-From this report you can view the related node to try and discover what is
-wrong and fix it by editing the node.
+From this report you can view or edit the related node to try and discover
+what is wrong and fix it by editing the node.
 
 
 Audit files not in the database
