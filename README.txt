@@ -29,3 +29,8 @@ of everything in one hit!
 
 Be careful with the delete feature - the deletion is permanent - be sure the
 file is no longer needed before erasing it!
+
+If you're not sure what the file is then you can click on the filename to
+open the file to examine it.
+
+; $Id$

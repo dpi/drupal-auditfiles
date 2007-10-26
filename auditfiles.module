@@ -163,9 +163,10 @@ function auditfiles_notindb_form() {
   $form['options']['submit'] = array('#type' => 'submit', '#value' => t('Update'));
 
   // Process each result in turn and build check box list
+  $files_dir = file_directory_path();
   foreach ($filesnotindb as $file) {
     $files[$file] = '';
-    $form['file'][$file] = array('#value' => $file);
+    $form['file'][$file] = array('#value' => l($file, file_create_url($file)));
   }
   $form['files'] = array('#type' => 'checkboxes', '#options' => $files);
 

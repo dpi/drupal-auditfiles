@@ -2,6 +2,7 @@
 ---------------
 #183730 - add an "edit" link for files not on the server.
 #183725 - provide count of files found in each category when report is viewed.
+#186139 - make links to files not in the database clickable
 
 11 April 2007
 -------------
@@ -11,3 +12,5 @@ nid. Easier to use the report if you want to compare with an FTP listing etc
 10 April 2007
 -------------
 First version for Drupal 5
+
+; $Id$
