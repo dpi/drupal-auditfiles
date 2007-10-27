@@ -33,4 +33,13 @@ file is no longer needed before erasing it!
 If you're not sure what the file is then you can click on the filename to
 open the file to examine it.
 
+
+Configuration
+-------------
+There may be some files, folders or extensions that are reported by the audit
+that you do not want to be included. You can set exclusions at Administer >
+Site configuration > Audit files. By default the audit excludes .htaccess files
+and the contents of the color directory.
+
+
 ; $Id$

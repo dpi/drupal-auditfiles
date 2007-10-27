@@ -1,3 +1,8 @@
+27 October 2007
+---------------
+#183798 - makes exclusions user configurable - exclusions can be set for files,
+paths or extensions
+
 26 October 2007
 ---------------
 #183730 - add an "edit" link for files not on the server.

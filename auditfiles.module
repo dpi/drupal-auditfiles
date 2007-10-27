@@ -12,19 +12,21 @@
  */
 function auditfiles_help($section) {
   switch ($section) {
+    case 'admin/settings/auditfiles':
+      return t('You can choose to exclude specific files, paths and extensions from the \'files not in database\' audit report by adding them to the relevant lists below.');
     case 'admin/help#auditfiles':
       return '<p>'. t('The audit files module performs an audit of the file table and the files directory to check for inconsistencies.') .'</p>';
     case 'admin/logs/auditfiles':
       return '<p>'. t('These reports allow you to audit the consistency of the {files} table and your physical files. Choose from the two reports offered below.') .'</p>';
     case 'admin/logs/auditfiles/notonserver':
       $output .= '<p>'.t('The files listed below are in the {files} table but the physical files do not exist on the server. This might mean the file has been deleted using a program such as FTP, or it may mean there is an error in the database. You can click on the node numbers to view the item to which the missing file relates to try and determine what action needs to be taken. For example, you may need to edit the node to re-attach the file.').'</p>';
-      $output .= '<p>'.t('Files in this list are relative to the files directory %directorypath.', array( '%directorypath' => file_directory_path())).'</p>';
+      $output .= '<p>'.t('Files in this list are relative to the files directory %directorypath.', array('%directorypath' => file_directory_path())).'</p>';
       return $output;
     case 'admin/logs/auditfiles/notindb':
       $output .= '<p>'.t('The files listed below are in the files directory on the server but appear to have no corresponding entry in the {files} table. Files in "temporary" folders such as those created by the image module are included in order to check that they are not filling up. You can choose to delete files from this report but remember that if you do this the action cannot be undone.').'</p>';
-      $output .= '<p>'.t('Files in this list are relative to the files directory %directorypath.', array( '%directorypath' => file_directory_path())).'</p>';
+      $output .= '<p>'.t('Files in this list are relative to the files directory %directorypath.', array('%directorypath' => file_directory_path())).'</p>';
       // If on the delete confirmation form then suppress the help message
-      if ( $_POST['operation'] == 'delete' && $_POST['files'] ) $output = '';
+      if ($_POST['operation'] == 'delete' && $_POST['files']) $output = '';
       return $output;
   }
 }
@@ -34,7 +36,7 @@ function auditfiles_help($section) {
  * Implementation of hook_perm().
  */
 function auditfiles_perm() {
-  return array('access file audits');
+  return array('access file audits', 'administer file audits');
 }
 
 
@@ -66,6 +68,15 @@ function auditfiles_menu($may_cache) {
 	  'description' => t('List files that are in the database, but not on the server.'),
       'callback' => 'auditfiles_notonserver',
       'access' => $access,
+    );
+    $items[] = array(
+      'path' => 'admin/settings/auditfiles',
+      'title' => ('Audit files'),
+      'callback' => 'drupal_get_form',
+      'callback arguments' => array('auditfiles_admin_settings'),
+      'access' => user_access('administer file audits'),
+      'type' => MENU_NORMAL_ITEM,
+      'description' => t('Set file, extension and path exclusions for file audits.'),
     );
   }
 
@@ -99,7 +110,7 @@ function auditfiles_notonserver() {
     $target = file_create_path($file->filepath);
 
     // Check to see if the file exists
-    if ( !file_exists($target) ) {
+    if (!file_exists($target)) {
 
       // If it doesn't strip out the directory path and store the result
       $file->filepath = preg_replace('@^'.preg_quote(file_directory_path()).'/@', '', $file->filepath);
@@ -279,6 +290,9 @@ function _auditfiles_filesnotindb() {
   // Get the root path - will need this later
   $root .= realpath('./');
 
+  // Get the exclusions string
+  $exclusions = _auditfiles_make_preg();
+
   // Process each result in turn
   foreach ($filesonserver as $file) {
 
@@ -286,13 +300,13 @@ function _auditfiles_filesnotindb() {
     $file = preg_replace('@'.preg_quote($root).'.@', '', $file);
 
     // Check it isn't a directory - not interested
-    if ( !file_check_directory($file) ) {
+    if (!file_check_directory($file)) {
 
-      // Exclude files in the color folder and .htaccess as we don't need to know about these
-      if ( !preg_match('@'.preg_quote(file_create_path('color')).'|\.htaccess@', $file) ) {
+      // Exclude files, paths and extensions according to the retrieved exclusions string
+      if (!preg_match('@'.$exclusions.'@', $file) || !$exclusions) {
 
 	    // Check to see if file is NOT in the database
-        if ( !in_array($file, $filesindb) ) {
+        if (!in_array($file, $filesindb) ) {
 
 	      // If we get here we have a file that isn't in the database
     	  $file = preg_replace('@^'.preg_quote(file_directory_path()).'/@', '', $file);
@@ -334,14 +348,101 @@ function auditfiles_multiple_delete_confirm() {
 function auditfiles_multiple_delete_confirm_submit($form_id, $form_values) {
   if ($form_values['confirm']) {
     foreach ($form_values['files'] as $file) {
-      if ( file_delete(file_create_path($file)) ) {
-      	watchdog('audit', t('%file was deleted', array( '%file' => $file)));
+      if (file_delete(file_create_path($file))) {
+      	watchdog('audit', t('%file was deleted', array('%file' => $file)));
       }
       else {
-      	drupal_set_message(t('Failed to delete %file', array( '%file' => $file )));
+      	drupal_set_message(t('Failed to delete %file', array('%file' => $file )));
       }
     }
     drupal_set_message(t('The items have been deleted.'));
   }
   return 'admin/logs/auditfiles/notindb';
+}
+
+function auditfiles_admin_settings() {
+
+    $form['auditfiles_exclude_files'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Exclude these files'),
+      '#default_value' => trim(variable_get('auditfiles_exclude_files', '.htaccess')),
+      '#description' => t('Enter a list of files to exclude, separated by spaces.'),
+    );
+
+    $form['auditfiles_exclude_extensions'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Exclude these extensions'),
+      '#default_value' => trim(variable_get('auditfiles_exclude_extensions', '')),
+      '#description' => t('Enter a list of extensions to exclude, separated by spaces. Do not include the leading dot.'),
+    );
+
+    $form['auditfiles_exclude_paths'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Exclude these paths'),
+      '#default_value' => trim(variable_get('auditfiles_exclude_paths', 'color')),
+      '#description' => t('Enter a list of paths to exclude, separated by spaces. Do not include the leading slash. Paths are relative to %directorypath', array('%directorypath' => file_directory_path())),
+    );
+
+  return system_settings_form($form);
+}
+
+
+/**
+ * Helper function: create an exclusion string for the preg
+ */
+ function _auditfiles_make_preg() {
+
+  // Get exclusion lists from the database
+  $files = trim(variable_get('auditfiles_exclude_files', '.htaccess'));
+  $extensions = trim(variable_get('auditfiles_exclude_extensions', ''));
+  $paths = trim(variable_get('auditfiles_exclude_paths', 'color'));
+
+  // Prepare an empty array
+  $exclusions_array = array();
+
+  // Create file exclusions as required
+  if ($files) {
+    $exclude_files = explode(' ', $files);
+    array_walk($exclude_files, '_auditfiles_preg_quote', FALSE);
+    $exclusions_array = array_merge($exclusions_array, $exclude_files);
+  }
+
+  // Create path exclusions as required
+  if ($paths) {
+    $exclude_paths = explode(' ', $paths);
+    array_walk($exclude_paths, '_auditfiles_preg_quote', TRUE);
+    $exclusions_array = array_merge($exclusions_array, $exclude_paths);
+  }
+
+  // Create extension exclusions as required (this is a little more complicated)
+  if ($extensions) {
+    // Prepare initial string as for files and paths
+    $exclude_extensions = explode(' ', $extensions);
+    array_walk($exclude_extensions, '_auditfiles_preg_quote', FALSE);
+    $extensions = implode('|', $exclude_extensions);
+
+    // Add grouping around string, add end marker, and append to exlusions_array
+    $extensions = '(' . $extensions . ')$';
+    $exclusions_array[] = $extensions;
+
+  }
+
+  // Implode exclusions array to a string
+  $exclusions = implode('|', $exclusions_array);
+
+  // Return prepared exclusion string
+  return $exclusions;
+
+}
+
+
+/**
+ * Helper function: walk an array and preg_quote each entry
+ * Pass $makefilepath = TRUE to change elements to file paths at the same time
+ */
+function _auditfiles_preg_quote(&$element, $key, $makefilepath = FALSE) {
+  if ($makefilepath) {
+    $element = file_create_path($element);
+  }
+  $element = preg_quote($element);
 }
