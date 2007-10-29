@@ -1,3 +1,9 @@
+28 October 2007
+---------------
+#186139 - bug fix - file_create_url incompatible with files not in the database
+so auditfiles must output public urls instead. Not an issue as only admin users
+can get to the audit reports.
+
 27 October 2007
 ---------------
 #183798 - makes exclusions user configurable - exclusions can be set for files,

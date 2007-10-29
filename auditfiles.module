@@ -177,7 +177,9 @@ function auditfiles_notindb_form() {
   $files_dir = file_directory_path();
   foreach ($filesnotindb as $file) {
     $files[$file] = '';
-    $form['file'][$file] = array('#value' => l($file, file_create_url($file)));
+    // Can't use file_create_url as the links fail if the site uses private transfers
+    // Force a public url instead
+    $form['file'][$file] = array('#value' => l($file, $GLOBALS['base_url'] .'/'. file_directory_path() .'/'. str_replace('\\', '/', $file)));
   }
   $form['files'] = array('#type' => 'checkboxes', '#options' => $files);
 
