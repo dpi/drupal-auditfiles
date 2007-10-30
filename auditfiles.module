@@ -91,17 +91,20 @@ function auditfiles_notonserver() {
 
   drupal_set_title(t('Audit of files not on the server'));
 
+  // Initialise table header to allow sorting
   $header = array(
-    array('data' => t('Node')),
-    array('data' => t('File')),
+    array('data' => t('Node'), 'field' => 'nid', 'sort' => 'asc'),
+    array('data' => t('File'), 'field' => 'filepath'),
     array('data' => t('Operations')),
   );
-  $rows = array();
-  $notonserver = 0;
 
-  // Get all the files from the files table
-  $result = db_query("SELECT filepath, nid FROM {files} ORDER BY filepath ASC");
-  $totalfiles = db_affected_rows();
+  // Get all the files from the files table using defined sort order
+  $sql = 'SELECT nid, filepath FROM {files}';
+  $table_sort = tablesort_sql($header);
+  $result = db_query($sql . $table_sort);
+
+  // Initialise array to hold rows of table
+  $rows = array();
 
   // Iterate through the results
   while ($file = db_fetch_object($result)) {
@@ -119,20 +122,20 @@ function auditfiles_notonserver() {
         array('data' => $file->filepath),
         array('data' => l(t('edit'), 'node/'.$file->nid.'/edit'))
       );
-      $notonserver++;
     }
 
   }
 
-  // Output the results
-  if ($notonserver) {
-    $output .= format_plural($notonserver, '1 file found.', '@count files found.');
+  // Create output string
+  if ($rows) {
+    $output .= format_plural(count($rows), '1 file found.', '@count files found.');
     $output .= theme('table', $header, $rows);
   }
   else {
     $output .= t('No files found.');
   }
 
+  // Return the results
   return $output;
 }
 

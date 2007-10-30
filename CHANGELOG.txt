@@ -1,3 +1,8 @@
+30 October 2007
+---------------
+Back port of code from Drupal 6 version that makes report of files not on
+server sortable. Also removes some redundant variables from the code.
+
 28 October 2007
 ---------------
 #186139 - bug fix - file_create_url incompatible with files not in the database
