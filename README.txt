@@ -1,9 +1,9 @@
-Audit files for Drupal 5.x
+Audit files for Drupal 6.x
 ==========================
 
 Audit files is a module that is designed to help keep your upload files in
-check. It can run two reports, which are access from Administer > Logs >
-Audit Files:
+check. It can run two reports, which are accessed from Administer > Logs >
+Audit files not in database / Audit files not on server
 
 
 Audit files not on the server
@@ -22,6 +22,7 @@ Audit files not in the database
 This report lists files that are on the server but are not referred to by
 the {files} table. These may be orphan files whose parent node has been
 deleted, or they may be the result of a module not tidying up after itself.
+You can sort the table by node number or by filename as you prefer.
 
 From this report you can mark files for deletion. There is intentionally no
 "select all" checkbox because you probably don't want to accidentally get rid
@@ -31,7 +32,7 @@ Be careful with the delete feature - the deletion is permanent - be sure the
 file is no longer needed before erasing it!
 
 If you're not sure what the file is then you can click on the filename to
-open the file to examine it.
+open the file in your browser.
 
 
 Configuration

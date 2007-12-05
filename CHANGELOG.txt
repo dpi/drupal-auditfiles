@@ -1,3 +1,12 @@
+30 October 2007
+---------------
+Module updated for Drupal 6.
+  - reports separated out in to separate include files
+  - admin page separated out in to separate include file
+  - files not on server table made sortable
+  - reports now appear directly under Administer > Logs as grouping has been
+    removed from the new Drupal 6 menu system.
+
 27 October 2007
 ---------------
 #183798 - makes exclusions user configurable - exclusions can be set for files,
