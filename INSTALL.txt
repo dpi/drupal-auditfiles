@@ -2,6 +2,6 @@ auditfiles.module installation instructions
 ===========================================
 
 Install this module as normal by copying it to your modules directory.
-It will add two audit reports to the Administer > Logs menu
+It will add four audit reports to the Administer > Logs menu
 
 ; $Id$

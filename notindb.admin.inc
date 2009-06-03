@@ -10,26 +10,18 @@
 /**
  * Menu callback: audit files not in the database.
  */
-function auditfiles_notindb($form_state) {
-
-  // If delete action was selected, and files were checked, then return confirmation form
-  if ($form_state['values']['operation'] == 'delete' && array_filter($form_state['values']['files'])) {
-    return auditfiles_multiple_delete_confirm($form_state, array_filter($form_state['values']['files']));
-  }
-
-  // Otherwise retreive the form
-  $form['auditfiles_notindb'] = auditfiles_notindb_form();
-
-  // Return the form
-  return $form;
+function auditfiles_notindb() {
+  return drupal_get_form('auditfiles_notindb_form');
 }
 
 
 /**
  * Form definition for audit files not in database
  */
-function auditfiles_notindb_form() {
-
+function auditfiles_notindb_form(&$form_state) {
+  if (isset($form_state['storage']['confirm'])) {
+    return auditfiles_notindb_form_confirm($form_state);
+  }
   // Get the list of files that aren't in the database
   $filesnotindb = _auditfiles_filesnotindb();
 
@@ -56,6 +48,8 @@ function auditfiles_notindb_form() {
   $options = array(
     'donothing' => t('Do nothing'),
     'delete' => t('Delete checked files'),
+    'add' => t('Add checked files to database'),
+    'addall' => t('Add all files to database'),
   );
 
   $form['options']['operation'] = array(
@@ -84,9 +78,6 @@ function auditfiles_notindb_form() {
   // Add list of files to checkboxes
   $form['files'] = array('#type' => 'checkboxes', '#options' => $files);
 
-  // Specify theme for form
-  $form['#theme'] = 'auditfiles_notindb_form';
-
   // Return form
   return $form;
 }
@@ -96,7 +87,6 @@ function auditfiles_notindb_form() {
  * Theme auditfiles_notindb_form
  */
 function theme_auditfiles_notindb_form($form) {
-
   // Render count
   $output .= drupal_render($form['count']);
 
@@ -108,8 +98,8 @@ function theme_auditfiles_notindb_form($form) {
 
     // Construct table of files
     $header = array(
-      t('Delete?'),
-      t('File')
+      t('Select'),
+      t('File'),
     );
 
     foreach (element_children($form['file']) as $key) {
@@ -124,65 +114,125 @@ function theme_auditfiles_notindb_form($form) {
 
   }
 
+  $output .= drupal_render($form);
+  
   // Return output
   return $output;
 }
 
-
-/**
- * Form action: Confirm deletion of selected items
- */
-function auditfiles_multiple_delete_confirm(&$form_state, $files = array()) {
-
-  $form['files'] = array('#prefix' => '<ul>', '#suffix' => '</ul>', '#tree' => TRUE);
-
-  // array_filter in the call returned only elements with TRUE values
-  foreach ($files as $file) {
-    $form['files'][$file] = array('#type' => 'hidden', '#value' => $file, '#prefix' => '<li>', '#suffix' => check_plain($file) ."</li>\n");
+function auditfiles_notindb_form_submit($form, &$form_state) {
+  //drupal_set_message("submit form_state: ".dpr($form_state, TRUE));
+  if ($form_state['clicked_button']['#id'] == 'edit-submit' &&
+      $form_state['values']['options']['operation'] <> 'donothing') {
+    $form_state['storage']['confirm'] = TRUE;
+    $form_state['storage']['values'] = $form_state['values'];
   }
-  $form['operation'] = array('#type' => 'hidden', '#value' => 'delete');
-  $form['#submit'][] = 'auditfiles_multiple_delete_confirm_submit';
+}
+
+function auditfiles_notindb_form_confirm(&$form_state) {
+  $values = $form_state['storage']['values'];
+  //drupal_set_message("form_confirm: values: ".dpr($values, TRUE));
+  $operation = $values['operation'];
+  switch ($operation) {
+    case 'delete':
+      $optype = 'delete';
+      $seltype = 'selected';
+      break;
+    case 'add':
+      $optype = 'add';
+      $seltype = 'selected';
+      break;
+    case 'addall':
+      $optype = 'add';
+      $seltype = 'all';
+      break;
+    case 'donothing':
+    default:
+      return;
+  }
+  
+  $form['changelist'] = array('#prefix' => '<ul>', '#suffix' => '</ul>', '#tree' => TRUE);
+
+  foreach ($values['files'] as $file => $selected) {
+    if ($seltype == 'all' || $selected) {
+      if ($optype == 'delete') {
+        $message = "<strong>$file</strong> will be deleted";
+      } else {
+        $message = "<strong>$file</strong> will be added to the database";
+      }
+      $form['changelist'][$file] = array('#type' => 'hidden', '#value' => $file, '#prefix' => '<li>', '#suffix' => $message ."</li>\n");
+    } else {
+      // Unsetting the unprocessed files prevents confirm_submit from dealing with them
+      unset($form_state['storage']['values']['files'][$file]);
+    }
+  }
+  
+  $form['operation'] = array('#type' => 'hidden', '#value' => $operation);
+  $form['#submit'][] = 'auditfiles_notindb_form_confirm_submit';
 
   return confirm_form(
     $form,
-    t('Are you sure you want to delete these items?'),
+    t('Are you sure you want to make these changes?'),
     'admin/reports/auditfiles/notindb',
     '<strong>'. t('This action cannot be undone.') .'</strong>',
-    t('Delete all'),
+    t('Process all'),
     t('Cancel')
   );
 }
 
-
-/**
- * Form action: Delete selected files
- */
-function auditfiles_multiple_delete_confirm_submit($form, &$form_state) {
+function auditfiles_notindb_form_confirm_submit($form, &$form_state) {
+//  drupal_set_message('confirm_submit, form: '.dpr($form, TRUE));
+//  drupal_set_message('confirm_submit, form_state: '.dpr($form_state, TRUE));
   if ($form_state['values']['confirm']) {
-    foreach ($form_state['values']['files'] as $file) {
-      if (file_delete(file_create_path($file))) {
-        watchdog('audit', '%file was deleted', array('%file' => $file));
-      }
-      else {
-        drupal_set_message(t('Failed to delete %file', array('%file' => $file )));
+    $values = $form_state['storage']['values'];
+    $operation = $values['options']['operation'];
+    if ($operation != 'delete') {
+      global $user;
+      if (function_exists('finfo_file')) {
+        $finfo = @finfo_open(FILEINFO_MIME);
       }
     }
-    drupal_set_message(t('The items have been deleted.'));
+    //drupal_set_message("in confirm_submit, values: ".dpr($values,TRUE));
+    foreach ($values['files'] as $filename => $selected) {
+      if ($operation == 'delete') {
+        if (file_delete(file_create_path($filename))) {
+          watchdog('audit', '%file was deleted', array('%file' => $filename));
+        }
+        else {
+          drupal_set_message(t('Failed to delete %file', array('%file' => $filename)));
+        }
+      } else {
+        $fullpath = file_create_path($filename);
+        $file = new stdClass();
+        $file->filename = trim(basename($filename));
+        $file->filepath = trim($fullpath);
+        // Adapted from imce
+        if ($finfo) {
+          $type = finfo_file($finfo, $fullpath);
+        } elseif ($info = @getimagesize($fullpath)) {
+          $type = $info['mime'];
+        } elseif (function_exists('mime_content_type')) {
+          $type = mime_content_type($fullpath);
+        } else {
+          $type = 'application/x-download';
+        }
+        $file->filemime = $type;
+        $file->filesize = filesize($fullpath);
+        $file->uid = $user->uid;
+        $file->status = FILE_STATUS_PERMANENT;
+        $file->timestamp = time();
+        drupal_write_record('files', $file);
+      }
+    }
+    if ($operation == 'delete') {
+      drupal_set_message(t('The files have been deleted.'));
+    } else {
+      drupal_set_message(t('The files have been added to the database.'));
+    }
+    // Clear so our return to the primary form doesn't think we're going to the confirmation form
+    unset($form_state['storage']['confirm']);
   }
-  $form_state['redirect'] = 'admin/reports/auditfiles/notindb';
-  return;
 }
-
-
-/**
- * Form action: Submit the deletion form
- */
-function auditfiles_notindb_submit($form, &$form_state) {
-  // Force rebuild to populate form data
-  $form_state['rebuild'] = TRUE;
-
-}
-
 
 /**
  * Helper function - retrieve sorted list of files that are on the server

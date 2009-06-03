@@ -1,0 +1,54 @@
+<?php
+/* $Id$ */
+
+/**
+* Implementation of hook_schema().
+*/
+function auditfiles_schema() {
+  $schema = array();
+/*  $schema['auditfiles_domains'] = array(
+    'description' => t('Domains to be considered local references'),
+    'fields' => array(
+      'adid' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'domain' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('adid'),
+    'unique keys' => array(
+      'domainkey' => array('domain'),
+    ),
+  );
+  */
+  return $schema;
+}
+
+/**
+* Implementation of hook_install().
+*/
+function auditfiles_install() {
+  // Create tables
+  drupal_install_schema('auditfiles');
+}
+
+/**
+* Implementation of hook_uninstall().
+*/
+function auditfiles_uninstall() {
+  // Remove tables
+  drupal_uninstall_schema('auditfiles');
+}
+/*
+function auditfiles_update_6000() {
+  $ret = array();
+  if (!db_table_exists('auditfiles_domains')) {
+    db_create_table($ret, 'auditfiles_domains', drupal_get_schema('auditfiles_domains'));
+  }
+  return $ret;
+}*/
