@@ -1,4 +1,3 @@
-; $Id$
 
 name = Audit files
 description = Performs an audit of the files table and directory.

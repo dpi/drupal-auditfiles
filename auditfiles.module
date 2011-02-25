@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Audit files carries out a simple audit of the Drupal upload directory

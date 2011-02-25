@@ -32,4 +32,3 @@ nid. Easier to use the report if you want to compare with an FTP listing etc
 -------------
 First version for Drupal 5
 
-; $Id$

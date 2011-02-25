@@ -115,4 +115,3 @@ tables.
 
 The newer functionality is untested with private downloads.
 
-; $Id$
