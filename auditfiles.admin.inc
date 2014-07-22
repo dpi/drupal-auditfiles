@@ -4,7 +4,7 @@
  * @file
  * Callback for settings page
  */
-function auditfiles_admin_settings() {
+function auditfiles_admin_settings($form, &$form_state) {
 
   $form['exclusions'] = array(
     '#type' => 'fieldset',
@@ -23,7 +23,7 @@ function auditfiles_admin_settings() {
     '#type' => 'textfield',
     '#title' => t('Exclude these extensions'),
     '#default_value' => trim(variable_get('auditfiles_exclude_extensions', '')),
-    '#description' => t('Enter a list of extensions to exclude, separated by spaces. Do not 
+    '#description' => t('Enter a list of extensions to exclude, separated by spaces. Do not
       include the leading dot.'),
   );
 
@@ -31,9 +31,9 @@ function auditfiles_admin_settings() {
     '#type' => 'textfield',
     '#title' => t('Exclude these paths'),
     '#default_value' => trim(variable_get('auditfiles_exclude_paths', 'color')),
-    '#description' => t('Enter a list of paths to exclude, separated by spaces. Do not 
-      include the leading slash. Paths are relative to %directorypath', 
-      array('%directorypath' => file_directory_path())),
+    '#description' => t('Enter a list of paths to exclude, separated by spaces. Do not
+      include the leading slash. Paths are relative to %directorypath',
+      array('%directorypath' => file_default_scheme())),
   );
 
   $form['domains'] = array(
@@ -42,7 +42,7 @@ function auditfiles_admin_settings() {
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
-  
+
   $form['domains']['auditfiles_include_domains'] = array(
     '#type' => 'textfield',
     '#title' => t('Include references to these domains'),
@@ -55,6 +55,6 @@ function auditfiles_admin_settings() {
       to use relative references. Absolute references to domains not in this list will
       be considered to be external references and will not be audited or rewritten.'),
   );
-  
+
   return system_settings_form($form);
 }

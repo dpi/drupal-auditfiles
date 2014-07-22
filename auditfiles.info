@@ -1,4 +1,4 @@
-
 name = Audit files
 description = Performs an audit of the files table and directory.
-core = 6.x
+core = 7.x
+configure = admin/config/system/auditfiles
