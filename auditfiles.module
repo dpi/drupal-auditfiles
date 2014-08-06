@@ -118,7 +118,7 @@ function auditfiles_menu() {
   $items['admin/reports/auditfiles'] = array(
     'title' => 'Audit files',
     'description' => 'List files that are not on the server or not in the database.',
-    'page callback' => 'auditfiles_notindb',
+    'page callback' => 'auditfiles_not_in_db',
     'access arguments' => array('access file audits'),
     'file' => 'auditfiles.notindb.inc',
   );
@@ -131,7 +131,7 @@ function auditfiles_menu() {
   $items['admin/reports/auditfiles/notonserver'] = array(
     'title' => 'Not on server',
     'description' => 'List files that are in the database, but are not on the server.',
-    'page callback' => 'auditfiles_notonserver',
+    'page callback' => 'auditfiles_not_on_server',
     'access arguments' => array('access file audits'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'auditfiles.notonserver.inc',
@@ -173,7 +173,7 @@ function auditfiles_menu() {
  */
 function auditfiles_theme() {
   return array(
-    'auditfiles_notindb_form' => array(
+    'auditfiles_not_in_db_form' => array(
       'render element' => 'form',
       'file' => 'auditfiles.notindb.inc',
     ),

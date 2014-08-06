@@ -1,31 +1,41 @@
 <?php
-
 /**
  * @file
  * Callback and functions to generate files not in database report
  */
 
 /**
- * Menu callback: audit files not in the database.
+ * Menu callback for files not in the database.
+ *
+ * @return array
+ *   The form definition.
  */
-function auditfiles_notindb() {
-  return drupal_get_form('auditfiles_notindb_form');
+function auditfiles_not_in_db() {
+  return drupal_get_form('auditfiles_not_in_db_form');
 }
 
 /**
- * Form definition for audit files not in database
+ * Form definition for files not in database
+ *
+ * @param array $form
+ *   The form definition.
+ * @param array $form_state
+ *   The current state of the form.
+ *
+ * @return array
+ *   The form definition.
  */
-function auditfiles_notindb_form($form, &$form_state) {
+function auditfiles_not_in_db_form($form, &$form_state) {
   if (isset($form_state['storage']['confirm'])) {
-    return drupal_build_form('auditfiles_notindb_form_confirm', $form_state);
+    return drupal_build_form('auditfiles_not_in_db_form_confirm', $form_state);
   }
   // Get the list of files that aren't in the database
-  $filesnotindb = _auditfiles_filesnotindb();
+  $files_not_in_db = _auditfiles_get_files_not_in_db();
 
   // Output count of files not in the database
-  if ($filesnotindb) {
+  if ($files_not_in_db) {
     $form['count'] = array(
-      '#markup' => format_plural(count($filesnotindb), '1 file found.', '@count files found.'),
+      '#markup' => format_plural(count($files_not_in_db), '1 file found.', '@count files found.'),
     );
   }
   else {
@@ -48,7 +58,6 @@ function auditfiles_notindb_form($form, &$form_state) {
     'add' => t('Add checked files to database'),
     'addall' => t('Add all files to database'),
   );
-
   $form['options']['operation'] = array(
     '#type' => 'select',
     '#options' => $options,
@@ -60,41 +69,60 @@ function auditfiles_notindb_form($form, &$form_state) {
     '#value' => t('Update'),
   );
 
-
   // Process each result in turn and build check box list
   $files = array();
-  foreach ($filesnotindb as $file) {
-    // Can't use file_create_url as the links fail if the site uses private transfers
-    // Force a public url instead
+  foreach ($files_not_in_db as $file) {
+    // If the site uses private transfers, file_create_url cannot be used, as
+    // the links fail. Force a public URL instead.
     $files[$file] = l($file, $GLOBALS['base_url'] . '/' . str_replace('\\', '/', $file));
   }
 
-  // Add list of files to checkboxes
+  // Add checkboxes to the list of files.
   $form['files'] = array(
     '#type' => 'checkboxes',
     '#options' => $files,
   );
 
-  // Return form
   return $form;
 }
 
 /**
- * Theme auditfiles_notindb_form
+ * Submit handler for the auditfiles_not_in_db_form form.
+ *
+ * @param array $form
+ *   The form definition.
+ * @param array $form_state
+ *   The current state of the form.
  */
-function theme_auditfiles_notindb_form($variables) {
-  $variables = $variables['form'];
+function auditfiles_not_in_db_form_submit($form, &$form_state) {
+  if ($form_state['clicked_button']['#id'] == 'edit-submit' &&
+    $form_state['values']['operation'] != 'donothing') {
+    $form_state['storage']['confirm'] = TRUE;
+    $form_state['storage']['values'] = $form_state['values'];
+    $form_state['rebuild'] = TRUE;
+  }
+}
+
+/**
+ * Theme auditfiles_not_in_db_form
+ *
+ * @param array $variables
+ *   The variables currently available for use in a template file.
+ *
+ * @return string
+ *   The formatted display output.
+ */
+function theme_auditfiles_not_in_db_form($variables) {
   $form = $variables['form'];
-  // Render count
+  // Render the file count.
   $output = drupal_render($form['count']);
 
-  // If there are files found
+  // If there are files found...
   if (isset($form['file']) && is_array($form['file'])) {
-
-    // Render actions
+    // Render the actions.
     $output .= drupal_render($form['options']);
 
-    // Construct table of files
+    // Construct a table of files.
     $header = array(
       t('Select'),
       t('File'),
@@ -107,34 +135,33 @@ function theme_auditfiles_notindb_form($variables) {
       $rows[] = array('data' => $row);
     }
 
-    // Render themed table
-    $output .= theme('table', array('header' => array('header' => $header, 'rows' => $rows)));
+    // Render the table.
+    $output .= theme(
+      'table',
+      array(
+        'header' => $header,
+        'rows' => $rows,
+      )
+    );
   }
 
   $output .= drupal_render_children($form);
 
-  // Return output
   return $output;
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ *
+ *
+ * @param array $form
+ *   The form definition.
+ * @param array $form_state
+ *   The current state of the form.
+ *
+ * @return array
+ *   A form array for a confirmation form.
  */
-function auditfiles_notindb_form_submit($form, &$form_state) {
-  if ($form_state['clicked_button']['#id'] == 'edit-submit' &&
-    $form_state['values']['operation'] <> 'donothing') {
-    $form_state['storage']['confirm'] = TRUE;
-    $form_state['storage']['values'] = $form_state['values'];
-    $form_state['rebuild'] = TRUE;
-  }
-}
-
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function auditfiles_notindb_form_confirm($form, &$form_state) {
+function auditfiles_not_in_db_form_confirm($form, &$form_state) {
   $values = $form_state['storage']['values'];
   $operation = $values['operation'];
   switch ($operation) {
@@ -177,7 +204,8 @@ function auditfiles_notindb_form_confirm($form, &$form_state) {
       );
     }
     else {
-      // Unsetting the unprocessed files prevents confirm_submit from dealing with them
+      // Unsetting the unprocessed files prevents confirm_submit from dealing
+      // with them.
       unset($form_state['storage']['values']['files'][$file]);
     }
   }
@@ -186,7 +214,7 @@ function auditfiles_notindb_form_confirm($form, &$form_state) {
     '#type' => 'hidden',
     '#value' => $operation,
   );
-  $form['#submit'][] = 'auditfiles_notindb_form_confirm_submit';
+  $form['#submit'][] = 'auditfiles_not_in_db_form_confirm_submit';
 
   return confirm_form(
       $form, t('Are you sure you want to make these changes?'), 'admin/reports/auditfiles/notindb', '<strong>' . t('This action cannot be undone.') . '</strong>', t('Process all'), t('Cancel')
@@ -194,10 +222,14 @@ function auditfiles_notindb_form_confirm($form, &$form_state) {
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Submit handler for the confirmation form.
+ *
+ * @param array $form
+ *   The form definition.
+ * @param array $form_state
+ *   The current state of the form.
  */
-function auditfiles_notindb_form_confirm_submit($form, &$form_state) {
+function auditfiles_not_in_db_form_confirm_submit($form, &$form_state) {
   if ($form_state['values']['confirm']) {
     $values = $form_state['storage']['values'];
     $operation = $values['operation'];
@@ -249,79 +281,85 @@ function auditfiles_notindb_form_confirm_submit($form, &$form_state) {
     else {
       drupal_set_message(t('The files have been added to the database.'));
     }
-    // Clear so our return to the primary form doesn't think we're going to the confirmation form
+    // Clear so our return to the primary form doesn't think we're going to the
+    // confirmation form.
     unset($form_state['storage']['confirm']);
   }
 }
 
 /**
- * Helper function - retrieve sorted list of files that are on the server
- * but not in the database
+ * Retrieve sorted list of files on server but not in database.
+ *
+ * @return array
+ *   An array of file names not found in the database.
  */
-function _auditfiles_filesnotindb() {
-
-  // Get the root path - will need this later
+function _auditfiles_get_files_not_in_db() {
+  // Initialize variables.
+  $files_in_db = array();
+  $files_not_in_db = array();
+  // Get the root path.
   $root = drupal_realpath('./');
 
-  // Prepare array to hold results
-  $filesnotindb = array();
-
-  // Get all the files out the {file_managed} table and store as qualified path
+  // Get all the files from the {file_managed} table and store them as qualified
+  // path.
   $result = db_query('SELECT uri FROM {file_managed} ORDER BY uri ASC');
-  $filesindb = array();
   foreach ($result as $file) {
     $path = drupal_realpath($file->uri);
     // Strip out the real path to leave just a drupal path
-    $filesindb[] = preg_replace('@' . preg_quote($root) . '.@', '', $path);
+    $files_in_db[] = preg_replace('@' . preg_quote($root) . '.@', '', $path);
   }
 
-  // Get all the files out of the directory structure
-  $filesonserver = _auditfiles_directorytoarray(drupal_realpath(file_default_scheme() . '://'), TRUE);
-
-  // Sort the rows to make it easier to compare to file listing in FTP
-  asort($filesonserver);
-
-  // Get the exclusions string
+  // Get the exclusions string.
   $exclusions = _auditfiles_get_exclusions();
 
+  // Get all the files out of the directory structure
+  $files_on_server = _auditfiles_get_file_list(drupal_realpath(file_default_scheme() . '://'), TRUE);
+  // Sort the rows to make it easier to compare to file listing in FTP
+  asort($files_on_server);
   // Process each result in turn
-  foreach ($filesonserver as $file) {
-
+  foreach ($files_on_server as $file) {
     // Strip out the real path to leave just a drupal path
     $file = preg_replace('@' . preg_quote($root) . '.@', '', $file);
 
     // Check it isn't a directory - not interested
     if (!file_prepare_directory($file)) {
-
-      // Exclude files, paths and extensions according to the retrieved exclusions string
+      // Exclude files, paths and extensions according to the retrieved
+      // exclusions string.
       if (!preg_match('/' . $exclusions . '/', $file) || !$exclusions) {
-
         // Check to see if file is NOT in the database
-        if (!in_array($file, $filesindb)) {
-
-          // If we get here we have a file that isn't in the database
+        if (!in_array($file, $files_in_db)) {
+          // If we get here, we have a file that isn't in the database.
           $file = preg_replace('/^' . preg_quote(file_default_scheme()) . '/', '', $file);
-          $filesnotindb[] = $file;
+          $files_not_in_db[] = $file;
         }
       }
     }
   }
 
-  return $filesnotindb;
+  return $files_not_in_db;
 }
 
 /**
- * Helper function - recurse directories and files in to an array
- * http://snippets.dzone.com/posts/show/155
+ * Recurse directories and add files to an array.
+ *
+ * @see http://snippets.dzone.com/posts/show/155
+ *
+ * @param string $directory
+ *   The directory to find the files in.
+ * @param boolean $recursive
+ *   Whether to recurse into subdirectories or not.
+ *
+ * @return array
+ *   A collection of files.
  */
-function _auditfiles_directorytoarray($directory, $recursive) {
+function _auditfiles_get_file_list($directory, $recursive) {
   $array_items = array();
   if ($handle = opendir($directory)) {
     while (false !== ($file = readdir($handle))) {
       if ($file != "." && $file != "..") {
         if (is_dir($directory . "/" . $file)) {
           if ($recursive) {
-            $array_items = array_merge($array_items, _auditfiles_directorytoarray($directory . "/" . $file, $recursive));
+            $array_items = array_merge($array_items, _auditfiles_get_file_list($directory . "/" . $file, $recursive));
           }
           $file = $directory . "/" . $file;
           $array_items[] = preg_replace("/\/\//si", "/", $file);
@@ -338,40 +376,42 @@ function _auditfiles_directorytoarray($directory, $recursive) {
 }
 
 /**
- * Helper function: create an exclusion string for the preg
+ * Creates an exclusion string.
+ *
+ * This function creates a list of file and/or directory exclusions to be used
+ * with a preg_* function.
+ *
+ * @return string
+ *   The excluions.
  */
 function _auditfiles_get_exclusions() {
-
-  // Get exclusion lists from the variables table
-  $files = trim(variable_get('auditfiles_exclude_files', '.htaccess'));
-  $extensions = trim(variable_get('auditfiles_exclude_extensions', ''));
-  $paths = trim(variable_get('auditfiles_exclude_paths', 'color'));
-
-  // Prepare an empty array
   $exclusions_array = array();
 
-  // Create file exclusions as required
+  // Create the list of requested file exclusions.
+  $files = trim(variable_get('auditfiles_exclude_files', '.htaccess'));
   if ($files) {
     $exclude_files = explode(' ', $files);
     array_walk($exclude_files, '_auditfiles_make_preg', FALSE);
     $exclusions_array = array_merge($exclusions_array, $exclude_files);
   }
 
-  // Create path exclusions as required
+  // Create the list of requested path exclusions.
+  $paths = trim(variable_get('auditfiles_exclude_paths', 'color css ctools js'));
   if ($paths) {
     $exclude_paths = explode(' ', $paths);
     array_walk($exclude_paths, '_auditfiles_make_preg', TRUE);
     $exclusions_array = array_merge($exclusions_array, $exclude_paths);
   }
 
-  // Create extension exclusions as required (this is a little more complicated)
+  // Create the list of requested extension exclusions. (This is a little more
+  // complicated.)
+  $extensions = trim(variable_get('auditfiles_exclude_extensions', ''));
   if ($extensions) {
-    // Prepare initial string as for files and paths
     $exclude_extensions = explode(' ', $extensions);
     array_walk($exclude_extensions, '_auditfiles_make_preg', FALSE);
-    $extensions = implode('|', $exclude_extensions);
 
-    // Add grouping around string, add end marker, and append to exlusions_array
+    $extensions = implode('|', $exclude_extensions);
+    // Add grouping around string & end marker and append to exlusions_array.
     $extensions = '(' . $extensions . ')$';
     $exclusions_array[] = $extensions;
   }
@@ -384,8 +424,15 @@ function _auditfiles_get_exclusions() {
 }
 
 /**
- * Helper function: walk an array and preg_quote each entry
- * Pass $makefilepath = TRUE to change elements to file paths at the same time
+ * Escapes any possible regular expression characters in the specified string.
+ *
+ * @param string $element
+ *   The string to escape.
+ * @param mixed $key
+ *   The key or index for the array item passed into $element.
+ *
+ * @param boolean $makefilepath
+ *   Set to TRUE to change elements to file paths at the same time.
  */
 function _auditfiles_make_preg(&$element, $key, $makefilepath = FALSE) {
   if ($makefilepath) {

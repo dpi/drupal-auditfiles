@@ -1,15 +1,13 @@
 <?php
-
 /**
  * @file
  * Callback to generate files not on server report
  */
 
-
 /**
  * Menu callback: audit files not on the server.
  */
-function auditfiles_notonserver() {
+function auditfiles_not_on_server() {
   // Get all the files from the files table using defined sort order
   // Using a left join means all rows in {files} are selected even if there is no entry in {upload}
   $sql = 'SELECT u.id, f.uri FROM {file_managed} AS f LEFT JOIN {file_usage} AS u ON f.fid = u.fid';

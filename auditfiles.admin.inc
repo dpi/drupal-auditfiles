@@ -27,7 +27,7 @@ function auditfiles_admin_settings($form, &$form_state) {
   $form['exclusions']['auditfiles_exclude_paths'] = array(
     '#type' => 'textfield',
     '#title' => t('Exclude these paths'),
-    '#default_value' => trim(variable_get('auditfiles_exclude_paths', 'color')),
+    '#default_value' => trim(variable_get('auditfiles_exclude_paths', 'color css ctools js')),
     '#description' => t('Enter a list of paths to exclude, separated by spaces. Do not
       include the leading slash. Paths are relative to %directorypath',
       array('%directorypath' => file_default_scheme())),
