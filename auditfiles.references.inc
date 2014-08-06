@@ -16,7 +16,6 @@ function auditfiles_references() {
  * Form definition for audit files not in database
  */
 function auditfiles_references_form($form, &$form_state) {
-//  drupal_set_message("form: form_state: ".dpr($form_state,TRUE));
   if (isset($form_state['storage']['confirm'])) {
     return auditfiles_references_form_confirm($form, $form_state);
   }
@@ -49,14 +48,14 @@ function auditfiles_references_form($form, &$form_state) {
   // Process each result in turn and build check box list
   // Note we cut down the overhead by preselecting nodes with potential
   // to match the $patterns below
-  // TODO Please convert this statement to the D7 database API syntax.
+  // @TODO Please convert this statement to the D7 database API syntax.
   $result = db_query("SELECT n.nid,n.title,b.body_value
                       FROM {node} n
                       INNER JOIN {node_revision} nr ON n.vid=nr.vid
                       INNER JOIN {field_data_body} b ON b.revision_id = nr.vid
                       WHERE b.body_value LIKE '%img%'
-                       OR b.body_value LIKE '%window.open%'
-                        OR b.body_value LIKE '%href%'
+                         OR b.body_value LIKE '%window.open%'
+                         OR b.body_value LIKE '%href%'
                       ORDER BY n.nid");
 
   // Start at 1 - $files checkboxes shouldn't have a 0 key
@@ -144,9 +143,9 @@ function auditfiles_references_form($form, &$form_state) {
       // path in the {upload} table, we don't have to go farther (note how we
       // skip the / in the src)
       $hit = db_query("SELECT u.nid
-                                 FROM {files} f
-                                 INNER JOIN {upload} u ON f.fid=u.fid
-                                 WHERE u.nid = :u.nid AND CONCAT('/', f.filepath) = :f.filepath)", array(':u.nid' => $node->nid, ':f.filepath)' => $decodesrc))->fetchField();
+                       FROM {files} f
+                       INNER JOIN {upload} u ON f.fid=u.fid
+                       WHERE u.nid = :u.nid AND CONCAT('/', f.filepath) = :f.filepath)", array(':u.nid' => $node->nid, ':f.filepath)' => $decodesrc))->fetchField();
 
       if (!$hit) {
         $basename = basename($src);
@@ -340,9 +339,8 @@ function theme_auditfiles_references_form($variables) {
  * @see http://drupal.org/node/1354
  */
 function auditfiles_references_form_submit($form, &$form_state) {
-//  drupal_set_message("submit form_state: ".dpr($form_state, TRUE));
   if ($form_state['clicked_button']['#id'] == 'edit-options-submit' &&
-      $form_state['values']['options']['operation'] <> 'donothing') {
+    $form_state['values']['options']['operation'] <> 'donothing') {
     $form_state['storage']['confirm'] = TRUE;
     $form_state['storage']['values'] = $form_state['values'];
   }
@@ -353,7 +351,6 @@ function auditfiles_references_form_submit($form, &$form_state) {
  * @see http://drupal.org/node/1354
  */
 function auditfiles_references_form_confirm($form, &$form_state) {
-//  drupal_set_message("form_confirm: values: ".dpr($values, TRUE));
   $values = $form_state['storage']['values'];
   $operation = $values['options']['operation'];
   switch ($operation) {
@@ -384,7 +381,7 @@ function auditfiles_references_form_confirm($form, &$form_state) {
   $count = 0;
   foreach ($values['fidvals'] as $id => $value) {
     if (($seltype == 'unique' && $values['unique'][$id]) ||
-        ($seltype == 'selected' && $values['files'][$id] == $id)) {
+      ($seltype == 'selected' && $values['files'][$id] == $id)) {
       $count++;
       // Limit what's displayed (also helps avoid max_allowed_packet errors)
       if ($count == 50) {
@@ -422,7 +419,7 @@ function auditfiles_references_form_confirm($form, &$form_state) {
   $form['#submit'][] = 'auditfiles_references_form_confirm_submit';
 
   return confirm_form(
-      $form, t('Are you sure you want to make these changes?'), 'admin/reports/auditfiles/references', '<strong>' . t('This action cannot be undone.') . '</strong>', t('Process all'), t('Cancel')
+    $form, t('Are you sure you want to make these changes?'), 'admin/reports/auditfiles/references', '<strong>' . t('This action cannot be undone.') . '</strong>', t('Process all'), t('Cancel')
   );
 }
 
@@ -431,19 +428,16 @@ function auditfiles_references_form_confirm($form, &$form_state) {
  * @see http://drupal.org/node/1354
  */
 function auditfiles_references_form_confirm_submit($form, &$form_state) {
-//  drupal_set_message('confirm_submit, form: '.dpr($form, TRUE));
-//  drupal_set_message('confirm_submit, form_state: '.dpr($form_state, TRUE));
   if ($form_state['values']['confirm']) {
     $values = $form_state['storage']['values'];
-    //drupal_set_message("in confirm_submit, values: ".dpr($values,TRUE));
     foreach ($values['fidvals'] as $id => $fid) {
       if ($values['options']['operation'] == 'delete') {
-        // TODO Please review the conversion of this statement to the D7 database API syntax.
+        // @TODO Please review the conversion of this statement to the D7 database API syntax.
         /* db_query("DELETE FROM {files}
          WHERE fid=%d", $fid) */
         db_delete('files')
-  ->condition('fid', $fid)
-  ->execute();
+          ->condition('fid', $fid)
+          ->execute();
         if (file_delete(file_create_path($values['pathvals'][$id]))) {
           drupal_set_message(t('%file was deleted', array('%file' => $values['pathvals'][$id])));
         }
@@ -459,23 +453,21 @@ function auditfiles_references_form_confirm_submit($form, &$form_state) {
 
         if ($newpath != $oldpath) {
           $row = db_fetch_object(db_query("SELECT nr.body,nr.vid
-                                      FROM {node_revisions} nr
-                                      INNER JOIN {node} n ON nr.vid=n.vid
-                                      WHERE n.nid = :n.nid", array(':n.nid' => $values['nidvals'][$id])));
+                                          FROM {node_revisions} nr
+                                          INNER JOIN {node} n ON nr.vid=n.vid
+                                          WHERE n.nid = :n.nid", array(':n.nid' => $values['nidvals'][$id])));
           $body = str_replace($oldpath, $newpath, $row->body);
-          // TODO Please review the conversion of this statement to the D7 database API syntax.
+          // @TODO Please review the conversion of this statement to the D7 database API syntax.
           /* db_query("UPDATE {node_revisions}
            SET body='%s'
            WHERE vid=%d", $body, $row->vid) */
           db_update('node_revisions')
-  ->fields(array(
-    'body' => $body,
-  ))
-  ->condition('vid', $row->vid)
-  ->execute();
+            ->fields(array('body' => $body))
+            ->condition('vid', $row->vid)
+            ->execute();
         }
         if ($values['noupload'][$id]) {
-          // TODO Please convert this statement to the D7 database API syntax.
+          // @TODO Please convert this statement to the D7 database API syntax.
           /* db_query("INSERT INTO {upload}
            (fid, nid, vid, description, list, weight)
            SELECT %d, n.nid, n.vid, 'Attached by auditfiles', 0, 0
@@ -483,7 +475,14 @@ function auditfiles_references_form_confirm_submit($form, &$form_state) {
            WHERE n.nid=%d", $fid, $values['nidvals'][$id]) */
           NULL;
         }
-        drupal_set_message("Updated path $oldpath to $newpath for rev " . $values['nidvals'][$id]);
+        drupal_set_message(t(
+          'Updated path %oldpath to %newpath for revision %revision.',
+          array(
+            '%oldpath' => $oldpath,
+            '%newpath' => $newpath,
+            '%revision' => $values['nidvals'][$id],
+          )
+        ));
       }
     }
     // Clear so our return to the primary form doesn't think we're going to the confirmation form

@@ -119,7 +119,6 @@ function theme_auditfiles_unreferenced_form($variables) {
  * @see http://drupal.org/node/1354
  */
 function auditfiles_unreferenced_form_submit($form, &$form_state) {
-//  drupal_set_message("submit form_state: ".dpr($form_state, TRUE));
   if ($form_state['clicked_button']['#id'] == 'edit-submit' &&
   $form_state['values']['operation'] <> 'donothing') {
     $form_state['storage']['confirm'] = TRUE;
@@ -133,7 +132,6 @@ function auditfiles_unreferenced_form_submit($form, &$form_state) {
  */
 function auditfiles_unreferenced_form_confirm($form, &$form_state) {
   $values = $form_state['storage']['values'];
-  drupal_set_message("form_confirm: values: " . dpr($values, TRUE));
 
   $form['changelist'] = array(
     '#prefix' => '<ul>',
@@ -171,7 +169,7 @@ function auditfiles_unreferenced_form_confirm($form, &$form_state) {
   $form['#submit'][] = 'auditfiles_unreferenced_form_confirm_submit';
 
   return confirm_form(
-  $form, t('Are you sure you want to delete these files?'), 'admin/reports/auditfiles/unreferenced', '<strong>' . t('This action cannot be undone.') . '</strong>', t('Process all'), t('Cancel')
+    $form, t('Are you sure you want to delete these files?'), 'admin/reports/auditfiles/unreferenced', '<strong>' . t('This action cannot be undone.') . '</strong>', t('Process all'), t('Cancel')
   );
 }
 
@@ -180,19 +178,16 @@ function auditfiles_unreferenced_form_confirm($form, &$form_state) {
  * @see http://drupal.org/node/1354
  */
 function auditfiles_unreferenced_form_confirm_submit($form, &$form_state) {
-//  drupal_set_message('confirm_submit, form: '.dpr($form, TRUE));
-//  drupal_set_message('confirm_submit, form_state: '.dpr($form_state, TRUE));
   if ($form_state['values']['confirm']) {
     $values = $form_state['storage']['values'];
-    drupal_set_message("in confirm_submit, values: " . dpr($values, TRUE));
     foreach ($values['files'] as $filename) {
       if ($filename) {
-        // TODO Please review the conversion of this statement to the D7 database API syntax.
+        // @TODO Please review the conversion of this statement to the D7 database API syntax.
         /* db_query("DELETE FROM {files}
          WHERE filepath='%s'", $filename) */
         db_delete('files')
-  ->condition('filepath', $filename)
-  ->execute();
+          ->condition('filepath', $filename)
+          ->execute();
         if (file_delete(file_create_path($filename))) {
           watchdog('audit', '%file was deleted', array('%file' => $filename));
         }
@@ -211,28 +206,26 @@ function auditfiles_unreferenced_form_confirm_submit($form, &$form_state) {
  * but not in {upload}
  */
 function _auditfiles_filesunreferenced() {
-
-  $allFiles = db_query('SELECT f.uri FROM {file_managed} f ORDER BY f.uri ASC')->fetchAll(PDO::FETCH_COLUMN);
-
-  $foundFiles = array();
+  $all_files = db_query('SELECT f.uri FROM {file_managed} f ORDER BY f.uri ASC')->fetchAll(PDO::FETCH_COLUMN);
+  $found_files = array();
 
   $fields = field_info_fields();
   foreach ($fields as $name => $field) {
     if ($field['type'] == 'file' || $field['type'] == 'image') {
       $table = key($field['storage']['details']['sql']['FIELD_LOAD_CURRENT']);
       $column = $field['storage']['details']['sql']['FIELD_LOAD_CURRENT'][$table]['fid'];
-      // TODO Please convert this statement to the D7 database API syntax.
+      // @TODO Please convert this statement to the D7 database API syntax.
       $result = db_query('SELECT f.uri FROM {file_managed} f INNER JOIN ' . $table . ' u ON f.fid = u.' . $column)->fetchAll(PDO::FETCH_COLUMN);
 
       foreach ($result as $uri) {
-        if (in_array($uri, $allFiles)) {
-          $foundFiles[] = $uri;
+        if (in_array($uri, $all_files)) {
+          $found_files[] = $uri;
         }
       }
     }
   }
 
-  return array_diff($allFiles, $foundFiles);
+  return array_diff($all_files, $found_files);
 }
 
 /**
@@ -248,12 +241,11 @@ function auditfiles_node_references_form($form, $form_state, $basename) {
       "),
     '#suffix' => '</div>',
   );
-  // TODO Please convert this statement to the D7 database API syntax.
+  // @TODO Please convert this statement to the D7 database API syntax.
   $result = db_query("SELECT nr.nid,nr.title
                       FROM {node_revisions} nr
                       WHERE nr.body LIKE '%%%s%%'", $basename);
   foreach ($result as $node) {
-    drupal_set_message("nid=$node->nid, title=$node->title");
     $form['node'][$file] = array('#value' => l($node->title, 'node/' . $node->nid));
   }
   return $form;

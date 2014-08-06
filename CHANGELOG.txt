@@ -1,3 +1,16 @@
+6 August 2014 (oadaeh)
+-------------
+Update code to conform to Drupal Coding Standards, as identified by the Coder
+module.
+Also, renamed the include files to follow a auditfiles.$function.inc naming
+standard.
+
+22 July 2014
+-------------
+Committed initial port of Audit Files to Drupal 7.
+The work was done by javier.alejandro.castro, mrfelton, TommyK in this issue:
+https://www.drupal.org/node/1016600
+
 4 September 2008 (mikeryan)
 ----------------
 Implemented Missing References and Unreferenced reports.
@@ -31,4 +44,3 @@ nid. Easier to use the report if you want to compare with an FTP listing etc
 10 April 2007
 -------------
 First version for Drupal 5
-

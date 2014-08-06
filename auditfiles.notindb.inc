@@ -122,9 +122,8 @@ function theme_auditfiles_notindb_form($variables) {
  * @see http://drupal.org/node/1354
  */
 function auditfiles_notindb_form_submit($form, &$form_state) {
-  //drupal_set_message("submit form_state: ".dpr($form_state, TRUE));
   if ($form_state['clicked_button']['#id'] == 'edit-submit' &&
-      $form_state['values']['operation'] <> 'donothing') {
+    $form_state['values']['operation'] <> 'donothing') {
     $form_state['storage']['confirm'] = TRUE;
     $form_state['storage']['values'] = $form_state['values'];
     $form_state['rebuild'] = TRUE;
@@ -137,7 +136,6 @@ function auditfiles_notindb_form_submit($form, &$form_state) {
  */
 function auditfiles_notindb_form_confirm($form, &$form_state) {
   $values = $form_state['storage']['values'];
-  //drupal_set_message("form_confirm: values: ".dpr($values, TRUE));
   $operation = $values['operation'];
   switch ($operation) {
     case 'delete':
@@ -200,8 +198,6 @@ function auditfiles_notindb_form_confirm($form, &$form_state) {
  * @see http://drupal.org/node/1354
  */
 function auditfiles_notindb_form_confirm_submit($form, &$form_state) {
-//  drupal_set_message('confirm_submit, form: '.dpr($form, TRUE));
-//  drupal_set_message('confirm_submit, form_state: '.dpr($form_state, TRUE));
   if ($form_state['values']['confirm']) {
     $values = $form_state['storage']['values'];
     $operation = $values['operation'];
@@ -211,7 +207,6 @@ function auditfiles_notindb_form_confirm_submit($form, &$form_state) {
         $finfo = @finfo_open(FILEINFO_MIME);
       }
     }
-    //drupal_set_message("in confirm_submit, values: ".dpr($values,TRUE));
     foreach ($values['files'] as $filename => $selected) {
       if ($operation == 'delete') {
         $root = drupal_realpath("./");

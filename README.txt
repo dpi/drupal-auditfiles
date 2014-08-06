@@ -114,4 +114,3 @@ own table, which would require every place that now checks the {upload} table to
 tables. 
 
 The newer functionality is untested with private downloads.
-

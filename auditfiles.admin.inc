@@ -5,7 +5,6 @@
  * Callback for settings page
  */
 function auditfiles_admin_settings($form, &$form_state) {
-
   $form['exclusions'] = array(
     '#type' => 'fieldset',
     '#title' => t('Exclusions'),
@@ -18,7 +17,6 @@ function auditfiles_admin_settings($form, &$form_state) {
     '#default_value' => trim(variable_get('auditfiles_exclude_files', '.htaccess')),
     '#description' => t('Enter a list of files to exclude, separated by spaces.'),
   );
-
   $form['exclusions']['auditfiles_exclude_extensions'] = array(
     '#type' => 'textfield',
     '#title' => t('Exclude these extensions'),
@@ -26,7 +24,6 @@ function auditfiles_admin_settings($form, &$form_state) {
     '#description' => t('Enter a list of extensions to exclude, separated by spaces. Do not
       include the leading dot.'),
   );
-
   $form['exclusions']['auditfiles_exclude_paths'] = array(
     '#type' => 'textfield',
     '#title' => t('Exclude these paths'),
@@ -42,7 +39,6 @@ function auditfiles_admin_settings($form, &$form_state) {
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
-
   $form['domains']['auditfiles_include_domains'] = array(
     '#type' => 'textfield',
     '#title' => t('Include references to these domains'),

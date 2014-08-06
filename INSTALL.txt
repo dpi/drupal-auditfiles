@@ -1,6 +1,16 @@
-auditfiles.module installation instructions
-===========================================
+REQUIREMENTS
+------------
 
-Install this module as normal by copying it to your modules directory.
-It will add four audit reports to the Administer > Logs menu
+* To be completed.
 
+INSTALLATION
+------------
+
+* Install as usual, see http://drupal.org/node/70151 for further information.
+
+* To be completed.
+
+CONFIGURATION
+-------------
+
+* To be completed.

@@ -88,11 +88,11 @@ function auditfiles_permission() {
   return array(
     'access file audits' => array(
       'title' => t('access file audits'),
-      'description' => t('TODO Add a description for \'access file audits\''),
+      'description' => t('Allow access to file audits.'),
     ),
     'administer file audits' => array(
       'title' => t('administer file audits'),
-      'description' => t('TODO Add a description for \'administer file audits\''),
+      'description' => t('Perform administration tasks for the Audit files module.'),
     ),
   );
 }
@@ -102,63 +102,9 @@ function auditfiles_permission() {
  * Implements hook_menu().
  */
 function auditfiles_menu() {
-
   $items = array();
 
-  $items['admin/reports/auditfiles'] = array(
-    'title' => t('Audit files'),
-    'description' => t('List files that are not on the server or not in the database.'),
-    'page callback' => 'auditfiles_notindb',
-    'access arguments' => array('access file audits'),
-    'file' => 'notindb.admin.inc',
-  );
-
-  $items['admin/reports/auditfiles/notindb'] = array(
-    'title' => t('Not in database'),
-    'description' => t('List files that are on the server but are not in the database.'),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -10,
-  );
-
-  $items['admin/reports/auditfiles/notonserver'] = array(
-    'title' => t('Not on server'),
-    'description' => t('List files that are in the database, but are not on the server.'),
-    'page callback' => 'auditfiles_notonserver',
-    'access arguments' => array('access file audits'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'notonserver.admin.inc',
-    'weight' => -5,
-  );
-
-  $items['admin/reports/auditfiles/references'] = array(
-    'title' => t('Missing references'),
-    'description' => t('List files referenced by nodes, but not properly linked or attached.'),
-    'page callback' => 'auditfiles_references',
-    'access arguments' => array('access file audits'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'references.admin.inc',
-    'weight' => 0,
-  );
-
-  $items['admin/reports/auditfiles/unreferenced'] = array(
-    'title' => t('Unreferenced'),
-    'description' => t('List files that are in the database, but are not referenced by any node.'),
-    'page callback' => 'auditfiles_unreferenced',
-    'access arguments' => array('access file audits'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'unreferenced.admin.inc',
-    'weight' => 5,
-  );
-
-  $items['admin/reports/auditfiles/unreferenced/%'] = array(
-    'title' => 'Referencing nodes',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('auditfiles_node_references_form', 4),
-    'access arguments' => array('access file audits'),
-    'type' => MENU_CALLBACK,
-    'file' => 'unreferenced.admin.inc',
-  );
-
+  // Configure the settings for this module.
   $items['admin/config/system/auditfiles'] = array(
     'title' => 'Audit files',
     'description' => 'Set file, extension and path exclusions for file audits.',
@@ -166,6 +112,56 @@ function auditfiles_menu() {
     'page arguments' => array('auditfiles_admin_settings'),
     'access arguments' => array('administer file audits'),
     'file' => 'auditfiles.admin.inc',
+  );
+
+  // The various reports.
+  $items['admin/reports/auditfiles'] = array(
+    'title' => 'Audit files',
+    'description' => 'List files that are not on the server or not in the database.',
+    'page callback' => 'auditfiles_notindb',
+    'access arguments' => array('access file audits'),
+    'file' => 'auditfiles.notindb.inc',
+  );
+  $items['admin/reports/auditfiles/notindb'] = array(
+    'title' => 'Not in database',
+    'description' => 'List files that are on the server but are not in the database.',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['admin/reports/auditfiles/notonserver'] = array(
+    'title' => 'Not on server',
+    'description' => 'List files that are in the database, but are not on the server.',
+    'page callback' => 'auditfiles_notonserver',
+    'access arguments' => array('access file audits'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'auditfiles.notonserver.inc',
+    'weight' => -5,
+  );
+  $items['admin/reports/auditfiles/references'] = array(
+    'title' => 'Missing references',
+    'description' => 'List files referenced by nodes, but not properly linked or attached.',
+    'page callback' => 'auditfiles_references',
+    'access arguments' => array('access file audits'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'auditfiles.references.inc',
+    'weight' => 0,
+  );
+  $items['admin/reports/auditfiles/unreferenced'] = array(
+    'title' => 'Unreferenced',
+    'description' => 'List files that are in the database, but are not referenced by any node.',
+    'page callback' => 'auditfiles_unreferenced',
+    'access arguments' => array('access file audits'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'auditfiles.unreferenced.inc',
+    'weight' => 5,
+  );
+  $items['admin/reports/auditfiles/unreferenced/%'] = array(
+    'title' => 'Referencing nodes',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('auditfiles_node_references_form', 4),
+    'access arguments' => array('access file audits'),
+    'type' => MENU_CALLBACK,
+    'file' => 'auditfiles.unreferenced.inc',
   );
 
   return $items;
@@ -179,19 +175,19 @@ function auditfiles_theme() {
   return array(
     'auditfiles_notindb_form' => array(
       'render element' => 'form',
-      'file' => 'notindb.admin.inc',
+      'file' => 'auditfiles.notindb.inc',
     ),
     'auditfiles_unreferenced_form' => array(
       'render element' => 'form',
-      'file' => 'unreferenced.admin.inc',
+      'file' => 'auditfiles.unreferenced.inc',
     ),
     'auditfiles_node_references_form' => array(
       'render element' => 'form',
-      'file' => 'unreferenced.admin.inc',
+      'file' => 'auditfiles.unreferenced.inc',
     ),
     'auditfiles_references_form' => array(
       'render element' => 'form',
-      'file' => 'references.admin.inc',
+      'file' => 'auditfiles.references.inc',
     ),
   );
 }
