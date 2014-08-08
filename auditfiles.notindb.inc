@@ -51,7 +51,6 @@ function auditfiles_not_in_db_form($form, &$form_state) {
     '#prefix' => '<div class="container-inline">',
     '#suffix' => '</div>',
   );
-
   $options = array(
     'donothing' => t('Do nothing'),
     'delete' => t('Delete checked files'),
@@ -63,7 +62,6 @@ function auditfiles_not_in_db_form($form, &$form_state) {
     '#options' => $options,
     '#default_value' => 'donothing',
   );
-
   $form['options']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Update'),
