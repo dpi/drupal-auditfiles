@@ -1,10 +1,11 @@
 <?php
-
 /**
+ * @file
+ * This is the main code file, containing the various hooks used by the module.
+ *
  * Audit files carries out a simple audit of the Drupal upload directory
  * and the {files} table, to look for inconsistencies
  */
-
 
 /**
  * Implements hook_help().
@@ -12,70 +13,94 @@
 function auditfiles_help($path, $arg) {
   switch ($path) {
     case 'admin/config/auditfiles':
-      return t('You can choose to exclude specific files, paths and extensions from the \'files
-        not in database\' audit report by adding them to the relevant lists below.');
+      return t('You can choose to exclude specific files, paths and extensions
+        from the "Not in database" audit report by adding them to the relevant
+        lists below.');
     case 'admin/help#auditfiles':
-      return '<p>' . t('The audit files module performs an audit of the file table and the files
-        directory to check for inconsistencies.') . '</p>';
+      return '<p>' . t('The audit files module performs an audit of the file
+        tables and the files directory to check for inconsistencies.') . '</p>';
     case 'admin/reports/auditfiles':
-      $output = '<p>' . t('The files listed below are in the files directory on the server but
-        appear to have no corresponding entry in the {file_managed} table. Files in "temporary" folders
-        such as those created by the image module are included in order to check that they are not
-        filling up. You can choose to delete files from this report but remember that if you do
-        this the action cannot be undone. You can also add files to the {file_managed} table - you might
-        do this if you have uploaded files outside of Drupal (e.g., by ftp) and will be attaching
-        them to nodes through the other tools.') . '</p>';
-      $output .= '<p>' . t('Files in this list are relative to the files directory %directorypath.', array('%directorypath' => file_default_scheme())) . '</p>';
+      $output = '<p>' . t('The files listed below are in the files directory on
+        the server but appear to have no corresponding entry in the
+        {file_managed} table. Files in "temporary" folders such as those created
+        by the image module are included in order to check that they are not
+        filling up. You can choose to delete files on this report, but remember
+        that if you do that, the action cannot be undone. You can also add files
+        to the {file_managed} table - you might do that, if you have uploaded
+        files outside of Drupal (e.g., by FTP) and will be attaching them to
+        nodes through other tools.') . '</p>';
+      $output .= '<p>' . t(
+        'The files in this list are using the %scheme scheme and are relative to the files directory %path path.',
+        array(
+          '%scheme' => file_default_scheme(),
+          '%path' => file_default_scheme(),
+        )
+      ) . '</p>';
       // If on a confirmation form then suppress the help message
       if (array_key_exists('operation', $_POST) && $_POST['operation'] == 'delete' && array_key_exists('files', $_POST)) {
         $output = '';
       }
       return $output;
     case 'admin/reports/auditfiles/notonserver':
-      $output = '<p>' . t('The files listed below are in the {file_managed} table but the physical files
-        do not exist on the server. This might mean the file has been deleted using a program such
-        as FTP, or it may mean there is an error in the database.</p><p>If the file was uploaded
-        using the upload module then you can click on the node number to view the item to which
-        the missing file relates to try and determine what action needs to be taken, or you can
-        click the edit link to open the node editing form directly.') . '</p>';
-      $output .= '<p>' . t('Files in this list are relative to the files directory %directorypath.',
-        array('%directorypath' => file_default_scheme())) . '</p>';
+      $output = '<p>' . t('The files listed below are in the {file_managed}
+        table but the physical files do not exist on the server. This might mean
+        the file has been deleted using a program such as FTP, or it may mean
+        there is an error in the database.</p><p>If the file was uploaded using
+        a file or image field, then you can click on the node title to view the
+        item to which the missing file relates to try and determine what action
+        needs to be taken, or you can click the edit link to open the node
+        editing form directly.') . '</p>';
+      $output .= '<p>' . t(
+        'Files in this list are relative to the files directory %path.',
+        array('%path' => file_default_scheme())
+      ) . '</p>';
       return $output;
     case 'admin/reports/auditfiles/references':
-      $output = '<p>' . t('Listed here are file references embedded in node bodies which do
-        not have exact correspondences in the {file_managed} and {upload} tables. If there is a file
-        in the {file_managed} table with a corresponding base name, that is listed. Scenarios are:
-        <ul><li><strong>No match at all in the {file_managed} table.</strong> Go to <strong>Files
-        not in database</strong> and make sure any files that exist have been added to the database.
-        If they have, you should either find and upload the missing file and run this report
-        again, or remove the reference from the node.</li>
-        <li><strong>Multiple matches in the {file_managed} table.</strong> This can happen when the same
-        filename is in multiple directories in the uploded file hierarchy. You can review the
-        alternate files and delete any that are true duplicates. When different files have the
-        same basename, you can select the one that goes with the given node and choose
-        <strong>Attach selected files</strong>. This will rewrite the reference in the node
-        to use the canonical relative URL to the file, and if necessary add the reference
-        to the {upload} table.</li>
-        <li><strong>A single match in the {file_managed} table.</strong> You can make the attachments
-        between these nodes and the corresponding files one-by-one by selecting them and choosing
-        <strong>Attach selected files</strong>, or automatically apply it to all single-match
-        cases with <strong>Attach all unique matches</strong>.</li></ul>') . '</p>';
-      $output .= '<p>' . t('Files in this list are relative to the files directory %directorypath.',
-        array('%directorypath' => file_default_scheme())) . '</p>';
+      $output = '<p>' . t('Listed here are file references embedded in node
+        bodies which do not have exact correspondences in the {file_managed} and
+        {file_usage} tables. If there is a file in the {file_managed} table with
+        a corresponding base name, it is listed. Scenarios are:
+        <ul><li><strong>No match at all in the {file_managed} table.</strong> Go
+        to <strong>Files not in database</strong> and make sure any files that
+        exist have been added to the database. If they have, you should either
+        find and upload the missing file and run this report again, or remove
+        the reference from the node.</li>
+        <li><strong>Multiple matches in the {file_managed} table.</strong> This
+        can happen when the same filename is in multiple directories in the
+        uploded file hierarchy. You can review the alternate files and delete
+        any that are true duplicates. When different files have the same
+        basename, you can select the one that goes with the given node and
+        choose <strong>Attach selected files</strong>. This will rewrite the
+        reference in the node to use the canonical relative URL to the file, and
+        if necessary, add the reference to the {file_usage} table.</li>
+        <li><strong>A single match in the {file_managed} table.</strong> You can
+        make the attachments between these nodes and the corresponding files
+        one-by-one by selecting them and choosing <strong>Attach selected
+        files</strong>, or automatically apply it to all single-match cases with
+        <strong>Attach all unique matches</strong>.</li></ul>') . '</p>';
+      $output .= '<p>' . t(
+        'Files in this list are relative to the files directory %path.',
+        array('%path' => file_default_scheme())
+      ) . '</p>';
       return $output;
     case 'admin/reports/auditfiles/unreferenced':
-      $output = '<p>' . t('The files listed below are in the {file_managed} table but no nodes are recorded
-        as referencing them (i.e., there\'s no entry in the {upload} table). This might mean the
-        node has been deleted without deleting the file, or that the files were uploaded by some
-        means other than the upload module (e.g., ftp) and the relationships between files and
-        nodes have not been made. If you have used the <strong>Missing references</strong> report
-        and accounted for all files that should be referenced, and are sure that the files below
-        are not needed, you can delete them. Click on the basename to get a list of all nodes
-        referencing that base filename (the <strong>Missing references</strong> report only
-        identifies <strong>&lt;img&gt;</strong> and <strong>window.open</strong> references,
-        this may help you identify if the file is referenced by another means).') . '</p>';
-      $output .= '<p>' . t('Files in this list are relative to the files directory %directorypath.',
-        array('%directorypath' => file_default_scheme())) . '</p>';
+      $output = '<p>' . t('The files listed below are in the {file_managed}
+        table but no nodes are recorded as referencing them (i.e., there\'s no
+        entry in the {file_usage} table). This might mean the node has been
+        deleted without deleting the file, or that the files were uploaded by
+        some means other than the upload module (e.g., FTP) and the
+        relationships between files and nodes have not been made. If you have
+        used the <strong>Missing references</strong> report and accounted for
+        all files that should be referenced, and are sure that the files below
+        are not needed, you may delete them. Click on the basename to get a list
+        of all nodes referencing that base filename (the <strong>Missing
+        references</strong> report only identifies <strong>&lt;img&gt;</strong>
+        and <strong>window.open</strong> references, this may help you identify
+        if the file is referenced by another means).') . '</p>';
+      $output .= '<p>' . t(
+        'Files in this list are relative to the files directory %path.',
+        array('%path' => file_default_scheme())
+      ) . '</p>';
       return $output;
   }
 }
@@ -118,7 +143,7 @@ function auditfiles_menu() {
   $items['admin/reports/auditfiles'] = array(
     'title' => 'Audit files',
     'description' => 'List files that are not on the server or not in the database.',
-    'page callback' => 'auditfiles_not_in_db',
+    'page callback' => 'auditfiles_not_in_database',
     'access arguments' => array('access file audits'),
     'file' => 'auditfiles.notindb.inc',
   );
@@ -173,7 +198,7 @@ function auditfiles_menu() {
  */
 function auditfiles_theme() {
   return array(
-    'auditfiles_not_in_db_form' => array(
+    'auditfiles_not_in_database_form' => array(
       'render element' => 'form',
       'file' => 'auditfiles.notindb.inc',
     ),

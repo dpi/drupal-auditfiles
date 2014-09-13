@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Callback to generate files not on server report
+ * Generates the report showing files in the database, but not on the server.
  */
 
 /**
@@ -45,8 +45,11 @@ function auditfiles_not_on_server() {
 
     // Check to see if the file exists.
     if (!file_exists($target)) {
-      // @todo: get the number of times the file has been used, and itemize
-      // everywhere it is used.
+      /**
+       * @todo:
+       *   Get the number of times the file has been used, and itemize
+       *   everywhere it is used.
+       */
 
       // If the file does not exist, strip out the directory path and store the
       // result.
@@ -60,13 +63,16 @@ function auditfiles_not_on_server() {
         if (!empty($entity->title)) {
           if (!empty($file->type) && $file->type == 'node') {
             $file->link = l($entity->title, 'node/' . $file->id);
-          }
+            $file->edit = l(t('edit'), 'node/' . $file->id . '/edit');
+         }
           else {
             $file->link = $entity->title . ', which is a(n) ' . $file->type . ' entity with the ID of ' . $file->id;
+            $file->edit = '';
           }
         }
         else {
           $file->link = ' a(n) ' . $file->type . ' entity with the ID of ' . $file->id;
+          $file->edit = '';
         }
       }
 
@@ -75,7 +81,7 @@ function auditfiles_not_on_server() {
         $rows[] = array(
           array('data' => $file->uri),
           array('data' => 'Referenced in ' . $file->link),
-          array('data' => l(t('edit'), 'node/' . $file->id . '/edit')),
+          array('data' => $file->edit),
         );
       }
       else {
@@ -90,7 +96,11 @@ function auditfiles_not_on_server() {
 
   // Create output string
   if ($rows) {
-    $output = format_plural(count($rows), '1 file found.', '@count files found.');
+    $output = format_plural(
+      count($rows),
+      '1 file found in the database that is not on the server.',
+      '@count files found in the database that are not on the server.'
+    );
     $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'sort-table')));
 //    $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'sort-table')));
   }
