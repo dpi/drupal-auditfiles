@@ -145,8 +145,10 @@ function theme_auditfiles_not_in_database_form($variables) {
     // Construct the rows of the table.
     foreach (element_children($form['files']) as $key) {
       $row = array();
-      $title = $form['files'][$key]['#title'];  // get box title
-      unset($form['files'][$key]['#title']);            // then remove it
+      // Get the check box's title for display in the second column.
+      $title = $form['files'][$key]['#title'];
+      // Remove it so it isn't also displayed in the first column.
+      unset($form['files'][$key]['#title']);
       $row[] = drupal_render($form['files'][$key]);
       $row[] = $title;
       $rows[] = array('data' => $row);
@@ -207,10 +209,10 @@ function auditfiles_not_in_database_form_confirm($form, &$form_state) {
     foreach ($values['files'] as $file => $selected) {
       if ($seltype == 'all' || $selected) {
         if ($optype == 'delete') {
-          $message = "<strong>$file</strong> will be deleted";
+          $message = "<strong>$file</strong> will be deleted from the server.";
         }
         else {
-          $message = "<strong>$file</strong> will be added to the database";
+          $message = "<strong>$file</strong> will be added to the database.";
         }
         $form['changelist'][$file] = array(
           '#type' => 'hidden',
@@ -237,7 +239,7 @@ function auditfiles_not_in_database_form_confirm($form, &$form_state) {
     return confirm_form(
       $form,
       t('No files have been selected to perform the action on.'),
-      'admin/reports/auditfiles/notindb',
+      'admin/reports/auditfiles/notindatabase',
       t('No files have been selected to perform the action on.'),
       '',
       t('Cancel')
@@ -247,7 +249,7 @@ function auditfiles_not_in_database_form_confirm($form, &$form_state) {
     return confirm_form(
       $form,
       t('Are you sure you want to make these changes?'),
-      'admin/reports/auditfiles/notindb',
+      'admin/reports/auditfiles/notindatabase',
       '<strong>' . t('This action cannot be undone.') . '</strong>',
       t('Process all'),
       t('Cancel')
@@ -277,7 +279,7 @@ function auditfiles_not_in_database_form_confirm_submit($form, &$form_state) {
       if ($operation == 'delete') {
         $root = drupal_realpath('./');
         if (file_unmanaged_delete($root . '/' . $filename)) {
-          drupal_set_message(t('The %file was sucessfully deleted.', array('%file' => $filename)));
+          drupal_set_message(t('Sucessfully deleted %file from the server.', array('%file' => $filename)));
         }
         else {
           drupal_set_message(t('Failed to delete %file from the server.', array('%file' => $filename)));
@@ -302,7 +304,7 @@ function auditfiles_not_in_database_form_confirm_submit($form, &$form_state) {
           drupal_set_message(t('Failed to add %file to the database.', array('%file' => $filename)));
         }
         else {
-          drupal_set_message(t('The file %file was sucessfully added.', array('%file' => $filename)));
+          drupal_set_message(t('Sucessfully added %file to the database.', array('%file' => $filename)));
         }
       }
     }

@@ -145,9 +145,9 @@ function auditfiles_menu() {
     'description' => 'List files that are not on the server or not in the database.',
     'page callback' => 'auditfiles_not_in_database',
     'access arguments' => array('access file audits'),
-    'file' => 'auditfiles.notindb.inc',
+    'file' => 'auditfiles.notindatabase.inc',
   );
-  $items['admin/reports/auditfiles/notindb'] = array(
+  $items['admin/reports/auditfiles/notindatabase'] = array(
     'title' => 'Not in database',
     'description' => 'List files that are on the server but are not in the database.',
     'type' => MENU_DEFAULT_LOCAL_TASK,
@@ -200,7 +200,11 @@ function auditfiles_theme() {
   return array(
     'auditfiles_not_in_database_form' => array(
       'render element' => 'form',
-      'file' => 'auditfiles.notindb.inc',
+      'file' => 'auditfiles.notindatabase.inc',
+    ),
+    'auditfiles_not_on_server_form' => array(
+      'render element' => 'form',
+      'file' => 'auditfiles.notonserver.inc',
     ),
     'auditfiles_unreferenced_form' => array(
       'render element' => 'form',
