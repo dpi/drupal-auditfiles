@@ -1,6 +1,19 @@
+28 November 2014 (oadaeh)
+----------------
+Re-factored the Not on server and Not in database reports to be more in
+conformance with Drupal API and best practices.
+Added admin settings for the reports pages.
+Continued with the update of the documentation.
+
+14 September 2014 (oadaeh)
+-----------------
+Got the Not on server report working correctly.
+Added an action to Not on server report to remove items from database.
+Renamed auditfiles.notindb.inc to auditfiles.notindatabase.inc.
+
 13 September 2014 (oadaeh)
 -----------------
-Got the Not in database page working correctly.
+Got the Not in database report working correctly.
 
 6 August 2014 (oadaeh)
 -------------

@@ -3,22 +3,25 @@
  * @file
  * This is the main code file, containing the various hooks used by the module.
  *
- * Audit files carries out a simple audit of the Drupal upload directory
- * and the {files} table, to look for inconsistencies
+ * Audit Files carries out a simple audit of the Drupal files directory and the
+ * file_managed and file_usage database tables.
  */
 
 /**
  * Implements hook_help().
  */
 function auditfiles_help($path, $arg) {
+  $output = '';
+
   switch ($path) {
     case 'admin/config/auditfiles':
-      return t('You can choose to exclude specific files, paths and extensions
-        from the "Not in database" audit report by adding them to the relevant
-        lists below.');
+      $output = t('You can choose to exclude specific files, paths and extensions from the "Not in database" audit report by adding them to the relevant lists below.');
+      break;
+
     case 'admin/help#auditfiles':
-      return '<p>' . t('The audit files module performs an audit of the file
-        tables and the files directory to check for inconsistencies.') . '</p>';
+      $output = '<p>' . t('The Audit Files module performs an audit of the file tables and the files directory to check for inconsistencies.') . '</p>';
+      break;
+
     case 'admin/reports/auditfiles':
       $output = '<p>' . t('The files listed below are in the files directory on
         the server but appear to have no corresponding entry in the
@@ -29,32 +32,30 @@ function auditfiles_help($path, $arg) {
         to the {file_managed} table - you might do that, if you have uploaded
         files outside of Drupal (e.g., by FTP) and will be attaching them to
         nodes through other tools.') . '</p>';
-      $output .= '<p>' . t(
-        'The files in this list are using the %scheme scheme and are relative to the files directory %path path.',
-        array(
-          '%scheme' => file_default_scheme(),
-          '%path' => file_default_scheme(),
-        )
-      ) . '</p>';
-      // If on a confirmation form then suppress the help message
-      if (array_key_exists('operation', $_POST) && $_POST['operation'] == 'delete' && array_key_exists('files', $_POST)) {
+      $output .= '<p>' . t('The files in this list are using the %scheme scheme and are relative to the files directory %path path.', array(
+        '%scheme' => file_default_scheme(),
+        '%path' => file_default_scheme(),
+      )) . '</p>';
+      // If on a confirmation form then suppress the help message.
+      if (array_key_exists('operation', $_POST)
+        && $_POST['operation'] == 'delete'
+        && array_key_exists('files', $_POST)) {
         $output = '';
       }
-      return $output;
+      break;
+
     case 'admin/reports/auditfiles/notonserver':
-      $output = '<p>' . t('The files listed below are in the {file_managed}
-        table but the physical files do not exist on the server. This might mean
-        the file has been deleted using a program such as FTP, or it may mean
-        there is an error in the database.</p><p>If the file was uploaded using
-        a file or image field, then you can click on the node title to view the
-        item to which the missing file relates to try and determine what action
-        needs to be taken, or you can click the edit link to open the node
-        editing form directly.') . '</p>';
-      $output .= '<p>' . t(
-        'Files in this list are relative to the files directory %path.',
-        array('%path' => file_default_scheme())
-      ) . '</p>';
-      return $output;
+      $output = '<p>' . t('The files listed below are in the file_managed
+        database table but the physical files do not exist on the server. This
+        might mean the file has been deleted using a program such as FTP, or it
+        may mean there is an error in the database.</p><p>If the file was
+        uploaded using a file or image field, then you can click on the node
+        title to view the item to which the missing file relates to try and
+        determine what action needs to be taken, or you can click the edit link
+        to open the node editing form directly.') . '</p>';
+      $output .= '<p>' . t('Files in this list are relative to the files directory %path.', array('%path' => file_default_scheme())) . '</p>';
+      break;
+
     case 'admin/reports/auditfiles/references':
       $output = '<p>' . t('Listed here are file references embedded in node
         bodies which do not have exact correspondences in the {file_managed} and
@@ -78,11 +79,9 @@ function auditfiles_help($path, $arg) {
         one-by-one by selecting them and choosing <strong>Attach selected
         files</strong>, or automatically apply it to all single-match cases with
         <strong>Attach all unique matches</strong>.</li></ul>') . '</p>';
-      $output .= '<p>' . t(
-        'Files in this list are relative to the files directory %path.',
-        array('%path' => file_default_scheme())
-      ) . '</p>';
-      return $output;
+      $output .= '<p>' . t('Files in this list are relative to the files directory %path.', array('%path' => file_default_scheme())) . '</p>';
+      break;
+
     case 'admin/reports/auditfiles/unreferenced':
       $output = '<p>' . t('The files listed below are in the {file_managed}
         table but no nodes are recorded as referencing them (i.e., there\'s no
@@ -97,14 +96,12 @@ function auditfiles_help($path, $arg) {
         references</strong> report only identifies <strong>&lt;img&gt;</strong>
         and <strong>window.open</strong> references, this may help you identify
         if the file is referenced by another means).') . '</p>';
-      $output .= '<p>' . t(
-        'Files in this list are relative to the files directory %path.',
-        array('%path' => file_default_scheme())
-      ) . '</p>';
-      return $output;
+      $output .= '<p>' . t('Files in this list are relative to the files directory %path.', array('%path' => file_default_scheme())) . '</p>';
+      break;
   }
-}
 
+  return $output;
+}
 
 /**
  * Implements hook_permission().
@@ -117,11 +114,10 @@ function auditfiles_permission() {
     ),
     'administer file audits' => array(
       'title' => t('administer file audits'),
-      'description' => t('Perform administration tasks for the Audit files module.'),
+      'description' => t('Perform administration tasks for the Audit Files module.'),
     ),
   );
 }
-
 
 /**
  * Implements hook_menu().
@@ -131,7 +127,7 @@ function auditfiles_menu() {
 
   // Configure the settings for this module.
   $items['admin/config/system/auditfiles'] = array(
-    'title' => 'Audit files',
+    'title' => 'Audit Files',
     'description' => 'Set file, extension and path exclusions for file audits.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('auditfiles_admin_settings'),
@@ -141,44 +137,37 @@ function auditfiles_menu() {
 
   // The various reports.
   $items['admin/reports/auditfiles'] = array(
-    'title' => 'Audit files',
-    'description' => 'List files that are not on the server or not in the database.',
-    'page callback' => 'auditfiles_not_in_database',
+    'title' => 'Audit Files',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('auditfiles_not_on_server_form'),
     'access arguments' => array('access file audits'),
-    'file' => 'auditfiles.notindatabase.inc',
-  );
-  $items['admin/reports/auditfiles/notindatabase'] = array(
-    'title' => 'Not in database',
-    'description' => 'List files that are on the server but are not in the database.',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -10,
+    'file' => 'auditfiles.notonserver.inc',
+    'description' => 'List files that have inconsistant or incomplete implementations.',
   );
   $items['admin/reports/auditfiles/notonserver'] = array(
     'title' => 'Not on server',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
     'description' => 'List files that are in the database, but are not on the server.',
-    'page callback' => 'auditfiles_not_on_server',
-    'access arguments' => array('access file audits'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'auditfiles.notonserver.inc',
-    'weight' => -5,
   );
-  $items['admin/reports/auditfiles/references'] = array(
-    'title' => 'Missing references',
-    'description' => 'List files referenced by nodes, but not properly linked or attached.',
-    'page callback' => 'auditfiles_references',
+  $items['admin/reports/auditfiles/notindatabase'] = array(
+    'title' => 'Not in database',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('auditfiles_not_in_database_form'),
     'access arguments' => array('access file audits'),
     'type' => MENU_LOCAL_TASK,
-    'file' => 'auditfiles.references.inc',
-    'weight' => 0,
+    'file' => 'auditfiles.notindatabase.inc',
+    'weight' => -5,
+    'description' => 'List files that are on the server, but are not in the database.',
   );
   $items['admin/reports/auditfiles/unreferenced'] = array(
     'title' => 'Unreferenced',
-    'description' => 'List files that are in the database, but are not referenced by any node.',
     'page callback' => 'auditfiles_unreferenced',
     'access arguments' => array('access file audits'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'auditfiles.unreferenced.inc',
     'weight' => 5,
+    'description' => 'List files that are in the database, but are not referenced by any node.',
   );
   $items['admin/reports/auditfiles/unreferenced/%'] = array(
     'title' => 'Referencing nodes',
@@ -187,25 +176,26 @@ function auditfiles_menu() {
     'access arguments' => array('access file audits'),
     'type' => MENU_CALLBACK,
     'file' => 'auditfiles.unreferenced.inc',
+    'description' => '',
+  );
+  $items['admin/reports/auditfiles/references'] = array(
+    'title' => 'Missing references',
+    'page callback' => 'auditfiles_references',
+    'access arguments' => array('access file audits'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'auditfiles.references.inc',
+    'weight' => 0,
+    'description' => 'List files referenced by nodes, but not properly linked or attached.',
   );
 
   return $items;
 }
-
 
 /**
  * Implements hook_theme().
  */
 function auditfiles_theme() {
   return array(
-    'auditfiles_not_in_database_form' => array(
-      'render element' => 'form',
-      'file' => 'auditfiles.notindatabase.inc',
-    ),
-    'auditfiles_not_on_server_form' => array(
-      'render element' => 'form',
-      'file' => 'auditfiles.notonserver.inc',
-    ),
     'auditfiles_unreferenced_form' => array(
       'render element' => 'form',
       'file' => 'auditfiles.unreferenced.inc',

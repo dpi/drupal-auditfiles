@@ -1,21 +1,12 @@
 <?php
 /**
  * @file
- * Generates the report showing files on the server, but not in the database.
+ * This generates the report showing the files on the server, but not in the
+ * database.
  */
 
 /**
- * Menu callback for files not in the database.
- *
- * @return array
- *   The form definition.
- */
-function auditfiles_not_in_database() {
-  return drupal_get_form('auditfiles_not_in_database_form');
-}
-
-/**
- * Form definition for files not in database.
+ * Displays the files found on the server, but not in the database.
  *
  * @param array $form
  *   The form definition.
@@ -26,145 +17,121 @@ function auditfiles_not_in_database() {
  *   The form definition.
  */
 function auditfiles_not_in_database_form($form, &$form_state) {
-//  if (isset($form_state['storage']['confirm'])) {
-  if (!empty($form_state['input']) && $form_state['input']['operation'] != 'donothing') {
-    return drupal_build_form('auditfiles_not_in_database_form_confirm', $form_state);
+  // Check to see if the confirmation form needs to be displayed instead of the
+  // normal form.
+  if (isset($form_state['storage']['confirm'])) {
+    return _auditfiles_not_in_database_confirm_operation($form, $form_state);
   }
+
+  // Set up the table header.
+  $header = array(
+    'filepathname' => array(
+      'data' => t('File pathname'),
+//      'field' => 'fm.filename',
+    ),
+    'filemime' => array(
+      'data' => t('MIME'),
+//      'field' => 'fm.filemime',
+    ),
+    'filesize' => array(
+      'data' => t('Size (in bytes)'),
+//      'field' => 'fm.filesize',
+    ),
+    'filemodtime' => array(
+      'data' => t('Last modified'),
+//      'field' => 'fm.timestamp',
+    ),
+  );
+
+  // Get the admin specified date format for the file modification time.
+  $date_format = variable_get('auditfiles_report_options_date_format', 'long');
 
   // Get the list of files that aren't in the database.
   $files_not_in_database = _auditfiles_get_files_not_in_database();
-
-  // Output count of files not in the database.
-  if ($files_not_in_database) {
-    $form['count'] = array(
-      '#markup' => format_plural(
-        count($files_not_in_database),
-        '1 file found on the server that is not in the database.',
-        '@count files found on the server that are not in the database.'
-      ),
-    );
-  }
-  else {
-    $form['count'] = array(
-      '#markup' => t('No files found.'),
-    );
-  }
-
-  // Define the Actions form elements.
-  $form['actions'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Action'),
-    '#prefix' => '<div class="container-inline">',
-    '#suffix' => '</div>',
-  );
-  $options = array(
-    'donothing' => t('Do nothing'),
-    'delete' => t('Delete checked files'),
-    'add' => t('Add checked files to database'),
-    'addall' => t('Add all files to database'),
-  );
-  $form['actions']['operation'] = array(
-    '#type' => 'select',
-    '#options' => $options,
-    '#default_value' => 'donothing',
-  );
-  $form['actions']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Update'),
-  );
-
-  $root = drupal_realpath('./');
-  // Process each result in turn and build check box list.
-  $files = array();
+  asort($files_not_in_database);
+  // Process the data.
+  $rows = array();
   foreach ($files_not_in_database as $file) {
-    // Strip out the real path to leave just a drupal path
-    $drupal_path = preg_replace('@' . preg_quote($root) . '.@', '', $file);
-    // Get the scheme's path.
-    $scheme_path = variable_get('file_' . file_default_scheme() . '_path');
-    // Get the path to the file relative to it's file storage location.
-    $files_path = preg_replace('@' . preg_quote($scheme_path) . '.@', '', $drupal_path);
-    // If the site uses private transfers, file_create_url cannot be used, as
-    // the links fail. Force a public URL instead.
-    $files[$drupal_path] = l($files_path, $GLOBALS['base_url'] . '/' . str_replace('\\', '/', $drupal_path));
+    $row = array(
+      'filepathname' => $file,
+      'filemime' => file_get_mimetype($file),
+      'filesize' => number_format(filesize($file)),
+      'filemodtime' => format_date(filemtime($file), $date_format),
+    );
+    $rows[$file] = $row;
   }
 
-  // Add checkboxes to the list of files.
-  $form['files'] = array(
-    '#type' => 'checkboxes',
-    '#options' => $files,
+  // Define the form table.
+  $form_count = format_plural(
+    count($rows),
+    'Found 1 file on the server that is not in the database.',
+    'Found @count files on the server that are not in the database.'
   );
+  $form['files'] = array(
+    '#type' => 'tableselect',
+    '#header' => $header,
+    '#options' => $rows,
+    '#empty' => t('No unmatched files found.'),
+    '#prefix' => '<div><em>' . $form_count . '</em></div>',
+  );
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['add'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add selected items to the database'),
+  );
+  $form['actions']['markup'] = array(
+    '#markup' => '&nbsp;' . t('or') . '&nbsp;',
+  );
+  $form['actions']['delete'] = array(
+    '#type' => 'submit',
+    '#value' => t('Delete selected items from the server'),
+  );
+
+//  $form['pager'] = array('#markup' => theme('pager'));
 
   return $form;
 }
 
 /**
  * Submit handler for the auditfiles_not_in_database_form form.
- *
- * @param array $form
- *   The form definition.
- * @param array $form_state
- *   The current state of the form.
  */
-/**
- * @todo
- * Figure out why Drupal isn't hitting this function.
- */
-//function auditfiles_not_in_database_form_submit($form, &$form_state) {
-//  if ($form_state['clicked_button']['#id'] == 'edit-submit' && $form_state['values']['operation'] != 'donothing') {
-//    $form_state['storage']['confirm'] = TRUE;
-//    $form_state['storage']['values'] = $form_state['values'];
-//    $form_state['rebuild'] = TRUE;
-//  }
-//}
-
-/**
- * Theme the auditfiles_not_in_database_form form.
- *
- * @param array $variables
- *   The variables currently available for use in a template file.
- *
- * @return string
- *   The formatted display output.
- */
-function theme_auditfiles_not_in_database_form($variables) {
-  $form = $variables['form'];
-  // Render the file count.
-  $output = drupal_render($form['count']);
-
-  // If any files are found, render them.
-  if (isset($form['files']) && is_array($form['files'])) {
-    // Render the actions.
-    $output .= drupal_render($form['actions']);
-
-    // Construct a table of files, starting with the header.
-    $header = array(
-      t('Select'),
-      t('File'),
-    );
-
-    // Construct the rows of the table.
-    foreach (element_children($form['files']) as $key) {
-      $row = array();
-      // Get the check box's title for display in the second column.
-      $title = $form['files'][$key]['#title'];
-      // Remove it so it isn't also displayed in the first column.
-      unset($form['files'][$key]['#title']);
-      $row[] = drupal_render($form['files'][$key]);
-      $row[] = $title;
-      $rows[] = array('data' => $row);
+function auditfiles_not_in_database_form_submit($form, &$form_state) {
+  // Check to see if any files were selected.
+  if (!empty($form_state['storage']['files'])) {
+    foreach ($form_state['storage']['files'] as $filename => $file_id) {
+      if (!empty($file_id)) {
+        // The operation has been confirmed, so do it.
+        if ($form_state['storage']['op'] == 'Add selected items to the database') {
+          // Add the file to the database.
+          _auditfiles_not_in_database_add_to_database($filename);
+        }
+        elseif ($form_state['storage']['op'] == 'Delete selected items from the server') {
+          // Delete the file from the server.
+          _auditfiles_not_in_database_delete_from_server($filename);
+        }
+      }
+    }
+  }
+  elseif (!empty($form_state['values']['files'])) {
+    foreach ($form_state['values']['files'] as $filename => $file_id) {
+      if (!empty($file_id)) {
+        // At least one file was selected. Check to see if the confirmation form
+        // has been processed.
+        if (!isset($form_state['values']['process'])) {
+          // The operation has not been confirmed, so modify the data to display
+          // the confirmation form.
+          $form_state['storage']['files'] = $form_state['values']['files'];
+          $form_state['storage']['op'] = $form_state['values']['op'];
+          $form_state['storage']['confirm'] = TRUE;
+          $form_state['rebuild'] = TRUE;
+          return TRUE;
+        }
+      }
     }
 
-    // Render the table.
-    $output .= theme(
-      'table',
-      array(
-        'header' => $header,
-        'rows' => $rows,
-      )
-    );
+    drupal_set_message(t('No items were selected to operate on.'));
   }
-
-  return $output;
 }
 
 /**
@@ -178,26 +145,8 @@ function theme_auditfiles_not_in_database_form($variables) {
  * @return array
  *   A form array for a confirmation form.
  */
-function auditfiles_not_in_database_form_confirm($form, &$form_state) {
+function _auditfiles_not_in_database_confirm_operation($form, &$form_state) {
   $values = $form_state['input'];
-  $operation = $values['operation'];
-  switch ($operation) {
-    case 'delete':
-      $optype = 'delete';
-      $seltype = 'selected';
-      break;
-    case 'add':
-      $optype = 'add';
-      $seltype = 'selected';
-      break;
-    case 'addall':
-      $optype = 'add';
-      $seltype = 'all';
-      break;
-    case 'donothing':
-    default:
-      return;
-  }
 
   $form['changelist'] = array(
     '#prefix' => '<ul>',
@@ -205,123 +154,123 @@ function auditfiles_not_in_database_form_confirm($form, &$form_state) {
     '#tree' => TRUE,
   );
 
+  // Prepare the list of tiems to present to the user.
   if (!empty($values['files'])) {
-    foreach ($values['files'] as $file => $selected) {
-      if ($seltype == 'all' || $selected) {
-        if ($optype == 'delete') {
-          $message = "<strong>$file</strong> will be deleted from the server.";
+    foreach ($values['files'] as $filename => $file_id) {
+      if (!empty($file_id)) {
+        if ($values['op'] == 'Add selected items to the database') {
+          $message = "<strong>$filename</strong> will be added to the database.";
         }
-        else {
-          $message = "<strong>$file</strong> will be added to the database.";
+        elseif ($values['op'] == 'Delete selected items from the server') {
+          $message = "<strong>$filename</strong> will be deleted from the server.";
         }
-        $form['changelist'][$file] = array(
+        $form['changelist'][$file_id] = array(
           '#type' => 'hidden',
-          '#value' => $file,
-          '#prefix' => '<li>',
-          '#suffix' => $message . "</li>\n",
+          '#value' => $filename,
+          '#prefix' => '<li>' . $message,
+          '#suffix' => "</li>\n",
         );
       }
       else {
         // Unsetting the unprocessed files prevents confirm_submit from dealing
         // with them.
-        unset($form_state['input']['files'][$file]);
+        unset($form_state['input']['files'][$file_id]);
       }
     }
   }
+
+  // Tell the submit handler to process the confirmation.
+  $form['process'] = array(
+    '#type' => 'hidden',
+    '#value' => 'TRUE'
+  );
+  // Make sure the form redirects in the end
+  $form['destination'] = array(
+    '#type' => 'hidden',
+    '#value' => 'admin/reports/auditfiles/notindatabase'
+  );
 
   $form['operation'] = array(
     '#type' => 'hidden',
-    '#value' => $operation,
   );
-  $form['#submit'][] = 'auditfiles_not_in_database_form_confirm_submit';
 
-  if (empty($form_state['input']['files'])) {
-    return confirm_form(
-      $form,
-      t('No files have been selected to perform the action on.'),
-      'admin/reports/auditfiles/notindatabase',
-      t('No files have been selected to perform the action on.'),
-      '',
-      t('Cancel')
-    );
+  if ($values['op'] == 'Add selected items to the database') {
+    $form['operation']['#value'] = 'add';
+
+    $confirm_question = t('Add these files to the database?');
+    $confirm_description = '';
+  }
+  elseif ($values['op'] == 'Delete selected items from the server') {
+    $form['operation']['#value'] = 'delete';
+
+    $confirm_question = t('Delete these files from the server?');
+    $confirm_description = '<strong>' . t('This action cannot be undone.') . '</strong>';
+  }
+
+  return confirm_form(
+    $form,
+    $confirm_question,
+    'admin/reports/auditfiles/notindatabase',
+    $confirm_description,
+    t('Yes'),
+    t('No')
+  );
+}
+
+/**
+ * Adds the specified file to the database.
+ *
+ * @param string $filename
+ *   The full pathname to the file to add to the database.
+ */
+function _auditfiles_not_in_database_add_to_database($filename) {
+  global $user;
+  $file = new stdClass();
+  $file->uid = $user->uid;
+  // Get the scheme's path.
+  $scheme_path = variable_get('file_' . file_default_scheme() . '_path');
+  // Get the path to the file relative to it's file storage location.
+  $filename = preg_replace('@' . preg_quote(drupal_realpath('./')) . '.@', '', $filename);
+  $filename = preg_replace('@' . preg_quote($scheme_path) . '.@', '', $filename);
+  $file->filename = trim(basename($filename));
+  $file->uri = file_build_uri($filename);
+  $file->filemime = file_get_mimetype($file->uri);
+  $file->filesize = filesize(drupal_realpath($file->uri));
+  $file->status = FILE_STATUS_PERMANENT;
+  $file->timestamp = REQUEST_TIME;
+
+  $results = drupal_write_record('file_managed', $file);
+
+  if ($results === FALSE) {
+    drupal_set_message(t('Failed to add %file to the database.', array('%file' => $filename)));
   }
   else {
-    return confirm_form(
-      $form,
-      t('Are you sure you want to make these changes?'),
-      'admin/reports/auditfiles/notindatabase',
-      '<strong>' . t('This action cannot be undone.') . '</strong>',
-      t('Process all'),
-      t('Cancel')
-    );
+    drupal_set_message(t('Sucessfully added %file to the database.', array('%file' => $filename)));
   }
 }
 
 /**
- * Submit handler for the confirmation form.
+ * Deletes the specified file from the server.
  *
- * @param array $form
- *   The form definition.
- * @param array $form_state
- *   The current state of the form.
+ * @param string $filename
+ *   The full pathname of the file to delete from the server.
  */
-function auditfiles_not_in_database_form_confirm_submit($form, &$form_state) {
-  if ($form_state['input']['confirm']) {
-    $values = $form_state['input'];
-    $operation = $values['operation'];
-    if ($operation != 'delete') {
-      global $user;
-      if (function_exists('finfo_file')) {
-        $finfo = @finfo_open(FILEINFO_MIME);
-      }
-    }
-    foreach ($values['changelist'] as $filename => $selected) {
-      if ($operation == 'delete') {
-        $root = drupal_realpath('./');
-        if (file_unmanaged_delete($root . '/' . $filename)) {
-          drupal_set_message(t('Sucessfully deleted %file from the server.', array('%file' => $filename)));
-        }
-        else {
-          drupal_set_message(t('Failed to delete %file from the server.', array('%file' => $filename)));
-        }
-      }
-      else {
-        $file = new stdClass();
-        $file->uid = $user->uid;
-        // Get the scheme's path.
-        $scheme_path = variable_get('file_' . file_default_scheme() . '_path');
-        // Get the path to the file relative to it's file storage location.
-        $filename = preg_replace('@' . preg_quote($scheme_path) . '.@', '', $filename);
-        $file->filename = trim(basename($filename));
-        $file->uri = file_build_uri($filename);
-        $file->filemime = file_get_mimetype($file->uri);
-        $file->filesize = filesize(drupal_realpath($file->uri));
-        $file->status = FILE_STATUS_PERMANENT;
-        $file->timestamp = REQUEST_TIME;
-
-        $results = drupal_write_record('file_managed', $file);
-        if ($results === FALSE) {
-          drupal_set_message(t('Failed to add %file to the database.', array('%file' => $filename)));
-        }
-        else {
-          drupal_set_message(t('Sucessfully added %file to the database.', array('%file' => $filename)));
-        }
-      }
-    }
-    if ($operation == 'delete') {
-      drupal_set_message(t('The action of deleting files from the server is complete.'));
-    }
-    else {
-      drupal_set_message(t('The action of adding files to the database is complete.'));
-    }
-    // Clear so our return to the primary form doesn't think we're going to the
-    // confirmation form.
-    unset($form_state['input']['confirm']);
+function _auditfiles_not_in_database_delete_from_server($filename) {
+  // Get the actual path to the Drupal root directory.
+  $root = drupal_realpath('./');
+  // Make sure the Drupal root path is not already in the filename.
+  $filename = preg_replace('@' . preg_quote(drupal_realpath('./')) . '.@', '', $filename);
+  // Delete the file without invoking any hooks.
+  if (file_unmanaged_delete($root . '/' . $filename)) {
+    drupal_set_message(t('Sucessfully deleted %file from the server.', array('%file' => $filename)));
+  }
+  else {
+    drupal_set_message(t('Failed to delete %file from the server.', array('%file' => $filename)));
   }
 }
 
 /**
- * Retrieve sorted list of files on server but not in database.
+ * Retrieves a list of files that are on the server but not in the database.
  *
  * @return array
  *   An array of file names not found in the database.
@@ -345,18 +294,18 @@ function _auditfiles_get_files_not_in_database() {
 
   // Get all the files out of the directory structure
   $files_on_server = _auditfiles_get_file_list(drupal_realpath(file_default_scheme() . '://'), TRUE);
-  // Sort the rows to make it easier to compare to file listing in FTP
+  // Sort the rows to make it easier to compare to file listing.
   asort($files_on_server);
   // Process each result in turn
   foreach ($files_on_server as $file) {
-    // Check it isn't a directory - not interested
+    // Skip directory entries.
     if (!file_prepare_directory($file)) {
-      // Exclude files, paths and extensions according to the retrieved
-      // exclusions string.
+      // Exclude files, paths and extensions according to the admin specified
+      // exclusions list.
       if (!preg_match('@' . $exclusions . '@', $file) || !$exclusions) {
-        // Check to see if file is NOT in the database
+        // Check to see if file is not in the database.
         if (!in_array($file, $files_in_database)) {
-          // If we get here, we have a file that isn't in the database.
+          // This file is not in the database.
           $file = preg_replace('@^' . preg_quote(file_default_scheme()) . '@', '', $file);
           $files_not_in_database[] = $file;
         }
@@ -383,7 +332,7 @@ function _auditfiles_get_files_not_in_database() {
 function _auditfiles_get_file_list($directory, $recursive) {
   $array_items = array();
   if ($handle = opendir($directory)) {
-    while (false !== ($file = readdir($handle))) {
+    while (($file = readdir($handle)) !== FALSE) {
       if ($file != "." && $file != "..") {
         if (is_dir($directory . "/" . $file)) {
           if ($recursive) {
@@ -400,6 +349,7 @@ function _auditfiles_get_file_list($directory, $recursive) {
     }
     closedir($handle);
   }
+
   return $array_items;
 }
 

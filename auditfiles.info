@@ -1,4 +1,4 @@
-name = Audit files
-description = Performs an audit of the files table and directory.
+name = Audit Files
+description = Performs an audit of the files directory and the file_managed and file_usage database tables.
 core = 7.x
 configure = admin/config/system/auditfiles
