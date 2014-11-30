@@ -1,8 +1,8 @@
 <?php
 /**
  * @file
- * This generates a report showing all the files in the database that are not on
- * the server.
+ * This generates a report showing all the files in the file_managed table that
+ * are not in the file_usage table.
  */
 
 /**
@@ -16,11 +16,11 @@
  * @return array
  *   The form definition.
  */
-function auditfiles_not_on_server_form($form, &$form_state) {
+function auditfiles_managed_not_used_form($form, &$form_state) {
   // Check to see if the confirmation form needs to be displayed instead of the
   // normal form.
   if (isset($form_state['storage']['confirm'])) {
-    return _auditfiles_not_on_server_confirm_delete($form, $form_state);
+    return _auditfiles_managed_not_used_confirm_delete($form, $form_state);
   }
 
   // Set up the table header.
@@ -58,20 +58,24 @@ function auditfiles_not_on_server_form($form, &$form_state) {
       'data' => t('When added'),
       'field' => 'fm.timestamp',
     ),
-    'status' => array(
-      'data' => t('Status'),
-      'field' => 'fm.status',
-    ),
   );
 
   // Get the data.
 //  $items_per_page = variable_get('auditfiles_reports_items_per_page', 50);
 
+  // Get all the files in the file_usage table.
+  $usage_query = db_select('file_usage', 'fu');
+  $usage_query->fields('fu', array('fid'));
+  $usage_query->condition('count', 0, '>');
+  $usage_results = $usage_query->execute()->fetchCol();
+
   // Get all the files listed in the file_managed database table.
   $query = db_select('file_managed', 'fm');
-  $query->fields('fm');
   $query->extend('TableSort')->orderByHeader($header);
 //  $query = $query->extend('PagerDefault')->limit($items_per_page);
+  $query->fields('fm');
+  $query->condition('status', 1);
+  $query->condition('fid', $usage_results, 'NOT IN');
   $results = $query->execute();
 
   // Get the admin specified date format for the file modification time.
@@ -80,40 +84,35 @@ function auditfiles_not_on_server_form($form, &$form_state) {
   // Set up the table rows.
   $rows = array();
   foreach ($results as $file) {
-    // Get the path for the file.
-    $target = drupal_realpath($file->uri);
-    if (!file_exists($target)) {
-      // If the file does not exist, add it to the table.
-      $rows[$file->fid] = array(
-        'fid' => $file->fid,
-        'uid' => $file->uid,
-        'filename' => $file->filename,
-        'uri' => $file->uri,
-        'path' => $target,
-        'filemime' => $file->filemime,
-        'filesize' => number_format($file->filesize),
-        'datetime' => format_date($file->timestamp, $date_format),
-        'status' => $file->status,
-      );
-    }
+    // If the file does not exist, add it to the table.
+    $rows[$file->fid] = array(
+      'fid' => $file->fid,
+      'uid' => $file->uid,
+      'filename' => $file->filename,
+      'uri' => $file->uri,
+      'path' => drupal_realpath($file->uri),
+      'filemime' => $file->filemime,
+      'filesize' => number_format($file->filesize),
+      'datetime' => format_date($file->timestamp, $date_format),
+    );
   }
 
   // Define the form table.
   $form_count = format_plural(
     count($rows),
-    'Found 1 file in the database that is not on the server.',
-    'Found @count files in the database that are not on the server.'
+    'Found 1 file in the file_managed table that is not in the file_usage table.',
+    'Found @count files in the file_managed table that are not in the file_usage table.'
   );
   $form['files'] = array(
     '#type' => 'tableselect',
     '#header' => $header,
     '#options' => $rows,
-    '#empty' => t('No unmatched files found.'),
+    '#empty' => t('No items files found.'),
     '#prefix' => '<div><em>' . $form_count . '</em></div>',
   );
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Delete selected items from the database'),
+    '#value' => t('Delete selected items from the file_managed table'),
   );
 //  $form['pager'] = array('#markup' => theme('pager'));
 
@@ -121,15 +120,15 @@ function auditfiles_not_on_server_form($form, &$form_state) {
 }
 
 /**
- * Submit handler for the auditfiles_not_on_server_form form.
+ * Submit handler for the auditfiles_managed_not_used_form form.
  */
-function auditfiles_not_on_server_form_submit($form, &$form_state) {
+function auditfiles_managed_not_used_form_submit($form, &$form_state) {
   // Check to see if any files were selected.
   if (!empty($form_state['storage']['files'])) {
     foreach ($form_state['storage']['files'] as $file_id) {
       if ($file_id != 0) {
-        // The operation has been confirmed, so delete the database records.
-        _auditfiles_not_on_server_delete_record($file_id);
+        // The operation has been confirmed, so delete the records.
+        _auditfiles_managed_not_used_delete_record($file_id);
       }
     }
   }
@@ -164,7 +163,7 @@ function auditfiles_not_on_server_form_submit($form, &$form_state) {
  * @return array
  *   A form array for a confirmation form.
  */
-function _auditfiles_not_on_server_confirm_delete($form, &$form_state) {
+function _auditfiles_managed_not_used_confirm_delete($form, &$form_state) {
   $values = $form_state['input'];
 
   $form['changelist'] = array(
@@ -183,7 +182,7 @@ function _auditfiles_not_on_server_confirm_delete($form, &$form_state) {
             '#type' => 'hidden',
             '#value' => $file_id,
             '#prefix' => '<li><strong>' . $file->filename . '</strong> '
-              . t('and all usages will be deleted from the database.'),
+              . t('will be deleted from the file_managed table.'),
             '#suffix' => "</li>\n",
           );
         }
@@ -209,13 +208,13 @@ function _auditfiles_not_on_server_confirm_delete($form, &$form_state) {
   // Go back to the main form, when done with this one.
   $form['destination'] = array(
     '#type' => 'hidden',
-    '#value' => 'admin/reports/auditfiles/notonserver'
+    '#value' => 'admin/reports/auditfiles/managednotused'
   );
 
   return confirm_form(
     $form,
-    t('Delete these items from the database?'),
-    'admin/reports/auditfiles/notonserver',
+    t('Delete these items from the file_managed table?'),
+    'admin/reports/auditfiles/managednotused',
     '<strong>' . t('This action cannot be undone.') . '</strong>',
     t('Yes'),
     t('No')
@@ -228,13 +227,15 @@ function _auditfiles_not_on_server_confirm_delete($form, &$form_state) {
  * @param integer $file_id
  *   The ID of the file to delete from the database.
  */
-function _auditfiles_not_on_server_delete_record($file_id) {
+function _auditfiles_managed_not_used_delete_record($file_id) {
   $file = file_load($file_id);
-  $result = file_delete($file, TRUE);
-  if ($result != TRUE) {
+  $result = db_delete('file_managed')
+    ->condition('fid', $file_id)
+    ->execute();
+  if ($result == 0) {
     drupal_set_message(
       t(
-        'File %filename with ID of %fid was not deleted. Check the logs for more information.',
+        'Record %filename with ID of %fid was not deleted. Check the logs for more information.',
         array(
           '%filename' => $file->filename,
           '%fid' => $file_id,

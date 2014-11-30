@@ -1,16 +1,55 @@
+CONTENTS OF THIS FILE
+---------------------
+ * Requirements
+ * Recommended modules
+ * Installation
+ * Configuration
+
 REQUIREMENTS
 ------------
+ * No additional requirements are necessary.
 
-* To be completed.
+RECOMMENDED MODULES
+-------------------
+ * No additional modules are necessary.
 
 INSTALLATION
 ------------
-
-* Install as usual, see http://drupal.org/node/70151 for further information.
-
-* To be completed.
+ * Install as you would normally install a contributed Drupal module. See:
+   https://drupal.org/documentation/install/modules-themes/modules-7
+   for further information.
 
 CONFIGURATION
 -------------
+ * Configure user permissions in Administration » People » Permissions
+   (admin/people/permissions):
+   - Access Audit Files' reports
 
-* To be completed.
+     Users with this permission are allowed access to the various file audit
+     reports.
+
+   - Administer Audit Files
+
+     Users with this permission are allowed to access and change the system
+     configuration settings (described below) for this module.
+
+ * Configure the module in Administration » Configuration and modules » System »
+   Audit Files menu (admin/config/system/auditfiles).
+   - Exclusions
+
+     There may be some files, file extensions and/or directories used by Audit
+     Files that you do not want to taken into consideration when generating the
+     various reports. There are three fields that allow the site administrator
+     the ability to exclude those items. In each field, enter in the list of
+     respective items to exclude. Separate each exclusion with a space.
+
+   - Domains
+
+     Here you may enter a list of domains that will be considered local to the
+     site in the reports for the purposes of creating links.
+
+   - Report options
+
+     These are various configuration options for how to format certain items in
+     the reports. Currently, the available configurable options are the number
+     of items to display per page and the date format to use.

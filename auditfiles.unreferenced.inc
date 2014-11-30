@@ -1,8 +1,8 @@
 <?php
 /**
  * @file
- * Generates the report showing files in the database, but not referenced by
- * content.
+ * This generates the report showing files in the database, but not referenced
+ * by any content.
  */
 
 /**
@@ -27,7 +27,11 @@ function auditfiles_unreferenced() {
  *   The form definition.
  */
 function auditfiles_unreferenced_form($form, &$form_state) {
-  if (isset($form_state['storage']['confirm'])) {
+dpm($form, '$form in auditfiles_unreferenced_form().');
+dpm($form_state, '$form_state in auditfiles_unreferenced_form().');
+//  if (isset($form_state['storage']['confirm'])) {
+  if (!empty($form_state['input']) && $form_state['input']['operation'] != 'donothing') {
+dpm('Here we are.');
     return auditfiles_unreferenced_form_confirm($form, $form_state);
   }
 
@@ -67,15 +71,25 @@ function auditfiles_unreferenced_form($form, &$form_state) {
     '#value' => t('Update'),
   );
 
+  $root = drupal_realpath('./');
   // Process each result in turn and build check box list
   $files = array();
   foreach ($unreferenced_files as $uri) {
     $files[$uri] = '';
+    $file = drupal_realpath($uri);
+    // Strip out the real path to leave just a drupal path
+    $drupal_path = preg_replace('@' . preg_quote($root) . '.@', '', $file);
+    // Get the scheme's path.
+    $scheme_path = variable_get('file_' . file_uri_scheme($uri) . '_path');
+    // Get the path to the file relative to it's file storage location.
+    $files_path = preg_replace('@' . preg_quote($scheme_path) . '.@', '', $drupal_path);
+    // If the site uses private transfers, file_create_url cannot be used, as
+    // the links fail. Force a public URL instead.
+//    $files[$drupal_path] = l($files_path, $GLOBALS['base_url'] . '/' . str_replace('\\', '/', $drupal_path));
     $form['file'][$uri] = array(
-      '#markup' => l($uri, 'admin/reports/auditfiles/unreferenced/' . $uri)
+      '#markup' => l($files_path, 'admin/reports/auditfiles/unreferenced/' . $files_path)
     );
   }
-//dpm($form, '$form');
 
   // Add list of files to checkboxes
   $form['files'] = array(
@@ -95,13 +109,19 @@ function auditfiles_unreferenced_form($form, &$form_state) {
  * @param array $form_state
  *   The current state of the form.
  */
-function auditfiles_unreferenced_form_submit($form, &$form_state) {
-  if ($form_state['clicked_button']['#id'] == 'edit-submit' &&
-    $form_state['values']['operation'] != 'donothing') {
-    $form_state['storage']['confirm'] = TRUE;
-    $form_state['storage']['values'] = $form_state['values'];
-  }
-}
+/**
+ * @todo
+ * Figure out why Drupal isn't hitting this function.
+ */
+//function auditfiles_unreferenced_form_submit($form, &$form_state) {
+//dpm($form, '$form in auditfiles_unreferenced_form_submit().');
+//dpm($form_state, '$form_state in auditfiles_unreferenced_form_submit().');
+//  if ($form_state['clicked_button']['#id'] == 'edit-submit' &&
+//    $form_state['values']['operation'] != 'donothing') {
+//    $form_state['storage']['confirm'] = TRUE;
+//    $form_state['storage']['values'] = $form_state['values'];
+//  }
+//}
 
 /**
  * Theme the auditfiles_unreferenced_form form.
@@ -114,7 +134,6 @@ function auditfiles_unreferenced_form_submit($form, &$form_state) {
  */
 function theme_auditfiles_unreferenced_form($variables) {
   $form = $variables['form'];
-dpm($form, '$form');
 
   $output = drupal_render($form['count']);
 
@@ -135,7 +154,6 @@ dpm($form, '$form');
       $row[] = drupal_render($form['file'][$uri]);
       $rows[] = array('data' => $row);
     }
-dpm($rows, '$rows');
 
     // Render themed table
     $output .= theme('table', array('header' => $header, 'rows' => $rows));
@@ -159,15 +177,30 @@ dpm($rows, '$rows');
  *   A form array for a confirmation form.
  */
 function auditfiles_unreferenced_form_confirm($form, &$form_state) {
+dpm($form, '$form in auditfiles_unreferenced_form_confirm().');
+dpm($form_state, '$form_state in auditfiles_unreferenced_form_confirm().');
+  $values = $form_state['input'];
+  $operation = $values['operation'];
+  switch ($operation) {
+    case 'delete':
+      $optype = 'delete';
+      $seltype = 'selected';
+      break;
+    case 'donothing':
+    default:
+      return;
+  }
+
   $form['change_list'] = array(
     '#prefix' => '<ul>',
     '#suffix' => '</ul>',
     '#tree' => TRUE,
   );
 
-  // Note we iterate over fidvals, since no operation makes sense without a valid file
+  // Note: we iterate over fid values, since no operation makes sense without a
+  // valid file.
   $count = 0;
-  foreach ($form_state['storage']['values']['files'] as $key => $file) {
+  foreach ($values['files'] as $key => $file) {
     if ($file) {
       $count++;
       // Limit what's displayed (also helps avoid max_allowed_packet errors)
@@ -197,7 +230,12 @@ function auditfiles_unreferenced_form_confirm($form, &$form_state) {
   $form['#submit'][] = 'auditfiles_unreferenced_form_confirm_submit';
 
   return confirm_form(
-    $form, t('Are you sure you want to delete these files?'), 'admin/reports/auditfiles/unreferenced', '<strong>' . t('This action cannot be undone.') . '</strong>', t('Process all'), t('Cancel')
+    $form,
+    t('Are you sure you want to delete these files?'),
+    'admin/reports/auditfiles/unreferenced',
+    '<strong>' . t('This action cannot be undone.') . '</strong>',
+    t('Process all'),
+    t('Cancel')
   );
 }
 
@@ -210,31 +248,38 @@ function auditfiles_unreferenced_form_confirm($form, &$form_state) {
  *   The current state of the form.
  */
 function auditfiles_unreferenced_form_confirm_submit($form, &$form_state) {
-  if ($form_state['values']['confirm']) {
-    foreach ($form_state['storage']['values']['files'] as $filename) {
+dpm($form, '$form in auditfiles_unreferenced_form_confirm_submit().');
+dpm($form_state, '$form_state in auditfiles_unreferenced_form_confirm_submit().');
+  if ($form_state['input']['confirm']) {
+    $values = $form_state['input'];
+    $operation = $values['operation'];
+    foreach ($values['changelist'] as $filename) {
       if (!empty($filename)) {
+dpm($filename, '$filename');
         // Get the file object.
         $query = "SELECT fid FROM {file_managed} WHERE filename = :filename";
         $fid = db_query($query, array(':filename' => $filename))->fetchField();
+dpm($fid, '$fid');
         $file = file_load($fid);
+dpm($file, '$file');
 
         // Delete the file from the file system.
-        if (file_unmanaged_delete($file->uri)) {
-          watchdog('auditfiles', '%file was deleted from the file system.', array('%file' => $filename));
-        }
-        else {
-          drupal_set_message(t('%file was not deleted. See the system logs for why the action failed.', array('%file' => $filename)));
-        }
+//        if (file_unmanaged_delete($file->uri)) {
+//          drupal_set_message(t('Sucessfully deleted %file from the server.', array('%file' => $filename)));
+//        }
+//        else {
+//          drupal_set_message(t('Failed to delete %file from the server.', array('%file' => $filename)));
+//        }
 
         // Remove the file listing from the {file_managed} table.
-        db_delete('file_managed')
-          ->condition('fid', $file->fid)
-          ->execute();
-
-        // Remove the file listing from the {file_usage} table.
-        db_delete('file_usage')
-          ->condition('fid', $file->fid)
-          ->execute();
+//        db_delete('file_managed')
+//          ->condition('fid', $file->fid)
+//          ->execute();
+//
+//        // Remove the file listing from the {file_usage} table.
+//        db_delete('file_usage')
+//          ->condition('fid', $file->fid)
+//          ->execute();
       }
     }
 
@@ -251,10 +296,18 @@ function auditfiles_unreferenced_form_confirm_submit($form, &$form_state) {
  *   table.
  */
 function _auditfiles_unreferenced_files() {
-  $all_files = db_query('SELECT uri FROM {file_managed} ORDER BY uri ASC')->fetchAll(PDO::FETCH_COLUMN);
-  $found_files = array();
+  // Get a list of files in the {file_managed} database table.
+  $files_in_file_managed = db_query("SELECT uri FROM {file_managed} ORDER BY uri ASC")->fetchAll(PDO::FETCH_COLUMN);
+
+  $files_in_fields = array();
+  // Get a list of all fields on the site.
   $fields = field_info_fields();
   foreach ($fields as $field) {
+    /**
+     * @todo
+     * Add an setting to allow the administrator the ability for spcifying the
+     * field types.
+     */
     if ($field['type'] == 'file' || $field['type'] == 'image') {
       // Get the database table name for the field.
       $table = key($field['storage']['details']['sql']['FIELD_LOAD_CURRENT']);
@@ -264,14 +317,14 @@ function _auditfiles_unreferenced_files() {
       // automatically adds quotes where they don't belong, otherwise.
       $result = db_query("SELECT f.uri FROM {file_managed} f INNER JOIN {$table} t ON f.fid = t.$column");
       foreach ($result as $uri) {
-        if (in_array($uri, $all_files)) {
-          $found_files[] = $uri;
+        if (in_array($uri->uri, $files_in_file_managed)) {
+          $files_in_fields[] = $uri->uri;
         }
       }
     }
   }
 
-  return array_diff($all_files, $found_files);
+  return array_diff($files_in_file_managed, $files_in_fields);
 }
 
 

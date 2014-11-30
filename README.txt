@@ -1,9 +1,21 @@
-About Audit Files
-=================
-Audit Files is a module that is designed to help keep files on your server in
-sync with those used by your Drupal site. It can run four reports, which are
-accessed from Administer > Reports > Audit Files:
+CONTENTS OF THIS FILE
+---------------------
+ * Introduction
+ * Reports
+ * Migration
+ * Issues
+ * Troubleshooting (not currently included)
+ * FAQ (not currently included)
+ * Maintainers (not currently included)
 
+INTRODUCTION
+------------
+Audit Files is a module that is designed to help keep files on your server in
+sync with those used by your Drupal site. It has six reports, which are accessed
+from Administer > Reports > Audit Files (admin/reports/auditfiles).
+
+REPORTS
+-------
 Not in the database
 -------------------
 This report lists the files that are on the server but are not in the
@@ -31,6 +43,22 @@ available.
 
 From this report you can view or edit the related node to try and discover
 what is wrong and fix it by editing the node.
+
+Managed but not used
+--------------------
+The files listed in this report are in the file_managed database table but not
+in the file_usage table. Usually, this is normal and acceptable. This report
+exists for completeness, so you may verify what is here is correct.
+
+Used but not managed
+--------------------
+The files listed in this report are in the file_usage database table but not in
+the file_managed table. Files listed here have had their Drupal management
+removed, but are still being listed as used somewhere.
+
+You should verify the file's existence in the server and in the objects it is
+listed as being used in, and either delete the reference in this report, or add
+it to the file_managed table.
 
 Unreferenced
 ------------
@@ -65,14 +93,7 @@ Scenarios are:
   selected files, or automatically apply it to all single-match cases with Attach 
   all unique matches.
 
-Configuration
--------------
-There may be some files, folders or file extensions that are reported by Audit
-Files that you do not want to be included. You can set exclusions at Administer >
-Site configuration > Audit Files. By default the audit excludes .htaccess files
-and the contents of the color directory.
-
-Migration
+MIGRATION
 ---------
 In typical usage, the reports can be used independently and the occasional issues
 revealed dealt with one-by-one. Another application is the migration of content and
@@ -102,7 +123,7 @@ A typical workflow for migrating content containing embedded images would be:
    If you find any files you're sure are not being used, you may (after making sure you have
    a fresh backup of the directory tree) delete them from the Unreferenced report.
    
-Issues
+ISSUES
 ------
 Files are associated with nodes using the {file_usage} table, behind the upload module's back. The
 main issue here is that we may associate a single file with multiple nodes, but the upload

@@ -1,12 +1,12 @@
 <?php
 /**
  * @file
- * This generates the report showing the files on the server, but not in the
- * database.
+ * This generates a report showing all the files on the server that are not in
+ * the database.
  */
 
 /**
- * Displays the files found on the server, but not in the database.
+ * Generates the report.
  *
  * @param array $form
  *   The form definition.
@@ -27,19 +27,15 @@ function auditfiles_not_in_database_form($form, &$form_state) {
   $header = array(
     'filepathname' => array(
       'data' => t('File pathname'),
-//      'field' => 'fm.filename',
     ),
     'filemime' => array(
       'data' => t('MIME'),
-//      'field' => 'fm.filemime',
     ),
     'filesize' => array(
       'data' => t('Size (in bytes)'),
-//      'field' => 'fm.filesize',
     ),
     'filemodtime' => array(
       'data' => t('Last modified'),
-//      'field' => 'fm.timestamp',
     ),
   );
 
@@ -101,7 +97,7 @@ function auditfiles_not_in_database_form_submit($form, &$form_state) {
   if (!empty($form_state['storage']['files'])) {
     foreach ($form_state['storage']['files'] as $filename => $file_id) {
       if (!empty($file_id)) {
-        // The operation has been confirmed, so do it.
+        // The operation has been confirmed.
         if ($form_state['storage']['op'] == 'Add selected items to the database') {
           // Add the file to the database.
           _auditfiles_not_in_database_add_to_database($filename);
@@ -159,15 +155,15 @@ function _auditfiles_not_in_database_confirm_operation($form, &$form_state) {
     foreach ($values['files'] as $filename => $file_id) {
       if (!empty($file_id)) {
         if ($values['op'] == 'Add selected items to the database') {
-          $message = "<strong>$filename</strong> will be added to the database.";
+          $message = t('will be added to the database.');
         }
         elseif ($values['op'] == 'Delete selected items from the server') {
-          $message = "<strong>$filename</strong> will be deleted from the server.";
+          $message = t('will be deleted from the server.');
         }
         $form['changelist'][$file_id] = array(
           '#type' => 'hidden',
           '#value' => $filename,
-          '#prefix' => '<li>' . $message,
+          '#prefix' => '<li><strong>' . $file->filename . '</strong> ' . $message,
           '#suffix' => "</li>\n",
         );
       }
@@ -184,7 +180,7 @@ function _auditfiles_not_in_database_confirm_operation($form, &$form_state) {
     '#type' => 'hidden',
     '#value' => 'TRUE'
   );
-  // Make sure the form redirects in the end
+  // Go back to the main form, when done with this one.
   $form['destination'] = array(
     '#type' => 'hidden',
     '#value' => 'admin/reports/auditfiles/notindatabase'

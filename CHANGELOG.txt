@@ -1,3 +1,13 @@
+30 November 2014 (oadaeh)
+----------------
+Created two new reports: "Managed but not used" and "Used but not managed."
+Pulled the HTML tags out of the various descriptive texts in hook_help() (except
+for the References and Unreferenced reports, as they still need re-factoring).
+Changed the IDs for the permissions.
+Updated README.txt with the two new reports and new structure (more needs to be
+done, especially with updating content).
+Updated INSTALL.txt to actually contain some useful information.
+
 28 November 2014 (oadaeh)
 ----------------
 Re-factored the Not on server and Not in database reports to be more in

@@ -1,8 +1,8 @@
 <?php
 /**
  * @file
- * Generates the report showing files referenced by content, but not in the
- * database.
+ * This generates the report showing the files referenced by content, but not in
+ * the database.
  */
 
 /**
@@ -23,7 +23,7 @@ function auditfiles_references_form($form, &$form_state) {
     return auditfiles_references_form_confirm($form, $form_state);
   }
 
-  // Action button
+  // Define the Actions form elements.
   $form['options'] = array(
     '#type' => 'fieldset',
     '#title' => t('Action'),
@@ -46,29 +46,12 @@ function auditfiles_references_form($form, &$form_state) {
     '#value' => t('Update'),
   );
 
-  // Process each result in turn and build check box list
-  // Note we cut down the overhead by preselecting nodes with potential
-  // to match the $patterns below
-  // @TODO Please convert this statement to the D7 database API syntax.
-  $result = db_query(
-    "SELECT n.nid, n.title, b.body_value
-    FROM {node} n
-    INNER JOIN {node_revision} nr ON n.vid = nr.vid
-    INNER JOIN {field_data_body} b ON b.revision_id = nr.vid
-    WHERE b.body_value LIKE '%img%'
-       OR b.body_value LIKE '%window.open%'
-       OR b.body_value LIKE '%href%'
-    ORDER BY n.nid"
-  );
-
-  // Start at 1 - $files checkboxes shouldn't have a 0 key
+  // Start at 1; $files checkboxes shouldn't have a 0 key
   $match_id = 1;
   $files = array();
   $single_match = 0;
   $multi_match = 0;
   $no_match = 0;
-  $file_dir_path = drupal_realpath('public://');
-  $domains = explode(' ', variable_get('auditfiles_include_domains', ''));
   $external_domains = array();
 
   $patterns = array(
@@ -81,7 +64,7 @@ function auditfiles_references_form($form, &$form_state) {
   );
   $reg_pattern = '/' . implode('|', $patterns) . '/';
 
-  // Stuff not likely to represent local file references
+  // Stuff not likely to represent local file references.
   $ignore_patterns = array(
     'window\.open',
     '^mailto:',
@@ -91,87 +74,126 @@ function auditfiles_references_form($form, &$form_state) {
     '^ftp:\/\/',
   );
   // Add references to our own home page(s)
-  foreach ($domains as $domain) {
-    $ignore_patterns[] = "^https?:\/\/$domain\/?$";
+  $domains = variable_get('auditfiles_include_domains', '');
+  if (!empty($domains)) {
+    $domains = explode(' ', $domains);
+    foreach ($domains as $domain) {
+      $ignore_patterns[] = "^https?:\/\/$domain\/?$";
+    }
   }
   $ignore_pattern = '/' . implode('|', $ignore_patterns) . '/';
 
+  // Get a list of nodes that might have a file reference in them.
+  // @TODO Please convert this statement to the D7 database API syntax.
+  $result = db_query(
+    "SELECT n.nid, n.title, b.body_value
+    FROM {node} n
+    INNER JOIN {node_revision} nr ON n.vid = nr.vid
+    INNER JOIN {field_data_body} b ON b.revision_id = nr.vid
+    WHERE b.body_value LIKE '%img%'
+       OR b.body_value LIKE '%window.open%'
+       OR b.body_value LIKE '%href%'
+    ORDER BY n.nid DESC
+    LIMIT 100"
+  );
+  // Process each node found with a potential file reference.
   foreach ($result as $node) {
+dpm($node, '$node');
     $node_link = l($node->title, 'node/' . $node->nid);
 
-    // This is not initialized or used.
-//    $images_matched = preg_match_all($reg_pattern, $node->body_value, $image_match_groups);
-
-    // Pull all matches together
-    $image_matches = array();
+    // Pull all the matches together.
+    preg_match_all($reg_pattern, $node->body_value, $file_match_groups);
+    $file_matches = array();
     for ($i = 1; $i < count($patterns) + 1; $i++) {
-      $image_matches = array_merge($image_matches, $image_match_groups[$i]);
+      $file_matches = array_merge($file_matches, $file_match_groups[$i]);
     }
 
-    for ($i = 0; $i < count($image_matches); $i++) {
-      $source = trim($image_matches[$i]);
-      // Merge gives us some blanks
+    // Process each potential file reference.
+    for ($i = 0; $i < count($file_matches); $i++) {
+      $source = trim($file_matches[$i]);
+      // Don't process any empty strings created as a result of the previous
+      // merging.
       if (!$source) {
         continue;
       }
-      // Bunch of stuff that won't get us anywhere
+      // Don't process any strings that are likely external to this system.
       if (preg_match($ignore_pattern, $source)) {
         continue;
       }
 
       // If we've got a full URL, and the domain is not in our list of "local"
-      // domains, assume it's a valid external URL and leave it be
+      // domains, assume it's a valid external URL and leave it be.
+      // Search the source for a URI indicator.
       $domain_found = preg_match('@^https?://([^/$]+)@', $source, $matches);
+      $local = FALSE;
       if (!$domain_found) {
+        // The file reference is local to this system.
         $local = TRUE;
       }
       else {
-        $local = FALSE;
-        $source_domain = $matches[1];
-        foreach ($domains as $domain) {
-          if ($domain == $source_domain) {
-            $local = TRUE;
-            break;
+        // If local domains have been specified, search them to see if the
+        // current string is one of them.
+        if (!empty($domains)) {
+          $source_domain = $matches[1];
+          foreach ($domains as $domain) {
+            if ($domain == $source_domain) {
+              $local = TRUE;
+              break;
+            }
           }
         }
       }
+      // If the domain is not local, add it to a list of external domains and
+      // stop processing the file reference.
       if (!$local) {
-        $external_domains[$source_domain]++;
+        $external_domains[$matches[0]]++;
         continue;
       }
 
-      // Fix up encoded spaces
+      // Fix up encoded spaces.
       $decode_source = str_replace('%20', ' ', $source);
+dpm($decode_source, '$decode_source');
 
-      // If we've got an exact match on path, and have an exact match on that
-      // path in the {upload} table, we don't have to go farther (note how we
-      // skip the / in the src)
+      $file_dir_path = drupal_realpath('public://');
+
+      // If there is an exact match on path and an exact match on that path in
+      // the {file_usage} table, we don't have to go farther.
+
+      // Search the file tables for the file reference to see if it is there.
+      // We need to compare {file_managed}.uri with $decode_source, which are in
+      // different formats. {file_managed}.uri is like "scheme://path/to/file.nam" and $decode_source may be like "http://domainname.com/
+      $query = "SELECT fu.id
+        FROM {file_usage} fu
+        INNER JOIN {file_managed} fm ON fm.fid = fu.fid
+        WHERE fu.id = :fu_nid
+        AND fm.uri = :fm_uri";
       $hit = db_query(
-        "SELECT u.nid
-        FROM {files} f
-        INNER JOIN {upload} u ON f.fid=u.fid
-        WHERE u.nid = :u.nid
-          AND CONCAT('/', f.filepath) = :f.filepath)",
+        $query,
         array(
-          ':u.nid' => $node->nid,
-          ':f.filepath)' => $decode_source))
-        ->fetchField();
+          ':fu_nid' => $node->nid,
+          ':fm_uri' => $decode_source,
+        )
+      )->fetchField();
 
+      // The file reference is not exactly matched in the file tables, so
+      // include it in the list for the user to see.
       if (!$hit) {
         $num_matches = 0;
-        $basename = basename($source);
         $decode_base = basename($decode_source);
+        $query = "SELECT fm.fid, fm.filename, fu.id
+          FROM {file_managed} fm
+          LEFT JOIN {file_usage} fu ON fm.fid = fu.fid
+          WHERE fu.id = :fu_id
+          AND fm.filename = :fm_filename";
         $file_result = db_query(
-          "SELECT f.fid, f.filepath, u.nid
-          FROM {files} f
-          LEFT JOIN {upload} u ON f.fid = u.fid AND u.nid = %d
-          WHERE f.filename = :f.filename",
+          $query,
           array(
-            ':f.filename' => $node->nid,
-            '' => $decode_base,
+            ':fu_id' => $node->nid,
+            ':fm_filename' => $decode_base,
           )
         );
-        while ($file = db_fetch_object($file_result)) {
+
+        while ($file = $file_result->fetch()) {
           $num_matches++;
           // Visible fields first
           $form['titles'][$match_id] = array('#value' => $node_link);
@@ -211,6 +233,7 @@ function auditfiles_references_form($form, &$form_state) {
 
           $match_id++;
         }
+dpm($num_matches, '$num_matches');
 
         if ($num_matches == 0) {
           $no_match++;
@@ -251,6 +274,9 @@ function auditfiles_references_form($form, &$form_state) {
       }
     }
   }
+dpm($single_match, '$single_match');
+dpm($multi_match, '$multi_match');
+dpm($no_match, '$no_match');
 
   if (count($external_domains) > 0) {
     $form['external_domains'] = array(
@@ -485,8 +511,8 @@ function auditfiles_references_form_confirm_submit($form, &$form_state) {
     foreach ($values['fid_values'] as $id => $fid) {
       if ($values['options']['operation'] == 'delete') {
         // @TODO Please review the conversion of this statement to the D7 database API syntax.
-        /* db_query("DELETE FROM {files}
-         WHERE fid=%d", $fid) */
+        /* db_query("DELETE FROM {file_managed}
+          WHERE fid=%d", $fid) */
         db_delete('files')
           ->condition('fid', $fid)
           ->execute();
@@ -499,7 +525,7 @@ function auditfiles_references_form_confirm_submit($form, &$form_state) {
       }
       else {
         // Load $values['nid_values'][$id], replace source_values with path_values, save
-        // If necessary, write record to {upload} table
+        // If necessary, write record to {file_usage} table
         $newpath = '/' . $values['path_values'][$id];
         $oldpath = $values['source_values'][$id];
 
@@ -520,11 +546,11 @@ function auditfiles_references_form_confirm_submit($form, &$form_state) {
         }
         if ($values['no_upload'][$id]) {
           // @TODO Please convert this statement to the D7 database API syntax.
-          /* db_query("INSERT INTO {upload}
-           (fid, nid, vid, description, list, weight)
-           SELECT %d, n.nid, n.vid, 'Attached by auditfiles', 0, 0
-           FROM {node} n
-           WHERE n.nid=%d", $fid, $values['nid_values'][$id]) */
+          /* db_query("INSERT INTO {file_usage}
+            (fid, nid, vid, description, list, weight)
+            SELECT %d, n.nid, n.vid, 'Attached by auditfiles', 0, 0
+            FROM {node} n
+            WHERE n.nid=%d", $fid, $values['nid_values'][$id]) */
           NULL;
         }
         drupal_set_message(t(

@@ -1,8 +1,8 @@
 <?php
 /**
  * @file
- * This generates a report showing all the files in the database that are not on
- * the server.
+ * This generates a report showing all the files in the file_usage table that
+ * are not in the file_managed table.
  */
 
 /**
@@ -16,104 +16,86 @@
  * @return array
  *   The form definition.
  */
-function auditfiles_not_on_server_form($form, &$form_state) {
+function auditfiles_used_not_managed_form($form, &$form_state) {
   // Check to see if the confirmation form needs to be displayed instead of the
   // normal form.
   if (isset($form_state['storage']['confirm'])) {
-    return _auditfiles_not_on_server_confirm_delete($form, $form_state);
+    return _auditfiles_used_not_managed_confirm_delete($form, $form_state);
   }
 
   // Set up the table header.
   $header = array(
     'fid' => array(
       'data' => t('File ID'),
-      'field' => 'fm.fid',
+      'field' => 'fu.fid',
       'sort' => 'asc',
     ),
-    'uid' => array(
-      'data' => t('User ID'),
-      'field' => 'fm.uid',
+    'module' => array(
+      'data' => t('Used by'),
+      'field' => 'fu.module',
     ),
-    'filename' => array(
-      'data' => t('Name'),
-      'field' => 'fm.filename',
+    'id' => array(
+      'data' => t('Used in'),
+      'field' => 'fu.id',
     ),
-    'uri' => array(
-      'data' => t('URI'),
-      'field' => 'fm.uri',
-    ),
-    'path' => array(
-      'data' => t('Path'),
-      'field' => 'fm.uri',
-    ),
-    'filemime' => array(
-      'data' => t('MIME'),
-      'field' => 'fm.filemime',
-    ),
-    'filesize' => array(
-      'data' => t('Size'),
-      'field' => 'fm.filesize',
-    ),
-    'datetime' => array(
-      'data' => t('When added'),
-      'field' => 'fm.timestamp',
-    ),
-    'status' => array(
-      'data' => t('Status'),
-      'field' => 'fm.status',
+    'count' => array(
+      'data' => t('Count'),
+      'field' => 'fu.count',
     ),
   );
 
   // Get the data.
 //  $items_per_page = variable_get('auditfiles_reports_items_per_page', 50);
 
+  // Get all the files in the file_usage table.
+  $managed_query = db_select('file_managed', 'fm');
+  $managed_query->fields('fm', array('fid', 'filename'));
+//  $managed_query->condition('status', 1);
+  $managed_results = $managed_query->execute()->fetchAll();
+dpm($managed_results, '$managed_results');
+
+  // Break out the IDs, so they can be used in the next query.
+  foreach ($managed_results as $managed_result) {
+    $file_managed_ids[] = $managed_result->fid;
+  }
+
   // Get all the files listed in the file_managed database table.
-  $query = db_select('file_managed', 'fm');
-  $query->fields('fm');
+  $query = db_select('file_usage', 'fu');
   $query->extend('TableSort')->orderByHeader($header);
 //  $query = $query->extend('PagerDefault')->limit($items_per_page);
+  $query->fields('fu');
+//  $query->condition('count', 0, '>');
+  $query->condition('fid', $file_managed_ids, 'NOT IN');
   $results = $query->execute();
-
-  // Get the admin specified date format for the file modification time.
-  $date_format = variable_get('auditfiles_report_options_date_format', 'long');
 
   // Set up the table rows.
   $rows = array();
   foreach ($results as $file) {
-    // Get the path for the file.
-    $target = drupal_realpath($file->uri);
-    if (!file_exists($target)) {
-      // If the file does not exist, add it to the table.
-      $rows[$file->fid] = array(
-        'fid' => $file->fid,
-        'uid' => $file->uid,
-        'filename' => $file->filename,
-        'uri' => $file->uri,
-        'path' => $target,
-        'filemime' => $file->filemime,
-        'filesize' => number_format($file->filesize),
-        'datetime' => format_date($file->timestamp, $date_format),
-        'status' => $file->status,
-      );
-    }
+    // If the file does not exist, add it to the table.
+    $rows[$file->fid] = array(
+      'fid' => $file->fid,
+      'module' => $file->module . ' ' . t('module'),
+      'id' => l($file->type . '/' . $file->id, $file->type . '/' . $file->id),
+      'count' => $file->count,
+    );
   }
 
   // Define the form table.
   $form_count = format_plural(
     count($rows),
-    'Found 1 file in the database that is not on the server.',
-    'Found @count files in the database that are not on the server.'
+    'Found 1 file in the file_usage table that is not in the file_managed table.',
+    'Found @count files in the file_usage table that are not in the file_managed table.'
   );
   $form['files'] = array(
     '#type' => 'tableselect',
     '#header' => $header,
     '#options' => $rows,
-    '#empty' => t('No unmatched files found.'),
+    '#empty' => t('No items files found.'),
     '#prefix' => '<div><em>' . $form_count . '</em></div>',
   );
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Delete selected items from the database'),
+    '#value' => t('Delete selected items from the file_usage table'),
   );
 //  $form['pager'] = array('#markup' => theme('pager'));
 
@@ -121,15 +103,15 @@ function auditfiles_not_on_server_form($form, &$form_state) {
 }
 
 /**
- * Submit handler for the auditfiles_not_on_server_form form.
+ * Submit handler for the auditfiles_used_not_managed_form form.
  */
-function auditfiles_not_on_server_form_submit($form, &$form_state) {
+function auditfiles_used_not_managed_form_submit($form, &$form_state) {
   // Check to see if any files were selected.
   if (!empty($form_state['storage']['files'])) {
     foreach ($form_state['storage']['files'] as $file_id) {
       if ($file_id != 0) {
-        // The operation has been confirmed, so delete the database records.
-        _auditfiles_not_on_server_delete_record($file_id);
+        // The operation has been confirmed, so delete the records.
+        _auditfiles_used_not_managed_delete_record($file_id);
       }
     }
   }
@@ -164,7 +146,7 @@ function auditfiles_not_on_server_form_submit($form, &$form_state) {
  * @return array
  *   A form array for a confirmation form.
  */
-function _auditfiles_not_on_server_confirm_delete($form, &$form_state) {
+function _auditfiles_used_not_managed_confirm_delete($form, &$form_state) {
   $values = $form_state['input'];
 
   $form['changelist'] = array(
@@ -183,7 +165,7 @@ function _auditfiles_not_on_server_confirm_delete($form, &$form_state) {
             '#type' => 'hidden',
             '#value' => $file_id,
             '#prefix' => '<li><strong>' . $file->filename . '</strong> '
-              . t('and all usages will be deleted from the database.'),
+              . t('will be deleted from the file_usage table.'),
             '#suffix' => "</li>\n",
           );
         }
@@ -209,13 +191,13 @@ function _auditfiles_not_on_server_confirm_delete($form, &$form_state) {
   // Go back to the main form, when done with this one.
   $form['destination'] = array(
     '#type' => 'hidden',
-    '#value' => 'admin/reports/auditfiles/notonserver'
+    '#value' => 'admin/reports/auditfiles/usednotmanaged'
   );
 
   return confirm_form(
     $form,
-    t('Delete these items from the database?'),
-    'admin/reports/auditfiles/notonserver',
+    t('Delete these items from the file_usage table?'),
+    'admin/reports/auditfiles/usednotmanaged',
     '<strong>' . t('This action cannot be undone.') . '</strong>',
     t('Yes'),
     t('No')
@@ -228,17 +210,16 @@ function _auditfiles_not_on_server_confirm_delete($form, &$form_state) {
  * @param integer $file_id
  *   The ID of the file to delete from the database.
  */
-function _auditfiles_not_on_server_delete_record($file_id) {
+function _auditfiles_used_not_managed_delete_record($file_id) {
   $file = file_load($file_id);
-  $result = file_delete($file, TRUE);
-  if ($result != TRUE) {
+  $result = db_delete('file_usage')
+    ->condition('fid', $file_id)
+    ->execute();
+  if ($result == 0) {
     drupal_set_message(
       t(
-        'File %filename with ID of %fid was not deleted. Check the logs for more information.',
-        array(
-          '%filename' => $file->filename,
-          '%fid' => $file_id,
-        )
+        'The record with ID of %fid was not deleted. Check the logs for more information.',
+        array('%fid' => $file_id)
       ),
       'warning'
     );
