@@ -64,41 +64,16 @@ function auditfiles_not_on_server_form($form, &$form_state) {
     ),
   );
 
-  // Get the data.
-//  $items_per_page = variable_get('auditfiles_reports_items_per_page', 50);
+  // Get the data to display.
+  $rows = _auditfiles_not_on_server_get_data($header);
 
-  // Get all the files listed in the file_managed database table.
-  $query = db_select('file_managed', 'fm');
-  $query->fields('fm');
-  $query->extend('TableSort')->orderByHeader($header);
-//  $query = $query->extend('PagerDefault')->limit($items_per_page);
-  $results = $query->execute();
+  // Set up the pager.
+  $items_per_page = variable_get('auditfiles_report_options_items_per_page', 50);
+  $current_page = pager_default_initialize(count($rows), $items_per_page);
+  // Break the total data set into page sized chunks.
+  $pages = array_chunk($rows, $items_per_page, TRUE);
 
-  // Get the admin specified date format for the file modification time.
-  $date_format = variable_get('auditfiles_report_options_date_format', 'long');
-
-  // Set up the table rows.
-  $rows = array();
-  foreach ($results as $file) {
-    // Get the path for the file.
-    $target = drupal_realpath($file->uri);
-    if (!file_exists($target)) {
-      // If the file does not exist, add it to the table.
-      $rows[$file->fid] = array(
-        'fid' => $file->fid,
-        'uid' => $file->uid,
-        'filename' => $file->filename,
-        'uri' => $file->uri,
-        'path' => $target,
-        'filemime' => $file->filemime,
-        'filesize' => number_format($file->filesize),
-        'datetime' => format_date($file->timestamp, $date_format),
-        'status' => $file->status,
-      );
-    }
-  }
-
-  // Define the form table.
+  // Define the form.
   $form_count = format_plural(
     count($rows),
     'Found 1 file in the database that is not on the server.',
@@ -107,7 +82,7 @@ function auditfiles_not_on_server_form($form, &$form_state) {
   $form['files'] = array(
     '#type' => 'tableselect',
     '#header' => $header,
-    '#options' => $rows,
+    '#options' => $pages[$current_page],
     '#empty' => t('No unmatched files found.'),
     '#prefix' => '<div><em>' . $form_count . '</em></div>',
   );
@@ -115,7 +90,7 @@ function auditfiles_not_on_server_form($form, &$form_state) {
     '#type' => 'submit',
     '#value' => t('Delete selected items from the database'),
   );
-//  $form['pager'] = array('#markup' => theme('pager'));
+  $form['pager'] = array('#markup' => theme('pager'));
 
   return $form;
 }
@@ -151,6 +126,50 @@ function auditfiles_not_on_server_form_submit($form, &$form_state) {
 
     drupal_set_message(t('No items were selected to delete.'));
   }
+}
+
+/**
+ * Gets the data to display on the page.
+ *
+ * @param array $header
+ *   The header to be used for the table.
+ *
+ * @return array
+ *   The data to be displayed in the table body.
+ */
+function _auditfiles_not_on_server_get_data($header) {
+  // Get all the files listed in the file_managed database table.
+  $query = db_select('file_managed', 'fm');
+  $query->fields('fm');
+  $query->extend('TableSort')->orderByHeader($header);
+  $results = $query->execute();
+
+  // Get the admin specified date format for the file modification time.
+  $date_format = variable_get('auditfiles_report_options_date_format', 'long');
+
+  // Set up the table rows.
+  $rows = array();
+
+  foreach ($results as $file) {
+    // Get the path for the file.
+    $target = drupal_realpath($file->uri);
+    if (!file_exists($target)) {
+      // If the file does not exist, add it to the table.
+      $rows[$file->fid] = array(
+        'fid' => $file->fid,
+        'uid' => $file->uid,
+        'filename' => $file->filename,
+        'uri' => $file->uri,
+        'path' => $target,
+        'filemime' => $file->filemime,
+        'filesize' => number_format($file->filesize),
+        'datetime' => format_date($file->timestamp, $date_format),
+        'status' => $file->status,
+      );
+    }
+  }
+
+  return $rows;
 }
 
 /**

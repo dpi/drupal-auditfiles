@@ -10,9 +10,19 @@ CONTENTS OF THIS FILE
 
 INTRODUCTION
 ------------
-Audit Files is a module that is designed to help keep files on your server in
-sync with those used by your Drupal site. It has six reports, which are accessed
-from Administer > Reports > Audit Files (admin/reports/auditfiles).
+Audit Files is a module that is designed to help keep the files on your server
+in sync with those used by your Drupal site.
+
+This module avoids using the Drupal API when dealing with the files and their
+references, so that more or different problems are not created when attempting
+to fix the existing ones.
+
+The module does use the Drupal API (as much as possible) to reduce the load on
+the server, including (but not necessarily limited to) paging the reports and
+using the Batch API to perform the various operations.
+
+It includes six reports, which are accessed from Administer > Reports > Audit
+Files (admin/reports/auditfiles).
 
 REPORTS
 -------

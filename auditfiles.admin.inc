@@ -62,7 +62,7 @@ function auditfiles_admin_settings($form, &$form_state) {
   $form['auditfiles_report_options']['auditfiles_report_options_items_per_page'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of items per page'),
-    '#default_value' => variable_get('auditfiles_reports_items_per_page', 50),
+    '#default_value' => variable_get('auditfiles_report_options_items_per_page', 50),
     '#size' => 10,
     '#description' => t('Enter an integer representing the number of items to display on each page of a report. If there are more than this number on a page, then a pager will be used to display the additional items. Enter a 0 to show all items on a single page.'),
   );

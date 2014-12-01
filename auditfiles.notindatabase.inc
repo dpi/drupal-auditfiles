@@ -39,25 +39,16 @@ function auditfiles_not_in_database_form($form, &$form_state) {
     ),
   );
 
-  // Get the admin specified date format for the file modification time.
-  $date_format = variable_get('auditfiles_report_options_date_format', 'long');
+  // Get the data to display.
+  $rows = _auditfiles_not_in_database_get_data($header);
 
-  // Get the list of files that aren't in the database.
-  $files_not_in_database = _auditfiles_get_files_not_in_database();
-  asort($files_not_in_database);
-  // Process the data.
-  $rows = array();
-  foreach ($files_not_in_database as $file) {
-    $row = array(
-      'filepathname' => $file,
-      'filemime' => file_get_mimetype($file),
-      'filesize' => number_format(filesize($file)),
-      'filemodtime' => format_date(filemtime($file), $date_format),
-    );
-    $rows[$file] = $row;
-  }
+  // Set up the pager.
+  $items_per_page = variable_get('auditfiles_report_options_items_per_page', 50);
+  $current_page = pager_default_initialize(count($rows), $items_per_page);
+  // Break the total data set into page sized chunks.
+  $pages = array_chunk($rows, $items_per_page, TRUE);
 
-  // Define the form table.
+  // Define the form.
   $form_count = format_plural(
     count($rows),
     'Found 1 file on the server that is not in the database.',
@@ -66,7 +57,7 @@ function auditfiles_not_in_database_form($form, &$form_state) {
   $form['files'] = array(
     '#type' => 'tableselect',
     '#header' => $header,
-    '#options' => $rows,
+    '#options' => $pages[$current_page],
     '#empty' => t('No unmatched files found.'),
     '#prefix' => '<div><em>' . $form_count . '</em></div>',
   );
@@ -84,7 +75,7 @@ function auditfiles_not_in_database_form($form, &$form_state) {
     '#value' => t('Delete selected items from the server'),
   );
 
-//  $form['pager'] = array('#markup' => theme('pager'));
+  $form['pager'] = array('#markup' => theme('pager'));
 
   return $form;
 }
@@ -128,6 +119,38 @@ function auditfiles_not_in_database_form_submit($form, &$form_state) {
 
     drupal_set_message(t('No items were selected to operate on.'));
   }
+}
+
+/**
+ * Gets the data to display on the page.
+ *
+ * @param array $header
+ *   The header to be used for the table.
+ *
+ * @return array
+ *   The data to be displayed in the table body.
+ */
+function _auditfiles_not_in_database_get_data($header) {
+  // Get the admin specified date format for the file modification time.
+  $date_format = variable_get('auditfiles_report_options_date_format', 'long');
+
+  // Get the list of files that aren't in the database.
+  $files_not_in_database = _auditfiles_get_files_not_in_database();
+  asort($files_not_in_database);
+  // Process the data.
+  $rows = array();
+
+  foreach ($files_not_in_database as $file) {
+    $row = array(
+      'filepathname' => $file,
+      'filemime' => file_get_mimetype($file),
+      'filesize' => number_format(filesize($file)),
+      'filemodtime' => format_date(filemtime($file), $date_format),
+    );
+    $rows[$file] = $row;
+  }
+
+  return $rows;
 }
 
 /**

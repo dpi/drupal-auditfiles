@@ -45,40 +45,13 @@ function auditfiles_used_not_managed_form($form, &$form_state) {
   );
 
   // Get the data.
-//  $items_per_page = variable_get('auditfiles_reports_items_per_page', 50);
+  $rows = _auditfiles_used_not_managed_get_data($header);
 
-  // Get all the files in the file_usage table.
-  $managed_query = db_select('file_managed', 'fm');
-  $managed_query->fields('fm', array('fid', 'filename'));
-//  $managed_query->condition('status', 1);
-  $managed_results = $managed_query->execute()->fetchAll();
-dpm($managed_results, '$managed_results');
-
-  // Break out the IDs, so they can be used in the next query.
-  foreach ($managed_results as $managed_result) {
-    $file_managed_ids[] = $managed_result->fid;
-  }
-
-  // Get all the files listed in the file_managed database table.
-  $query = db_select('file_usage', 'fu');
-  $query->extend('TableSort')->orderByHeader($header);
-//  $query = $query->extend('PagerDefault')->limit($items_per_page);
-  $query->fields('fu');
-//  $query->condition('count', 0, '>');
-  $query->condition('fid', $file_managed_ids, 'NOT IN');
-  $results = $query->execute();
-
-  // Set up the table rows.
-  $rows = array();
-  foreach ($results as $file) {
-    // If the file does not exist, add it to the table.
-    $rows[$file->fid] = array(
-      'fid' => $file->fid,
-      'module' => $file->module . ' ' . t('module'),
-      'id' => l($file->type . '/' . $file->id, $file->type . '/' . $file->id),
-      'count' => $file->count,
-    );
-  }
+  // Set up the pager.
+  $items_per_page = variable_get('auditfiles_report_options_items_per_page', 50);
+  $current_page = pager_default_initialize(count($rows), $items_per_page);
+  // Break the total data set into page sized chunks.
+  $pages = array_chunk($rows, $items_per_page, TRUE);
 
   // Define the form table.
   $form_count = format_plural(
@@ -89,7 +62,7 @@ dpm($managed_results, '$managed_results');
   $form['files'] = array(
     '#type' => 'tableselect',
     '#header' => $header,
-    '#options' => $rows,
+    '#options' => $pages[$current_page],
     '#empty' => t('No items files found.'),
     '#prefix' => '<div><em>' . $form_count . '</em></div>',
   );
@@ -97,7 +70,7 @@ dpm($managed_results, '$managed_results');
     '#type' => 'submit',
     '#value' => t('Delete selected items from the file_usage table'),
   );
-//  $form['pager'] = array('#markup' => theme('pager'));
+  $form['pager'] = array('#markup' => theme('pager'));
 
   return $form;
 }
@@ -133,6 +106,50 @@ function auditfiles_used_not_managed_form_submit($form, &$form_state) {
 
     drupal_set_message(t('No items were selected to delete.'));
   }
+}
+
+/**
+ * Gets the data to display on the page.
+ *
+ * @param array $header
+ *   The header to be used for the table.
+ *
+ * @return array
+ *   The data to be displayed in the table body.
+ */
+function _auditfiles_used_not_managed_get_data($header) {
+  // Get all the files in the file_usage table.
+  $managed_query = db_select('file_managed', 'fm');
+  $managed_query->fields('fm', array('fid', 'filename'));
+//  $managed_query->condition('status', 1);
+  $managed_results = $managed_query->execute()->fetchAll();
+
+  // Break out the IDs, so they can be used in the next query.
+  foreach ($managed_results as $managed_result) {
+    $file_managed_ids[] = $managed_result->fid;
+  }
+
+  // Get all the files listed in the file_managed database table.
+  $query = db_select('file_usage', 'fu');
+  $query->extend('TableSort')->orderByHeader($header);
+  $query->fields('fu');
+  $query->condition('fid', $file_managed_ids, 'NOT IN');
+  $results = $query->execute();
+
+  // Set up the table rows.
+  $rows = array();
+
+  foreach ($results as $file) {
+    // If the file does not exist, add it to the table.
+    $rows[$file->fid] = array(
+      'fid' => $file->fid,
+      'module' => $file->module . ' ' . t('module'),
+      'id' => l($file->type . '/' . $file->id, $file->type . '/' . $file->id),
+      'count' => $file->count,
+    );
+  }
+
+  return $rows;
 }
 
 /**
