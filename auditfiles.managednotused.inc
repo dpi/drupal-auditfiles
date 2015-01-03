@@ -20,10 +20,9 @@ function auditfiles_managed_not_used_form($form, &$form_state) {
   // Check to see if the confirmation form needs to be displayed instead of the
   // normal form.
   if (isset($form_state['storage']['confirm'])) {
-    return _auditfiles_managed_not_used_confirm_delete($form, $form_state);
+    return _auditfiles_managed_not_used_confirm_operation($form, $form_state);
   }
 
-  // Set up the table header.
   $header = array(
     'fid' => array(
       'data' => t('File ID'),
@@ -60,33 +59,56 @@ function auditfiles_managed_not_used_form($form, &$form_state) {
     ),
   );
 
-  // Get the data.
   $rows = _auditfiles_managed_not_used_get_data($header);
 
   // Set up the pager.
-  $items_per_page = variable_get('auditfiles_report_options_items_per_page', 50);
-  $current_page = pager_default_initialize(count($rows), $items_per_page);
-  // Break the total data set into page sized chunks.
-  $pages = array_chunk($rows, $items_per_page, TRUE);
+  if (!empty($rows)) {
+    $items_per_page = variable_get('auditfiles_report_options_items_per_page', 50);
+    $current_page = pager_default_initialize(count($rows), $items_per_page);
+    // Break the total data set into page sized chunks.
+    $pages = array_chunk($rows, $items_per_page, TRUE);
+  }
 
-  // Define the form table.
-  $form_count = format_plural(
-    count($rows),
-    'Found 1 file in the file_managed table that is not in the file_usage table.',
-    'Found @count files in the file_managed table that are not in the file_usage table.'
-  );
+  // Define the form.
+  // Setup the record count and related messages.
+  if (!empty($rows)) {
+    $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
+    if ($maximum_records > 0 && count($rows) >= $maximum_records) {
+      $file_count_message = 'Found at least @count files in the file_managed table that are not in the file_usage table.';
+    }
+    else {
+      $file_count_message = 'Found @count files in the file_managed table that are not in the file_usage table.';
+    }
+    $form_count = format_plural(
+      count($rows),
+      'Found 1 file in the file_managed table that is not in the file_usage table.',
+      $file_count_message
+    );
+  }
+  else {
+    $form_count = 'Found no files in the file_managed table that are not in the file_usage table.';
+  }
   $form['files'] = array(
     '#type' => 'tableselect',
     '#header' => $header,
-    '#options' => $pages[$current_page],
-    '#empty' => t('No items files found.'),
+    '#empty' => t('No items found.'),
     '#prefix' => '<div><em>' . $form_count . '</em></div>',
   );
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Delete selected items from the file_managed table'),
-  );
-  $form['pager'] = array('#markup' => theme('pager'));
+  if (!empty($rows) && !empty($pages)) {
+    $form['files']['#options'] = $pages[$current_page];
+  }
+  else {
+    $form['files']['#options'] = array();
+  }
+
+  if (!empty($rows)) {
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete selected items from the file_managed table'),
+    );
+
+    $form['pager'] = array('#markup' => theme('pager'));
+  }
 
   return $form;
 }
@@ -135,17 +157,22 @@ function auditfiles_managed_not_used_form_submit($form, &$form_state) {
  */
 function _auditfiles_managed_not_used_get_data($header) {
   // Get all the files in the file_usage table.
-  $usage_query = db_select('file_usage', 'fu');
-  $usage_query->fields('fu', array('fid'));
-  $usage_query->condition('count', 0, '>');
-  $usage_results = $usage_query->execute()->fetchCol();
+  $usage_results = db_query("SELECT fid FROM {file_usage} WHERE count > 0");
+  // Break out the IDs, so they can be used in the next query.
+  foreach ($usage_results as $usage_result) {
+    $usage_results2[] = $usage_result->fid;
+  }
 
   // Get all the files listed in the file_managed database table.
   $query = db_select('file_managed', 'fm');
   $query->extend('TableSort')->orderByHeader($header);
   $query->fields('fm');
-  $query->condition('status', 1);
-  $query->condition('fid', $usage_results, 'NOT IN');
+//  $query->condition('status', 1);
+  $query->condition('fid', $usage_results2, 'NOT IN');
+  $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
+  if ($maximum_records > 0) {
+    $query->range(0, $maximum_records);
+  }
   $results = $query->execute();
 
   // Get the admin specified date format for the file modification time.
@@ -182,7 +209,7 @@ function _auditfiles_managed_not_used_get_data($header) {
  * @return array
  *   A form array for a confirmation form.
  */
-function _auditfiles_managed_not_used_confirm_delete($form, &$form_state) {
+function _auditfiles_managed_not_used_confirm_operation($form, &$form_state) {
   $values = $form_state['input'];
 
   $form['changelist'] = array(
@@ -191,7 +218,7 @@ function _auditfiles_managed_not_used_confirm_delete($form, &$form_state) {
     '#tree' => TRUE,
   );
 
-  // Prepare the list of tiems to present to the user.
+  // Prepare the list of items to present to the user.
   if (!empty($values['files'])) {
     foreach ($values['files'] as $file_id) {
       if (!empty($file_id)) {

@@ -83,8 +83,8 @@ function auditfiles_help($path, $arg) {
       $output = '<p>';
       $output .= t('The files listed below are in the file_managed
         database table but not in the file_usage table. Usually, this is normal
-        and acceptable. This report exists for completeness, so that you may
-        verify what is here is correct.');
+        and acceptable. This report exists for completeness, so you may verify
+        that what is listed here is correct.');
       $output .= '</p><p>';
       $output .= t(
         'Files in this list are relative to the files directory %path.',
@@ -249,53 +249,26 @@ function auditfiles_menu() {
     'description' => 'Lists files that are in the file_usage table, but not in the file_manage table.',
   );
 
-  $items['admin/reports/auditfiles/unreferenced'] = array(
-    'title' => 'Unreferenced',
-    'page callback' => 'auditfiles_unreferenced',
+  $items['admin/reports/auditfiles/usednotreferenced'] = array(
+    'title' => 'Used not referenced',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('auditfiles_used_not_referenced_form'),
     'access arguments' => array('access file audits'),
     'type' => MENU_LOCAL_TASK,
-    'file' => 'auditfiles.unreferenced.inc',
-    'weight' => 5,
+    'file' => 'auditfiles.usednotreferenced.inc',
+    'weight' => 1,
     'description' => 'List files that are in the database, but are not referenced by any node.',
   );
-  $items['admin/reports/auditfiles/unreferenced/%'] = array(
-    'title' => 'Referencing nodes',
+  $items['admin/reports/auditfiles/referencednotused'] = array(
+    'title' => 'Referenced not used',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('auditfiles_node_references_form', 4),
-    'access arguments' => array('access file audits'),
-    'type' => MENU_CALLBACK,
-    'file' => 'auditfiles.unreferenced.inc',
-    'description' => '',
-  );
-  $items['admin/reports/auditfiles/references'] = array(
-    'title' => 'Missing references',
-    'page callback' => 'auditfiles_references',
+    'page arguments' => array('auditfiles_referenced_not_used_form'),
     'access arguments' => array('access file audits'),
     'type' => MENU_LOCAL_TASK,
-    'file' => 'auditfiles.references.inc',
-    'weight' => 0,
+    'file' => 'auditfiles.referencednotused.inc',
+    'weight' => 3,
     'description' => 'List files referenced by nodes, but not properly linked or attached.',
   );
 
   return $items;
-}
-
-/**
- * Implements hook_theme().
- */
-function auditfiles_theme() {
-  return array(
-    'auditfiles_unreferenced_form' => array(
-      'render element' => 'form',
-      'file' => 'auditfiles.unreferenced.inc',
-    ),
-    'auditfiles_node_references_form' => array(
-      'render element' => 'form',
-      'file' => 'auditfiles.unreferenced.inc',
-    ),
-    'auditfiles_references_form' => array(
-      'render element' => 'form',
-      'file' => 'auditfiles.references.inc',
-    ),
-  );
 }

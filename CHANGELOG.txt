@@ -1,3 +1,23 @@
+3 January 2015 (oadaeh)
+--------------
+Accounted for reports with zero records, so they do not display errors.
+Completed the "Used not referenced" report.
+
+31 December 2014 (oadaeh)
+----------------
+Added a record limiter to all reports, so that reports that retrieve a large
+amount of data can be made quicker.
+Completed the "Referenced not used" report, except for searching body fields
+for file references.
+
+28 December 2014 (oadaeh)
+----------------
+Nearly completed the "Referenced not used" report (needs some more testing).
+
+?? December 2014 (oadaeh)
+----------------
+Created two new reports: "Used not referenced" & "Referenced not used."
+
 1 December 2014 (oadaeh)
 ---------------
 For the four working reports:

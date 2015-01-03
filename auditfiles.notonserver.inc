@@ -20,10 +20,9 @@ function auditfiles_not_on_server_form($form, &$form_state) {
   // Check to see if the confirmation form needs to be displayed instead of the
   // normal form.
   if (isset($form_state['storage']['confirm'])) {
-    return _auditfiles_not_on_server_confirm_delete($form, $form_state);
+    return _auditfiles_not_on_server_confirm_operation($form, $form_state);
   }
 
-  // Set up the table header.
   $header = array(
     'fid' => array(
       'data' => t('File ID'),
@@ -64,33 +63,56 @@ function auditfiles_not_on_server_form($form, &$form_state) {
     ),
   );
 
-  // Get the data to display.
   $rows = _auditfiles_not_on_server_get_data($header);
 
   // Set up the pager.
-  $items_per_page = variable_get('auditfiles_report_options_items_per_page', 50);
-  $current_page = pager_default_initialize(count($rows), $items_per_page);
-  // Break the total data set into page sized chunks.
-  $pages = array_chunk($rows, $items_per_page, TRUE);
+  if (!empty($rows)) {
+    $items_per_page = variable_get('auditfiles_report_options_items_per_page', 50);
+    $current_page = pager_default_initialize(count($rows), $items_per_page);
+    // Break the total data set into page sized chunks.
+    $pages = array_chunk($rows, $items_per_page, TRUE);
+  }
 
   // Define the form.
-  $form_count = format_plural(
-    count($rows),
-    'Found 1 file in the database that is not on the server.',
-    'Found @count files in the database that are not on the server.'
-  );
+  // Setup the record count and related messages.
+  if (!empty($rows)) {
+    $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
+    if ($maximum_records > 0 && count($rows) >= $maximum_records) {
+      $file_count_message = 'Found at least @count files in the database that are not on the server.';
+    }
+    else {
+      $file_count_message = 'Found @count files in the database that are not on the server.';
+    }
+    $form_count = format_plural(
+      count($rows),
+      'Found 1 file in the database that is not on the server.',
+      $file_count_message
+    );
+  }
+  else {
+    $form_count = 'Found no files in the database that are not on the server.';
+  }
   $form['files'] = array(
     '#type' => 'tableselect',
     '#header' => $header,
-    '#options' => $pages[$current_page],
-    '#empty' => t('No unmatched files found.'),
+    '#empty' => t('No items found.'),
     '#prefix' => '<div><em>' . $form_count . '</em></div>',
   );
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Delete selected items from the database'),
-  );
-  $form['pager'] = array('#markup' => theme('pager'));
+  if (!empty($rows) && !empty($pages)) {
+    $form['files']['#options'] = $pages[$current_page];
+  }
+  else {
+    $form['files']['#options'] = array();
+  }
+
+  if (!empty($rows)) {
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete selected items from the database'),
+    );
+
+    $form['pager'] = array('#markup' => theme('pager'));
+  }
 
   return $form;
 }
@@ -142,7 +164,12 @@ function _auditfiles_not_on_server_get_data($header) {
   $query = db_select('file_managed', 'fm');
   $query->fields('fm');
   $query->extend('TableSort')->orderByHeader($header);
+  $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
+  if ($maximum_records > 0) {
+    $query->range(0, $maximum_records);
+  }
   $results = $query->execute();
+
 
   // Get the admin specified date format for the file modification time.
   $date_format = variable_get('auditfiles_report_options_date_format', 'long');
@@ -164,7 +191,7 @@ function _auditfiles_not_on_server_get_data($header) {
         'filemime' => $file->filemime,
         'filesize' => number_format($file->filesize),
         'datetime' => format_date($file->timestamp, $date_format),
-        'status' => $file->status,
+        'status' => ($file->status = 1) ? 'Permanent' : 'Temporary',
       );
     }
   }
@@ -183,7 +210,7 @@ function _auditfiles_not_on_server_get_data($header) {
  * @return array
  *   A form array for a confirmation form.
  */
-function _auditfiles_not_on_server_confirm_delete($form, &$form_state) {
+function _auditfiles_not_on_server_confirm_operation($form, &$form_state) {
   $values = $form_state['input'];
 
   $form['changelist'] = array(
@@ -192,7 +219,7 @@ function _auditfiles_not_on_server_confirm_delete($form, &$form_state) {
     '#tree' => TRUE,
   );
 
-  // Prepare the list of tiems to present to the user.
+  // Prepare the list of items to present to the user.
   if (!empty($values['files'])) {
     foreach ($values['files'] as $file_id) {
       if (!empty($file_id)) {

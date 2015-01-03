@@ -23,7 +23,6 @@ function auditfiles_not_in_database_form($form, &$form_state) {
     return _auditfiles_not_in_database_confirm_operation($form, $form_state);
   }
 
-  // Set up the table header.
   $header = array(
     'filepathname' => array(
       'data' => t('File pathname'),
@@ -39,43 +38,64 @@ function auditfiles_not_in_database_form($form, &$form_state) {
     ),
   );
 
-  // Get the data to display.
   $rows = _auditfiles_not_in_database_get_data($header);
 
   // Set up the pager.
-  $items_per_page = variable_get('auditfiles_report_options_items_per_page', 50);
-  $current_page = pager_default_initialize(count($rows), $items_per_page);
-  // Break the total data set into page sized chunks.
-  $pages = array_chunk($rows, $items_per_page, TRUE);
+  if (!empty($rows)) {
+    $items_per_page = variable_get('auditfiles_report_options_items_per_page', 50);
+    $current_page = pager_default_initialize(count($rows), $items_per_page);
+    // Break the total data set into page sized chunks.
+    $pages = array_chunk($rows, $items_per_page, TRUE);
+  }
 
   // Define the form.
-  $form_count = format_plural(
-    count($rows),
-    'Found 1 file on the server that is not in the database.',
-    'Found @count files on the server that are not in the database.'
-  );
+  // Setup the record count and related messages.
+  if (!empty($rows)) {
+    $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
+    if ($maximum_records > 0 && count($rows) >= $maximum_records) {
+      $file_count_message = 'Found at least @count files on the server that are not in the database.';
+    }
+    else {
+      $file_count_message = 'Found @count files on the server that are not in the database.';
+    }
+    $form_count = format_plural(
+      count($rows),
+      'Found 1 file on the server that is not in the database.',
+      $file_count_message
+    );
+  }
+  else {
+    $form_count = 'Found no files on the server that are not in the database.';
+  }
   $form['files'] = array(
     '#type' => 'tableselect',
     '#header' => $header,
-    '#options' => $pages[$current_page],
-    '#empty' => t('No unmatched files found.'),
+    '#empty' => t('No items found.'),
     '#prefix' => '<div><em>' . $form_count . '</em></div>',
   );
+  if (!empty($rows) && !empty($pages)) {
+    $form['files']['#options'] = $pages[$current_page];
+  }
+  else {
+    $form['files']['#options'] = array();
+  }
 
-  $form['actions'] = array('#type' => 'actions');
-  $form['actions']['add'] = array(
-    '#type' => 'submit',
-    '#value' => t('Add selected items to the database'),
-  );
-  $form['actions']['markup'] = array(
-    '#markup' => '&nbsp;' . t('or') . '&nbsp;',
-  );
-  $form['actions']['delete'] = array(
-    '#type' => 'submit',
-    '#value' => t('Delete selected items from the server'),
-  );
+  if (!empty($rows)) {
+    $form['actions'] = array('#type' => 'actions');
+    $form['actions']['add'] = array(
+      '#type' => 'submit',
+      '#value' => t('Add selected items to the database'),
+    );
+    $form['actions']['markup'] = array(
+      '#markup' => '&nbsp;' . t('or') . '&nbsp;',
+    );
+    $form['actions']['delete'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete selected items from the server'),
+    );
 
-  $form['pager'] = array('#markup' => theme('pager'));
+    $form['pager'] = array('#markup' => theme('pager'));
+  }
 
   return $form;
 }
@@ -173,7 +193,7 @@ function _auditfiles_not_in_database_confirm_operation($form, &$form_state) {
     '#tree' => TRUE,
   );
 
-  // Prepare the list of tiems to present to the user.
+  // Prepare the list of items to present to the user.
   if (!empty($values['files'])) {
     foreach ($values['files'] as $filename => $file_id) {
       if (!empty($file_id)) {
@@ -311,6 +331,8 @@ function _auditfiles_get_files_not_in_database() {
   // Get the exclusions string.
   $exclusions = _auditfiles_get_exclusions();
 
+  $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
+
   // Get all the files out of the directory structure
   $files_on_server = _auditfiles_get_file_list(drupal_realpath(file_default_scheme() . '://'), TRUE);
   // Sort the rows to make it easier to compare to file listing.
@@ -327,6 +349,9 @@ function _auditfiles_get_files_not_in_database() {
           // This file is not in the database.
           $file = preg_replace('@^' . preg_quote(file_default_scheme()) . '@', '', $file);
           $files_not_in_database[] = $file;
+          if ($maximum_records > 0 && count($files_not_in_database) >= $maximum_records) {
+            break;
+          }
         }
       }
     }

@@ -59,6 +59,13 @@ function auditfiles_admin_settings($form, &$form_state) {
     '#title' => t('Report options'),
     '#collapsible' => TRUE,
   );
+  $form['auditfiles_report_options']['auditfiles_report_options_maximum_records'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Maximum records'),
+    '#default_value' => variable_get('auditfiles_report_options_maximum_records', 0),
+    '#size' => 10,
+    '#description' => t('Enter an integer representing the maximum number of records to return on each report. If any of the reports are timing out, set this to some positive integer to limit the number of records that are queried in the database. Set it to 0 for no limit.'),
+  );
   $form['auditfiles_report_options']['auditfiles_report_options_items_per_page'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of items per page'),
