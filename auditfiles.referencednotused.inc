@@ -543,7 +543,6 @@ function _auditfiles_referenced_not_used_confirm_operation($form, &$form_state) 
 
   // Prepare the list of items to present to the user.
   if (!empty($values['files'])) {
-dpm($values['files'], '$values[files]');
     foreach ($values['files'] as $file_id) {
       if (!empty($file_id)) {
         $file_info = $files[$file_id];
@@ -630,7 +629,6 @@ dpm($values['files'], '$values[files]');
     $confirm_description = '<strong>' . t('This action cannot be undone.') . '</strong>';
   }
 
-dpm($form_state, '$form_state');
   return confirm_form(
     $form,
     $confirm_question,
