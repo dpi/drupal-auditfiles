@@ -83,9 +83,11 @@ function auditfiles_used_not_referenced_form($form, &$form_state) {
   // Set up the pager.
   if (!empty($rows)) {
     $items_per_page = variable_get('auditfiles_report_options_items_per_page', 50);
-    $current_page = pager_default_initialize(count($rows), $items_per_page);
-    // Break the total data set into page sized chunks.
-    $pages = array_chunk($rows, $items_per_page, TRUE);
+    if (!empty($items_per_page)) {
+      $current_page = pager_default_initialize(count($rows), $items_per_page);
+      // Break the total data set into page sized chunks.
+      $pages = array_chunk($rows, $items_per_page, TRUE);
+    }
   }
 
   // Define the form.
@@ -113,8 +115,12 @@ function auditfiles_used_not_referenced_form($form, &$form_state) {
     '#empty' => t('No items found.'),
     '#prefix' => '<div><em>' . $form_count . '</em></div>',
   );
+
   if (!empty($rows) && !empty($pages)) {
     $form['files']['#options'] = $pages[$current_page];
+  }
+  elseif (!empty($rows)) {
+    $form['files']['#options'] = $rows;
   }
   else {
     $form['files']['#options'] = array();
