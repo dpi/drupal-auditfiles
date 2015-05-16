@@ -12,3 +12,25 @@ function auditfiles_uninstall() {
     ->condition('name', 'auditfiles_%', 'LIKE')
     ->execute();
 }
+
+/**
+ * Updates the inclusion and exclusion strings to use semi-colons, rather than
+ * spaces.
+ */
+function auditfiles_update_7100() {
+  $strings = array(
+    'auditfiles_exclude_files' => '.htaccess',
+    'auditfiles_exclude_extensions' => '',
+    'auditfiles_exclude_paths' => 'color css ctools js',
+    'auditfiles_include_domains' => '',
+  );
+  foreach ($strings as $key => $value) {
+    $files = trim(variable_get($key, $value));
+    if ($files) {
+      $files = explode(' ', $files);
+      if (count($files) > 1) {
+        variable_set($key, implode(';', $files));
+      }
+    }
+  }
+}

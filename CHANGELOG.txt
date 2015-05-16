@@ -1,68 +1,128 @@
+16 May 2015 (oadaeh)
+-----------
+* auditfiles.notindatabase.inc, auditfiles.notonserver.inc,
+  auditfiles.managednotused.inc and auditfiles.usednotmanaged.inc:
+  - Completed refactoring the reports to allow for loading them using Drupal's
+    Batch API.
+    As part of this effort, a concept of batch limiting was created and
+    implemented (called Batch Sets, and using the $batch_size, $record_limiters,
+    $record_selection and $maximum_records variables), for times when the batch
+    process timed out or exceeded memory limitations.
+    (The add and/or delete functionalities no longer work, because the
+    conversion to Batch API for them is not yet complete.)
+
+13 May 2015 (oadaeh)
+-----------
+* INSTALL.txt, README.txt and auditfiles.module:
+  - Improved documentation.
+
+29 April 2015 (oadaeh)
+-------------
+* auditfiles.admin.inc, auditfiles.install, auditfiles.notindatabase.inc and
+  auditfiles.referencednotused.inc:
+  - Changed the exclusions separator from a space (' ') to a semi-colon (';').
+
+30 January 2015 (oadaeh)
+---------------
+* auditfiles.notindatabase.inc:
+  - Implement a page load option, using the Batch API.
+
+29 January 2015 (oadaeh)
+---------------
+* auditfiles.module:
+  - Fix incorrectly named permissions.
+* auditfiles.admin.inc:
+  - Reset the date admin option to not specifically select an option that may
+    not be in the list.
+* Fix all report displays so that if both the 'Maximum records' and the 'Number
+  of items per page' admin options are set to 0, the reports show what they are
+  supposed to show.
+
+28 January 2015 (oadaeh)
+---------------
+* auditfiles.notindatabase.inc:
+  - Fix incorrectly named variable, reported by @rudiedirkx
+    (https://www.drupal.org/user/890274) in https://www.drupal.org/node/2414979.
+
 3 January 2015 (oadaeh)
 --------------
-Accounted for reports with zero records, so they do not display errors.
-Completed the "Used not referenced" report.
+* Accounted for reports with zero records, so they do not display errors.
+* auditfiles.usednotreferenced.inc:
+  - Completed the report.
 
 31 December 2014 (oadaeh)
 ----------------
-Added a record limiter to all reports, so that reports that retrieve a large
-amount of data can be made quicker.
-Completed the "Referenced not used" report, except for searching body fields
-for file references.
+* Added a record limiter to all reports, so that reports that retrieve a large
+  amount of data can be made quicker.
+* auditfiles.referencednotused.inc:
+  - Completed the report, except for searching body fields for file references.
 
 28 December 2014 (oadaeh)
 ----------------
-Nearly completed the "Referenced not used" report (needs some more testing).
+* auditfiles.referencednotused.inc:
+  - Nearly completed the report (needs some more testing).
 
 ?? December 2014 (oadaeh)
 ----------------
-Created two new reports: "Used not referenced" & "Referenced not used."
+* auditfiles.referencednotused.inc and auditfiles.referencednotused.inc:
+  - Created the two new reports.
 
 1 December 2014 (oadaeh)
 ---------------
-For the four working reports:
- * Broke out the data collection to a separate function.
- * Fixed/added paging.
+* For the four working reports:
+  - Broke out the data collection to a separate function.
+  - Fixed/added paging.
 
 30 November 2014 (oadaeh)
 ----------------
-Created two new reports: "Managed but not used" and "Used but not managed."
-Pulled the HTML tags out of the various descriptive texts in hook_help() (except
-for the References and Unreferenced reports, as they still need re-factoring).
-Changed the IDs for the permissions.
-Updated README.txt with the two new reports and new structure (more needs to be
-done, especially with updating content).
-Updated INSTALL.txt to actually contain some useful information.
+* auditfiles.managednotused.inc and auditfiles.usednotreferenced.inc:
+  - Created the two new reports.
+* auditfiles.module:
+  - Pulled the HTML tags out of the various descriptive texts in hook_help()
+    (except for the References and Unreferenced reports, as they still need re-
+    factoring).
+  - Changed the IDs for the permissions.
+* README.txt:
+  - Updated with the two new reports and new structure (more needs to be done,
+    especially with updating content).
+* INSTALL.txt:
+  - Updated to actually contain some useful information.
 
 28 November 2014 (oadaeh)
 ----------------
-Re-factored the Not on server and Not in database reports to be more in
-conformance with Drupal API and best practices.
-Added admin settings for the reports pages.
-Continued with the update of the documentation.
+* auditfiles.notonserver.inc and auditfiles.notindatabase.inc:
+  - Re-factored the Not on server and Not in database reports to be more in
+    conformance with Drupal API and best practices.
+* auditfiles.admin.inc:
+  - Added admin settings for the reports pages.
+* Continued with the update of the documentation.
 
 14 September 2014 (oadaeh)
 -----------------
-Got the Not on server report working correctly.
-Added an action to Not on server report to remove items from database.
-Renamed auditfiles.notindb.inc to auditfiles.notindatabase.inc.
+* auditfiles.notonserver.inc:
+  - Got the report working correctly.
+  - Added an action to remove items from database.
+* Renamed auditfiles.notindb.inc to auditfiles.notindatabase.inc.
 
 13 September 2014 (oadaeh)
 -----------------
-Got the Not in database report working correctly.
+* auditfiles.notindatabase.inc:
+  - Got the report working correctly.
 
 6 August 2014 (oadaeh)
 -------------
-Update code to conform to Drupal Coding Standards, as identified by the Coder
-module.
-Also, renamed the include files to follow a auditfiles.$function.inc naming
-standard.
+* Update code to conform to Drupal Coding Standards, as identified by the Coder
+  module.
+* Also, renamed the include files to follow a auditfiles.$function.inc naming
+  standard.
 
 22 July 2014
--------------
-Committed initial port of Audit Files to Drupal 7.
-The work was done by javier.alejandro.castro, mrfelton, TommyK in this issue:
-https://www.drupal.org/node/1016600
+------------
+* Committed initial port of Audit Files to Drupal 7. The work was done by
+  - javier.alejandro.castro: https://www.drupal.org/user/482562
+  - mrfelton: https://www.drupal.org/user/305669
+  - TommyK: https://www.drupal.org/user/382217
+  in this issue: https://www.drupal.org/node/1016600.
 
 4 September 2008 (mikeryan)
 ----------------

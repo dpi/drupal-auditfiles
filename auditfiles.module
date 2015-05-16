@@ -41,7 +41,7 @@ function auditfiles_help($path, $arg) {
       $output .= '</p><p>';
       $output .= t(
         'The files in this list are using the %scheme scheme and are relative to
-          the files directory %path path.',
+        the files directory %path path.',
         array(
           '%scheme' => file_default_scheme(),
           '%path' => file_default_scheme(),
@@ -49,9 +49,7 @@ function auditfiles_help($path, $arg) {
       );
       $output .= '</p>';
       // If on a confirmation form then suppress the help message.
-      if (array_key_exists('operation', $_POST)
-        && $_POST['operation'] == 'delete'
-        && array_key_exists('files', $_POST)) {
+      if (array_key_exists('operation', $_POST) && $_POST['operation'] == 'delete' && array_key_exists('files', $_POST)) {
         $output = '';
       }
       break;
@@ -206,26 +204,26 @@ function auditfiles_menu() {
   $items['admin/reports/auditfiles'] = array(
     'title' => 'Audit Files',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('auditfiles_not_on_server_form'),
+    'page arguments' => array('auditfiles_not_in_database_form'),
     'access arguments' => array('access audit files reports'),
-    'file' => 'auditfiles.notonserver.inc',
+    'file' => 'auditfiles.notindatabase.inc',
     'description' => 'Lists files that have inconsistant or incomplete implementations.',
-  );
-  $items['admin/reports/auditfiles/notonserver'] = array(
-    'title' => 'Not on server',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -10,
-    'description' => 'Lists files that are in the database, but are not on the server.',
   );
   $items['admin/reports/auditfiles/notindatabase'] = array(
     'title' => 'Not in database',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+    'description' => 'Lists files that are on the server, but are not in the database.',
+  );
+  $items['admin/reports/auditfiles/notonserver'] = array(
+    'title' => 'Not on server',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('auditfiles_not_in_database_form'),
+    'page arguments' => array('auditfiles_not_on_server_form'),
     'access arguments' => array('access audit files reports'),
     'type' => MENU_LOCAL_TASK,
-    'file' => 'auditfiles.notindatabase.inc',
+    'file' => 'auditfiles.notonserver.inc',
     'weight' => -5,
-    'description' => 'Lists files that are on the server, but are not in the database.',
+    'description' => 'Lists files that are in the database, but are not on the server.',
   );
 
   $items['admin/reports/auditfiles/managednotused'] = array(

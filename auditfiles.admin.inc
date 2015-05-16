@@ -18,21 +18,23 @@ function auditfiles_admin_settings($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Exclude these files'),
     '#default_value' => trim(variable_get('auditfiles_exclude_files', '.htaccess')),
-    '#description' => t('Enter a list of files to exclude, separated by spaces.'),
+    '#description' => t('Enter a list of files to exclude, each separated by the
+      semi-colon character (;).'),
   );
   $form['auditfiles_exclusions']['auditfiles_exclude_extensions'] = array(
     '#type' => 'textfield',
     '#title' => t('Exclude these extensions'),
     '#default_value' => trim(variable_get('auditfiles_exclude_extensions', '')),
-    '#description' => t('Enter a list of extensions to exclude, separated by
-      spaces. Do not include the leading dot.'),
+    '#description' => t('Enter a list of extensions to exclude, each separated
+      by the semi-colon character (;). Do not include the leading dot.'),
   );
   $form['auditfiles_exclusions']['auditfiles_exclude_paths'] = array(
     '#type' => 'textfield',
     '#title' => t('Exclude these paths'),
-    '#default_value' => trim(variable_get('auditfiles_exclude_paths', 'color css ctools js')),
-    '#description' => t('Enter a list of paths to exclude, separated by spaces.
-      Do not include the leading slash. Paths are relative to %directorypath',
+    '#default_value' => trim(variable_get('auditfiles_exclude_paths', 'color;css;ctools;js')),
+    '#description' => t('Enter a list of paths to exclude, each separated by the
+      semi-colon character (;). Do not include the leading slash. Paths are
+      relative to %directorypath',
       array('%directorypath' => file_default_scheme())),
   );
 
@@ -48,12 +50,12 @@ function auditfiles_admin_settings($form, &$form_state) {
     '#size' => 80,
     '#maxlength' => 1024,
     '#description' => t('Enter a list of domains (e.g., www.example.com)
-      pointing to your website, separated by spaces.<br />
-      When scanning content for file references (such as &lt;img&gt; tags), any
-      absolute references using these domains will be included and rewritten to
-      use relative references. Absolute references to domains not in this list
-      will be considered to be external references and will not be audited or
-      rewritten.'),
+      pointing to your website, each separated by the semi-colon character (;).
+      <br />When scanning content for file references (such as &lt;img&gt;
+      tags), any absolute references using these domains will be included and
+      rewritten to use relative references. Absolute references to domains not
+      in this list will be considered to be external references and will not be
+      audited or rewritten.'),
   );
 
   $form['auditfiles_report_options'] = array(
@@ -85,6 +87,21 @@ function auditfiles_admin_settings($form, &$form_state) {
       If there are more than this number on a page, then a pager will be used to
       display the additional items.<br />
       Set this to 0 to show all items on a single page.'),
+  );
+  $form['auditfiles_report_options']['auditfiles_report_options_batch_size'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Batch size'),
+    '#default_value' => variable_get('auditfiles_report_options_batch_size', 0),
+    '#size' => 10,
+    '#description' => t("Sometimes, the above limitations and batching
+      operations aren't enough, and the reports may still timeout or exhaust the
+      available memory. If that is the case, enter a positive integer here and
+      the batch operations will be broken up to this number of records. You will
+      be given a method for paging from one batch set to anther.<br />
+      To test if this will be helpful or not, set it to a low number. If the
+      report loads, then set it to a higher number to access more records per
+      batch load operation.<br />
+      Set this to 0 for no limit."),
   );
   // Show date format select list.
   $date_types = system_get_date_types();
