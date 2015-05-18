@@ -319,7 +319,7 @@ function _auditfiles_not_on_server_batch_display_get_operations() {
   // Set up the operations.
   foreach ($file_ids as $file_id) {
     $operations[] = array(
-      '_auditfiles_not_on_server_batch_display_process_operation',
+      '_auditfiles_not_on_server_batch_display_process_batch',
       array($file_id, $date_format),
     );
   }
@@ -334,7 +334,7 @@ function _auditfiles_not_on_server_batch_display_get_operations() {
  * @param string $date_format
  *   The format to display time/date values in.
  */
-function _auditfiles_not_on_server_batch_display_process_operation($file_id, $date_format, &$context) {
+function _auditfiles_not_on_server_batch_display_process_batch($file_id, $date_format, &$context) {
   // Process the current file.
   $file = _auditfiles_not_on_server_get_file_data($file_id, $date_format);
   // The contents of 'results' are available as $results in the 'finished'
@@ -508,39 +508,13 @@ function _auditfiles_not_on_server_get_file_list() {
   $query = "SELECT fid, uri FROM {file_managed}";
   $results = db_query($query)->fetchAll();
 
-//  // Set up for any record limition.
-//  $record_limiters = _auditfile_not_on_server_get_record_limiters();
-//  $maximum_records = $record_limiters['maximum_records'];
-//  $batch_offset = 0;
-//  if ($maximum_records > 0) {
-//    $batch_offset = variable_get('auditfiles_not_on_server_batch_offset', 0);
-//  }
-//  $file_count = 0;
-
   // Process the list of files.
   foreach ($results as $result) {
     // Get the path for the file.
     $target = drupal_realpath($result->uri);
     if (!file_exists($target)) {
-      // The file does not exist.
-//      if ($batch_offset > 0) {
-//        if ($file_count >= $batch_offset && $file_count < ($batch_offset + $maximum_records)) {
-//          // Add the file to the array.
-//          $file_ids[] = $result->fid;
-//        }
-//      }
-//      elseif ($maximum_records > 0) {
-//        if ($file_count < $maximum_records) {
-//          // Add the file to the array.
-//          $file_ids[] = $result->fid;
-//        }
-//      }
-//      else {
-        // Add the file to the array.
-        $file_ids[] = $result->fid;
-//      }
-//
-//      $file_count++;
+      // The file does not exist. Add the file to the array.
+      $file_ids[] = $result->fid;
     }
   }
 
