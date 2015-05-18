@@ -43,8 +43,22 @@ function auditfiles_not_on_server_form($form, &$form_state) {
       // the data using the default options.
       $file_ids = _auditfiles_not_on_server_get_file_list();
       if (!empty($file_ids)) {
+        // If record limition has been configured, only use those records within
+        // that specification.
+        $batch_offset = 0;
+        if ($maximum_records > 0) {
+          $batch_offset = variable_get('auditfiles_not_on_server_batch_offset', 0);
+        }
+        if ($batch_offset > 0) {
+          $file_ids = array_slice($file_ids, $batch_offset, $maximum_records);
+        }
+        elseif ($maximum_records > 0) {
+          $file_ids = array_slice($file_ids, 0, $maximum_records);
+        }
+
+        $date_format = variable_get('auditfiles_report_options_date_format', 'long');
         foreach ($file_ids as $file_id) {
-          $rows[$file_id] = _auditfiles_not_on_server_get_file_data($file_id);
+          $rows[$file_id] = _auditfiles_not_on_server_get_file_data($file_id, $date_format);
         }
       }
     }
@@ -68,7 +82,10 @@ function auditfiles_not_on_server_form($form, &$form_state) {
   // Define the form.
   // Setup the record count and related messages.
   if (!empty($rows)) {
-    if ($maximum_records > 0 && count($rows) >= $maximum_records) {
+    if ($record_selection == 'batch_sets') {
+      $file_count_message = 'Found @count files in this batch set that are on the server but not in the database.';
+    }
+    elseif ($maximum_records > 0 && count($rows) == $maximum_records) {
       $file_count_message = 'Found at least @count files in the database that are not on the server.';
     }
     else {
@@ -85,32 +102,23 @@ function auditfiles_not_on_server_form($form, &$form_state) {
   }
 
   // Add the button to batch process the list of results.
-  if (!empty($rows)) {
-    if ($record_selection == 'limited') {
-      $form['batch_process'] = array(
-        '#type' => 'submit',
-        '#value' => t('Load all records'),
-      );
-    }
-    elseif ($record_selection == 'batch_sets') {
-      // Define the previous batch set button.
-      $batch_offset = variable_get('auditfiles_not_on_server_batch_offset', 0);
-      if ($batch_offset > 0) {
-        $form['batch_process_prev'] = array(
-          '#type' => 'submit',
-          '#value' => t('Load previous batch set'),
-        );
-      }
-
-      // Define the next batch set button.
-      $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
-      if (count($rows) == $batch_size) {
-        $form['batch_process_next'] = array(
-          '#type' => 'submit',
-          '#value' => t('Load next batch set'),
-        );
-      }
-    }
+  if ($record_selection == 'limited') {
+    $form['batch_process'] = array(
+      '#type' => 'submit',
+      '#value' => t('Load all records'),
+    );
+  }
+  elseif ($record_selection == 'batch_sets') {
+    // Add the button to load the previous batch set.
+    $form['batch_process_prev'] = array(
+      '#type' => 'submit',
+      '#value' => t('Load previous batch set'),
+    );
+    // Add the button to load the next batch set.
+    $form['batch_process_next'] = array(
+      '#type' => 'submit',
+      '#value' => t('Load next batch set'),
+    );
   }
   // Add the button to reset the record selection.
   if ($record_selection != 'normal') {
@@ -195,7 +203,6 @@ function auditfiles_not_on_server_form_submit($form, &$form_state) {
       unset($form_state['values']['saved_rows']);
       variable_set('auditfiles_not_on_server_record_selection', 'normal');
       variable_del('auditfiles_not_on_server_batch_offset');
-      variable_del('auditfiles_not_on_server_files_to_display');
     }
     elseif ($form_state['values']['op'] == 'Delete selected items from the database' && !empty($form_state['values']['files'])) {
       // Set appropriate variables for this operation.
@@ -290,12 +297,30 @@ function _auditfiles_not_on_server_batch_display_create_batch() {
  *   The operations to execute.
  */
 function _auditfiles_not_on_server_batch_display_get_operations() {
+  $date_format = variable_get('auditfiles_report_options_date_format', 'long');
   $operations = array();
   $file_ids = _auditfiles_not_on_server_get_file_list();
+
+  // If record limition has been configured, only use those records within that
+  // specification.
+  $record_limiters = _auditfile_not_on_server_get_record_limiters();
+  $maximum_records = $record_limiters['maximum_records'];
+  $batch_offset = 0;
+  if ($maximum_records > 0) {
+    $batch_offset = variable_get('auditfiles_not_on_server_batch_offset', 0);
+  }
+  if ($batch_offset > 0) {
+    $file_ids = array_slice($file_ids, $batch_offset, $maximum_records);
+  }
+  elseif ($maximum_records > 0) {
+    $file_ids = array_slice($file_ids, 0, $maximum_records);
+  }
+
+  // Set up the operations.
   foreach ($file_ids as $file_id) {
     $operations[] = array(
-      '_auditfiles_not_on_server_batch_display_process_batch',
-      array($file_id, count($file_ids)),
+      '_auditfiles_not_on_server_batch_display_process_operation',
+      array($file_id, $date_format),
     );
   }
   return $operations;
@@ -306,32 +331,17 @@ function _auditfiles_not_on_server_batch_display_get_operations() {
  *
  * @param string $filename
  *   The full pathname to the file to add to the database.
+ * @param string $date_format
+ *   The format to display time/date values in.
  */
-function _auditfiles_not_on_server_batch_display_process_batch($file_id, $count, &$context) {
-  // Store information needed to track progress between successive calls.
-  if (empty($context['sandbox'])) {
-    $context['sandbox'] = array();
-    $context['sandbox']['progress'] = 0;
-    $context['sandbox']['current_file'] = '';
-    $context['sandbox']['max'] = $count;
-  }
-
+function _auditfiles_not_on_server_batch_display_process_operation($file_id, $date_format, &$context) {
   // Process the current file.
-  $file = _auditfiles_not_on_server_get_file_data($file_id);
-
+  $file = _auditfiles_not_on_server_get_file_data($file_id, $date_format);
   // The contents of 'results' are available as $results in the 'finished'
   // function.
-  $context['results'][] = $file;
-  // Update our progress information.
-  $context['sandbox']['progress']++;
-  $context['sandbox']['current_node'] = $file_id;
+  $context['results']['files_to_display'][] = $file;
+  // Set a progress message.
   $context['message'] = t('Processed ') . check_plain($file['filename']);
-
-  // Inform the batch engine that we are not finished and provide an estimation
-  // of the completion level we reached.
-  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
-    $context['finished'] = ($context['sandbox']['progress'] >= $context['sandbox']['max']);
-  }
 }
 
 // Functions for the delete operation.
@@ -421,8 +431,7 @@ function _auditfiles_not_on_server_batch_delete_create_batch($files) {
   foreach ($files as $file) {
     $operations[] = array(
       '_auditfiles_not_on_server_batch_delete_process_batch',
-      array($file),
-      count($files),
+      array($file, count($files)),
     );
   }
   $batch['operations'] = $operations;
@@ -499,14 +508,14 @@ function _auditfiles_not_on_server_get_file_list() {
   $query = "SELECT fid, uri FROM {file_managed}";
   $results = db_query($query)->fetchAll();
 
-  // Set up for any record limition.
-  $record_limiters = _auditfile_not_on_server_get_record_limiters();
-  $maximum_records = $record_limiters['maximum_records'];
-  $batch_offset = 0;
-  if ($maximum_records > 0) {
-    $batch_offset = variable_get('auditfiles_not_on_server_batch_offset', 0);
-  }
-  $file_count = 0;
+//  // Set up for any record limition.
+//  $record_limiters = _auditfile_not_on_server_get_record_limiters();
+//  $maximum_records = $record_limiters['maximum_records'];
+//  $batch_offset = 0;
+//  if ($maximum_records > 0) {
+//    $batch_offset = variable_get('auditfiles_not_on_server_batch_offset', 0);
+//  }
+//  $file_count = 0;
 
   // Process the list of files.
   foreach ($results as $result) {
@@ -514,24 +523,24 @@ function _auditfiles_not_on_server_get_file_list() {
     $target = drupal_realpath($result->uri);
     if (!file_exists($target)) {
       // The file does not exist.
-      if ($batch_offset > 0) {
-        if ($file_count >= $batch_offset && $file_count < ($batch_offset + $maximum_records)) {
-          // Add the file to the array.
-          $file_ids[] = $result->fid;
-        }
-      }
-      elseif ($maximum_records > 0) {
-        if ($file_count < $maximum_records) {
-          // Add the file to the array.
-          $file_ids[] = $result->fid;
-        }
-      }
-      else {
+//      if ($batch_offset > 0) {
+//        if ($file_count >= $batch_offset && $file_count < ($batch_offset + $maximum_records)) {
+//          // Add the file to the array.
+//          $file_ids[] = $result->fid;
+//        }
+//      }
+//      elseif ($maximum_records > 0) {
+//        if ($file_count < $maximum_records) {
+//          // Add the file to the array.
+//          $file_ids[] = $result->fid;
+//        }
+//      }
+//      else {
         // Add the file to the array.
         $file_ids[] = $result->fid;
-      }
-
-      $file_count++;
+//      }
+//
+//      $file_count++;
     }
   }
 
@@ -548,7 +557,7 @@ function _auditfiles_not_on_server_get_file_list() {
  * @return object
  *   The file object of the file ID.
  */
-function _auditfiles_not_on_server_get_file_data($file_id) {
+function _auditfiles_not_on_server_get_file_data($file_id, $date_format) {
   $file = file_load($file_id);
   return array(
     'fid' => $file->fid,
@@ -558,7 +567,7 @@ function _auditfiles_not_on_server_get_file_data($file_id) {
     'path' => drupal_realpath($file->uri),
     'filemime' => $file->filemime,
     'filesize' => number_format($file->filesize),
-    'datetime' => format_date($file->timestamp, variable_get('auditfiles_report_options_date_format', 'long')),
+    'datetime' => format_date($file->timestamp, $date_format),
     'status' => ($file->status = 1) ? 'Permanent' : 'Temporary',
   );
 }
