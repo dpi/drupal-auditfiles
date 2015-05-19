@@ -69,9 +69,9 @@ function auditfiles_used_not_managed_form($form, &$form_state) {
   // Setup the record count and related messages.
   if (!empty($rows)) {
     if ($record_selection == 'batch_sets') {
-      $file_count_message = 'Found @count files in this batch set that are on the server but not in the database.';
+      $file_count_message = 'Found @count files in this batch set in the file_usage table that are not in the file_managed table.';
     }
-    elseif ($maximum_records > 0 && count($rows) == $maximum_records) {
+    elseif ($maximum_records > 0) {
       $file_count_message = 'Found at least @count files in the file_usage table that are not in the file_managed table.';
     }
     else {
@@ -89,10 +89,19 @@ function auditfiles_used_not_managed_form($form, &$form_state) {
 
   // Add the button to batch process the list of results.
   if ($record_selection == 'limited') {
-    $form['batch_process'] = array(
-      '#type' => 'submit',
-      '#value' => t('Load all records'),
-    );
+    $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
+    if ($batch_size > 0) {
+      $form['batch_process'] = array(
+        '#type' => 'submit',
+        '#value' => t('Load first batch set'),
+      );
+    }
+    else {
+      $form['batch_process'] = array(
+        '#type' => 'submit',
+        '#value' => t('Load all records'),
+      );
+    }
   }
   elseif ($record_selection == 'batch_sets') {
     // Add the button to load the previous batch set.
@@ -153,7 +162,7 @@ function auditfiles_used_not_managed_form_submit($form, &$form_state) {
     // Clear the variable, so subsequent pages will load the correct data.
     variable_del('auditfiles_files_to_display');
     // Check which operation was performed and start the batch process.
-    if ($form_state['values']['op'] == 'Load all records') {
+    if ($form_state['values']['op'] == 'Load all records' || $form_state['values']['op'] == 'Load first batch set') {
       $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
       if ($batch_size > 0) {
         // Set appropriate variables for this operation.
@@ -313,7 +322,7 @@ function _auditfiles_used_not_managed_batch_display_process_batch($file_id, &$co
   $context['message'] = t('Processed file ID ') . $file_id;
 }
 
-// Functions for the add and delete operations.
+// Functions for the delete operation.
 
 /**
  * Presents a confimation form to verify the user wants to complete the action.
@@ -387,20 +396,29 @@ function _auditfiles_used_not_managed_confirm_operation($form, &$form_state) {
 /**
  * Creates the batch for deleting files from the server.
  *
- * @param array $files
- *   The list of files returned from the form submit.
+ * @param array $fileids
+ *   The list of file IDs returned from the form submit.
  *
  * @return array
  *   The definition of the batch.
  */
-function _auditfiles_used_not_managed_batch_delete_create_batch($files) {
+function _auditfiles_used_not_managed_batch_delete_create_batch($fileids) {
+watchdog(' $fileids test', '$fileids = <pre>' . print_r($fileids, TRUE) . '</pre>');
   $batch = _auditfiles_used_not_managed_batch_set_common_values();
   $batch['title'] = t('Deleting files from the server');
   $operations = array();
-  foreach ($files as $file) {
+  // Remove all the empty values from the array.
+  $file_ids = array();
+  foreach ($fileids as $file_id) {
+    if ($file_id != 0) {
+      $file_ids[] = $file_id;
+    }
+  }
+  // Fill in the $operations variable.
+  foreach ($file_ids as $file_id) {
     $operations[] = array(
       '_auditfiles_used_not_managed_batch_delete_process_batch',
-      array($file, count($files)),
+      array($file_id),
     );
   }
   $batch['operations'] = $operations;
@@ -410,35 +428,18 @@ function _auditfiles_used_not_managed_batch_delete_create_batch($files) {
 /**
  * The batch process for deleting the file.
  *
- * @param type $file
- * @param type $count
- * @param type $context
+ * @param integer $file_id
+ *   The ID of a file to delete.
  */
-function _auditfiles_used_not_managed_batch_delete_process_batch($file, $count, &$context) {
-  // Store information needed to track progress between successive calls.
-  if (empty($context['sandbox'])) {
-    $context['sandbox'] = array();
-    $context['sandbox']['progress'] = 0;
-    $context['sandbox']['current_file'] = '';
-    $context['sandbox']['max'] = $count;
-  }
-
+function _auditfiles_used_not_managed_batch_delete_process_batch($file_id, &$context) {
+watchdog(' $file_id test', '$file_id = <pre>' . print_r($file_id, TRUE) . '</pre>');
   // Process the current file.
-//  _auditfiles_used_not_managed_batch_delete_process_file($file);
-
+  _auditfiles_used_not_managed_batch_delete_process_file($file_id);
   // The contents of 'results' are available as $results in the 'finished'
   // function.
-  $context['results'][] = check_plain($file);
-  // Update our progress information.
-  $context['sandbox']['progress']++;
-  $context['sandbox']['current_node'] = $file;
-  $context['message'] = t('Processed ') . check_plain($file);
-
-  // Inform the batch engine that we are not finished and provide an estimation
-  // of the completion level we reached.
-  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
-    $context['finished'] = ($context['sandbox']['progress'] >= $context['sandbox']['max']);
-  }
+  $context['results'][] = $file_id;
+  // Set a progress message.
+  $context['message'] = t('Processed file ID ') . $file_id;
 }
 
 /**

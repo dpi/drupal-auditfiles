@@ -1,3 +1,14 @@
+19 May 2015 (oadaeh)
+-----------
+* auditfiles.notonserver.inc, auditfiles.managednotused.inc and
+  auditfiles.usednotmanaged.inc:
+  - Restored the delete functionality.
+
+18 May 2015 (oadaeh)
+-----------
+* auditfiles.notindatabase.inc:
+  - Restored the add and delete functionalities.
+
 16 May 2015 (oadaeh)
 -----------
 * auditfiles.notindatabase.inc, auditfiles.notonserver.inc,

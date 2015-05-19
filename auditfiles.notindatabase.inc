@@ -57,8 +57,11 @@ function auditfiles_not_in_database_form($form, &$form_state) {
         }
 
         $date_format = variable_get('auditfiles_report_options_date_format', 'long');
-        foreach ($file_ids as $file_ids) {
-          $rows[] = _auditfiles_not_in_database_get_file_data($file_ids, $date_format);
+        foreach ($file_ids as $file_id) {
+          $row = _auditfiles_not_in_database_get_file_data($file_id, $date_format);
+          if (isset($row)) {
+            $rows[$file_id] = $row;
+          }
         }
       }
     }
@@ -85,7 +88,7 @@ function auditfiles_not_in_database_form($form, &$form_state) {
     if ($record_selection == 'batch_sets') {
       $file_count_message = 'Found @count files in this batch set that are on the server but not in the database.';
     }
-    elseif ($maximum_records > 0 && count($rows) == $maximum_records) {
+    elseif ($maximum_records > 0) {
       $file_count_message = 'Found at least @count files on the server that are not in the database.';
     }
     else {
@@ -103,10 +106,19 @@ function auditfiles_not_in_database_form($form, &$form_state) {
 
   // Add the button to batch process the list of results.
   if ($record_selection == 'limited') {
-    $form['batch_process'] = array(
-      '#type' => 'submit',
-      '#value' => t('Load all records'),
-    );
+    $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
+    if ($batch_size > 0) {
+      $form['batch_process'] = array(
+        '#type' => 'submit',
+        '#value' => t('Load first batch set'),
+      );
+    }
+    else {
+      $form['batch_process'] = array(
+        '#type' => 'submit',
+        '#value' => t('Load all records'),
+      );
+    }
   }
   elseif ($record_selection == 'batch_sets') {
     // Add the button to load the previous batch set.
@@ -174,7 +186,7 @@ function auditfiles_not_in_database_form_submit($form, &$form_state) {
     // Clear the variable, so subsequent pages will load the correct data.
     variable_del('auditfiles_not_in_database_files_to_display');
     // Check which operation was performed and start the batch process.
-    if ($form_state['values']['op'] == 'Load all records') {
+    if ($form_state['values']['op'] == 'Load all records' || $form_state['values']['op'] == 'Load first batch set') {
       $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
       if ($batch_size > 0) {
         // Set appropriate variables for this operation.
@@ -350,9 +362,11 @@ function _auditfiles_not_in_database_batch_display_get_operations() {
 function _auditfiles_not_in_database_batch_display_process_batch($file_id, $date_format, &$context) {
   // Process the current file.
   $file = _auditfiles_not_in_database_get_file_data($file_id, $date_format);
-  // The contents of 'results' are available as $results in the 'finished'
-  // function.
-  $context['results']['files_to_display'][] = $file;
+  if (isset($file)) {
+    // The contents of 'results' are available as $results in the 'finished'
+    // function.
+    $context['results']['files_to_display'][] = $file;
+  }
   // Set a progress message.
   $context['message'] = t('Processed ') . check_plain($file['filename']);
 }
@@ -455,7 +469,7 @@ function _auditfiles_not_in_database_batch_add_create_batch($fileids) {
   // Remove all the empty values from the array.
   $file_ids = array();
   foreach ($fileids as $file_id) {
-    if ($file_id != 0) {
+    if (!empty($file_id)) {
       $file_ids[] = $file_id;
     }
   }
@@ -463,7 +477,7 @@ function _auditfiles_not_in_database_batch_add_create_batch($fileids) {
   foreach ($file_ids as $file_id) {
     $operations[] = array(
       '_auditfiles_not_in_database_batch_add_process_batch',
-      array($file_id, count($file_ids)),
+      array($file_id),
     );
   }
   $batch['operations'] = $operations;
@@ -476,31 +490,14 @@ function _auditfiles_not_in_database_batch_add_create_batch($fileids) {
  * @param string $filename
  *   The full pathname to the file to add to the database.
  */
-function _auditfiles_not_in_database_batch_add_process_batch($file_id, $count, &$context) {
-  // Store information needed to track progress between successive calls.
-  if (empty($context['sandbox'])) {
-    $context['sandbox'] = array();
-    $context['sandbox']['progress'] = 0;
-    $context['sandbox']['current_file'] = '';
-    $context['sandbox']['max'] = $count;
-  }
-
+function _auditfiles_not_in_database_batch_add_process_batch($file_id, &$context) {
   // Process the current file.
-//  _auditfiles_not_in_database_batch_add_process_file($file_id);
-
+  _auditfiles_not_in_database_batch_add_process_file($file_id);
   // The contents of 'results' are available as $results in the 'finished'
   // function.
-  $context['results'][] = check_plain($file_id);
-  // Update our progress information.
-  $context['sandbox']['progress']++;
-  $context['sandbox']['current_node'] = $file_id;
-  $context['message'] = t('Processed file ID ') . $file_id;
-
-  // Inform the batch engine that we are not finished and provide an estimation
-  // of the completion level we reached.
-  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
-    $context['finished'] = ($context['sandbox']['progress'] >= $context['sandbox']['max']);
-  }
+  $context['results'][] = $file_id;
+  // Set a progress message.
+  $context['message'] = t('Processed file ') . $file_id;
 }
 
 /**
@@ -538,20 +535,28 @@ function _auditfiles_not_in_database_batch_add_process_file($filename) {
 /**
  * Creates the batch for deleting files from the server.
  *
- * @param array $files
- *   The list of files returned from the form submit.
+ * @param array $fileids
+ *   The list of file IDs returned from the form submit.
  *
  * @return array
  *   The definition of the batch.
  */
-function _auditfiles_not_in_database_batch_delete_create_batch($files) {
+function _auditfiles_not_in_database_batch_delete_create_batch($fileids) {
   $batch = _auditfiles_not_in_database_batch_set_common_values();
   $batch['title'] = t('Deleting files from the server');
   $operations = array();
-  foreach ($files as $file) {
+  // Remove all the empty values from the array.
+  $file_ids = array();
+  foreach ($fileids as $file_id) {
+    if (!empty($file_id)) {
+      $file_ids[] = $file_id;
+    }
+  }
+  // Fill in the $operations variable.
+  foreach ($file_ids as $file_id) {
     $operations[] = array(
       '_auditfiles_not_in_database_batch_delete_process_batch',
-      array($file, count($files)),
+      array($file_id),
     );
   }
   $batch['operations'] = $operations;
@@ -561,34 +566,17 @@ function _auditfiles_not_in_database_batch_delete_create_batch($files) {
 /**
  * The batch process for deleting the file.
  *
- * @param string $filename
- *   The full pathname to the file to add to the database.
+ * @param integer $file_id
+ *   The ID of a file to delete.
  */
-function _auditfiles_not_in_database_batch_delete_process_batch($file, $count, &$context) {
-  // Store information needed to track progress between successive calls.
-  if (empty($context['sandbox'])) {
-    $context['sandbox'] = array();
-    $context['sandbox']['progress'] = 0;
-    $context['sandbox']['current_file'] = '';
-    $context['sandbox']['max'] = $count;
-  }
-
+function _auditfiles_not_in_database_batch_delete_process_batch($file_id, &$context) {
   // Process the current file.
-//  _auditfiles_not_in_database_batch_delete_process_file($file);
-
+  _auditfiles_not_in_database_batch_delete_process_file($file_id);
   // The contents of 'results' are available as $results in the 'finished'
   // function.
-  $context['results'][] = check_plain($file);
-  // Update our progress information.
-  $context['sandbox']['progress']++;
-  $context['sandbox']['current_node'] = $file;
-  $context['message'] = t('Processed ') . check_plain($file);
-
-  // Inform the batch engine that we are not finished and provide an estimation
-  // of the completion level we reached.
-  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
-    $context['finished'] = ($context['sandbox']['progress'] >= $context['sandbox']['max']);
-  }
+  $context['results'][] = check_plain($file_id);
+  // Set a progress message.
+  $context['message'] = t('Processed file ') . check_plain($file_id);
 }
 
 /**
@@ -640,7 +628,8 @@ function _auditfiles_not_in_database_get_file_list($directory, $recursive) {
         else {
           // Add the file to the list.
           $file = $directory . '/' . $file;
-          $array_items[] = preg_replace('/\/\//', '/', $file);
+          $array_item = preg_replace('/\/\//', '/', $file);
+          $array_items[$array_item] = $array_item;
         }
       }
     }
@@ -688,10 +677,12 @@ function _auditfiles_not_in_database_get_file_data($filepathname, $date_format) 
     preg_match_all('~(.*)(' . $files_path . ')(.*)~', $filepathname, $matches);
     $match = end($matches);
     $match = reset($match);
+    $file_uri = file_build_uri($match);
   }
 
   // See if the file is in the database.
-  $stored_file = db_query("SELECT fid FROM {file_managed} WHERE uri = ':uri'", array(':uri' => file_build_uri($match)))->fetchField();
+  $query = "SELECT fid FROM {file_managed} WHERE uri = :file_uri";
+  $stored_file = db_query($query, array(':file_uri' => $file_uri))->fetchField();
   if (empty($stored_file)) {
     // This file is not in the database.
     // Get the filename from the filepathname.

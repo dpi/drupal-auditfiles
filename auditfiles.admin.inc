@@ -90,14 +90,15 @@ function auditfiles_admin_settings($form, &$form_state) {
   );
   $form['auditfiles_report_options']['auditfiles_report_options_batch_size'] = array(
     '#type' => 'textfield',
-    '#title' => t('Batch size'),
+    '#title' => t('Batch set size'),
     '#default_value' => variable_get('auditfiles_report_options_batch_size', 0),
     '#size' => 10,
     '#description' => t("Sometimes, the above limitations and batching
       operations aren't enough, and the reports may still timeout or exhaust the
       available memory. If that is the case, enter a positive integer here and
-      the batch operations will be broken up to this number of records. You will
-      be given a method for paging from one batch set to anther.<br />
+      the batch operations will be broken up into sets of this number of
+      records. You will be given a method for paging from one batch set to
+      anther.<br />
       To test if this will be helpful or not, set it to a low number. If the
       report loads, then set it to a higher number to access more records per
       batch load operation.<br />
