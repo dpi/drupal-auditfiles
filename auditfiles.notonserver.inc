@@ -430,7 +430,7 @@ function _auditfiles_not_on_server_confirm_operation($form, &$form_state) {
 }
 
 /**
- * Creates the batch for deleting files from the server.
+ * Creates the batch for deleting files from the database.
  *
  * @param array $fileids
  *   The list of file IDs returned from the form submit.
@@ -440,7 +440,7 @@ function _auditfiles_not_on_server_confirm_operation($form, &$form_state) {
  */
 function _auditfiles_not_on_server_batch_delete_create_batch($fileids) {
   $batch = _auditfiles_not_on_server_batch_set_common_values();
-  $batch['title'] = t('Deleting files from the server');
+  $batch['title'] = t('Deleting files from the database');
   $operations = array();
   // Remove all the empty values from the array.
   $file_ids = array();
@@ -533,8 +533,9 @@ function _auditfiles_not_on_server_get_file_list() {
  * @param integer $file_id
  *   The ID of the file to prepare for display.
  *
- * @return object
- *   The file object of the file ID.
+ * @return array
+ *   The row for the table on the report, with the file's information formatted
+ *   for display.
  */
 function _auditfiles_not_on_server_get_file_data($file_id, $date_format) {
   $file = file_load($file_id);

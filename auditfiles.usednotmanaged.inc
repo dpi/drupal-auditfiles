@@ -306,11 +306,8 @@ function _auditfiles_used_not_managed_batch_display_get_operations() {
 /**
  * The batch process for displaying the files.
  *
- * @param string $filename
- *   The full pathname to the file to add to the database.
- * @param integer $count
- *   The total number of records. It is used for calculating how long until the
- *   batch procewss is done.
+ * @param string $file_id
+ *   The ID of the file to add to the file_manage table.
  */
 function _auditfiles_used_not_managed_batch_display_process_batch($file_id, &$context) {
   // Process the current file.
@@ -394,7 +391,7 @@ function _auditfiles_used_not_managed_confirm_operation($form, &$form_state) {
 }
 
 /**
- * Creates the batch for deleting files from the server.
+ * Creates the batch for deleting files from the file_usage table.
  *
  * @param array $fileids
  *   The list of file IDs returned from the form submit.
@@ -403,9 +400,8 @@ function _auditfiles_used_not_managed_confirm_operation($form, &$form_state) {
  *   The definition of the batch.
  */
 function _auditfiles_used_not_managed_batch_delete_create_batch($fileids) {
-watchdog(' $fileids test', '$fileids = <pre>' . print_r($fileids, TRUE) . '</pre>');
   $batch = _auditfiles_used_not_managed_batch_set_common_values();
-  $batch['title'] = t('Deleting files from the server');
+  $batch['title'] = t('Deleting files from the file_usage table');
   $operations = array();
   // Remove all the empty values from the array.
   $file_ids = array();
@@ -432,7 +428,6 @@ watchdog(' $fileids test', '$fileids = <pre>' . print_r($fileids, TRUE) . '</pre
  *   The ID of a file to delete.
  */
 function _auditfiles_used_not_managed_batch_delete_process_batch($file_id, &$context) {
-watchdog(' $file_id test', '$file_id = <pre>' . print_r($file_id, TRUE) . '</pre>');
   // Process the current file.
   _auditfiles_used_not_managed_batch_delete_process_file($file_id);
   // The contents of 'results' are available as $results in the 'finished'
@@ -455,7 +450,7 @@ function _auditfiles_used_not_managed_batch_delete_process_file($file_id) {
   if ($result == 0) {
     drupal_set_message(
       t(
-        'There were one or more problems deleting one or more records with the file ID of %fid. Check the logs for more information.',
+        'There was a problem deleting the record with file ID %fid. Check the logs for more information.',
         array('%fid' => $file_id)
       ),
       'warning'
@@ -501,8 +496,9 @@ function _auditfiles_used_not_managed_get_file_list() {
  * @param integer $file_id
  *   The ID of the file to prepare for display.
  *
- * @return object
- *   The file object of the file ID.
+ * @return array
+ *   The row for the table on the report, with the file's information formatted
+ *   for display.
  */
 function _auditfiles_used_not_managed_get_file_data($file_id) {
   // Get the file information for the specified file ID from the database.

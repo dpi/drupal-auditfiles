@@ -310,9 +310,8 @@ function _auditfiles_managed_not_used_batch_display_get_operations() {
  *
  * @param string $filename
  *   The full pathname to the file to add to the database.
- * @param integer $count
- *   The total number of records. It is used for calculating how long until the
- *   batch procewss is done.
+ * @param string $date_format
+ *   The format to display time/date values in.
  */
 function _auditfiles_managed_not_used_batch_display_process_batch($file_id, $date_format, &$context) {
   // Process the current file.
@@ -396,7 +395,7 @@ function _auditfiles_managed_not_used_confirm_operation($form, &$form_state) {
 }
 
 /**
- * Creates the batch for deleting files from the server.
+ * Creates the batch for deleting files from the file_managed table.
  *
  * @param array $fileids
  *   The list of file IDs returned from the form submit.
@@ -406,7 +405,7 @@ function _auditfiles_managed_not_used_confirm_operation($form, &$form_state) {
  */
 function _auditfiles_managed_not_used_batch_delete_create_batch($fileids) {
   $batch = _auditfiles_managed_not_used_batch_set_common_values();
-  $batch['title'] = t('Deleting files from the server');
+  $batch['title'] = t('Deleting files from the file_managed table');
   $operations = array();
   // Remove all the empty values from the array.
   $file_ids = array();
@@ -505,8 +504,9 @@ function _auditfiles_managed_not_used_get_file_list() {
  * @param integer $file_id
  *   The ID of the file to prepare for display.
  *
- * @return object
- *   The file object of the file ID.
+ * @return array
+ *   The row for the table on the report, with the file's information formatted
+ *   for display.
  */
 function _auditfiles_managed_not_used_get_file_data($file_id, $date_format) {
   $file = file_load($file_id);
