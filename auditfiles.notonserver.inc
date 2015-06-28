@@ -216,28 +216,30 @@ function auditfiles_not_on_server_form_submit($form, &$form_state) {
       variable_set('auditfiles_not_on_server_record_selection', 'normal');
       variable_del('auditfiles_not_on_server_batch_offset');
     }
-    elseif ($form_state['values']['op'] == 'Delete selected items from the database' && !empty($form_state['values']['files'])) {
-      // Set appropriate variables for this operation.
-      variable_set('auditfiles_not_on_server_record_selection', 'normal');
-      // Prepare and set the batch.
-      batch_set(_auditfiles_not_on_server_batch_delete_create_batch($form_state['values']['files']));
+    elseif ($form_state['values']['op'] == 'Delete selected items from the database'
+      && !empty($form_state['values']['files'])) {
+      foreach ($form_state['values']['files'] as $file_id) {
+        if (!empty($file_id)) {
+          // At least one file was selected, and the operation has not been
+          // confirmed, so modify the data to display the confirmation form.
+          $form_state['storage']['files'] = $form_state['values']['files'];
+          $form_state['storage']['op'] = $form_state['values']['op'];
+          $form_state['storage']['confirm'] = TRUE;
+          $form_state['rebuild'] = TRUE;
+          return TRUE;
+        }
+      }
+
+      drupal_set_message(t('No items were selected to operate on.'));
     }
-  }
-  // Check to see if any files were selected for operating on.
-  elseif (!empty($form_state['values']['files']) && !isset($form_state['values']['process'])) {
-    foreach ($form_state['values']['files'] as $file_id) {
-      if (!empty($file_id)) {
-        // At least one file was selected, and the operation has not been
-        // confirmed, so modify the data to display the confirmation form.
-        $form_state['storage']['files'] = $form_state['values']['files'];
-        $form_state['storage']['op'] = $form_state['values']['op'];
-        $form_state['storage']['confirm'] = TRUE;
-        $form_state['rebuild'] = TRUE;
-        return TRUE;
+    elseif ($form_state['values']['op'] == 'Yes') {
+      if ($form_state['values']['operation'] == 'delete') {
+        // Set appropriate variables for this operation.
+        variable_set('auditfiles_not_on_server_record_selection', 'normal');
+        // Prepare and set the batch.
+        batch_set(_auditfiles_not_on_server_batch_delete_create_batch($form_state['values']['changelist']));
       }
     }
-
-    drupal_set_message(t('No items were selected to operate on.'));
   }
 
   if (!empty($form_state['values']['saved_rows'])) {

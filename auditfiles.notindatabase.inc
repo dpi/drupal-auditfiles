@@ -223,34 +223,38 @@ function auditfiles_not_in_database_form_submit($form, &$form_state) {
       variable_set('auditfiles_not_in_database_record_selection', 'normal');
       variable_del('auditfiles_not_in_database_batch_offset');
     }
-    elseif ($form_state['values']['op'] == 'Add selected items to the database' && !empty($form_state['values']['files'])) {
-      // Set appropriate variables for this operation.
-      variable_set('auditfiles_not_in_database_record_selection', 'normal');
-      // Prepare and set the batch.
-      batch_set(_auditfiles_not_in_database_batch_add_create_batch($form_state['values']['files']));
+    elseif (($form_state['values']['op'] == 'Add selected items to the database'
+      || $form_state['values']['op'] == 'Delete selected items from the server')
+      && !empty($form_state['values']['files'])) {
+      foreach ($form_state['values']['files'] as $file_id) {
+        if (!empty($file_id)) {
+          // At least one file was selected, and the operation has not been
+          // confirmed, so modify the data to display the confirmation form.
+          $form_state['storage']['files'] = $form_state['values']['files'];
+          $form_state['storage']['op'] = $form_state['values']['op'];
+          $form_state['storage']['confirm'] = TRUE;
+          $form_state['rebuild'] = TRUE;
+          return TRUE;
+        }
+      }
+
+      drupal_set_message(t('No items were selected to operate on.'));
     }
-    elseif ($form_state['values']['op'] == 'Delete selected items from the server' && !empty($form_state['values']['files'])) {
-      // Set appropriate variables for this operation.
-      variable_set('auditfiles_not_in_database_record_selection', 'normal');
-      // Prepare and set the batch.
-      batch_set(_auditfiles_not_in_database_batch_delete_create_batch($form_state['values']['files']));
-    }
-  }
-  // Check to see if any files were selected for operating on.
-  elseif (!empty($form_state['values']['files']) && !isset($form_state['values']['process'])) {
-    foreach ($form_state['values']['files'] as $file_id) {
-      if (!empty($file_id)) {
-        // At least one file was selected, and the operation has not been
-        // confirmed, so modify the data to display the confirmation form.
-        $form_state['storage']['files'] = $form_state['values']['files'];
-        $form_state['storage']['op'] = $form_state['values']['op'];
-        $form_state['storage']['confirm'] = TRUE;
-        $form_state['rebuild'] = TRUE;
-        return TRUE;
+    elseif ($form_state['values']['op'] == 'Yes') {
+      // Process the files.
+      if ($form_state['values']['operation'] == 'add') {
+        // Set appropriate variables for this operation.
+        variable_set('auditfiles_not_in_database_record_selection', 'normal');
+        // Prepare and set the batch.
+        batch_set(_auditfiles_not_in_database_batch_add_create_batch($form_state['values']['changelist']));
+      }
+      elseif ($form_state['values']['operation'] == 'delete') {
+        // Set appropriate variables for this operation.
+        variable_set('auditfiles_not_in_database_record_selection', 'normal');
+        // Prepare and set the batch.
+        batch_set(_auditfiles_not_in_database_batch_delete_create_batch($form_state['values']['changelist']));
       }
     }
-
-    drupal_set_message(t('No items were selected to operate on.'));
   }
 
   if (!empty($form_state['values']['saved_rows'])) {
@@ -456,7 +460,7 @@ function _auditfiles_not_in_database_confirm_operation($form, &$form_state) {
 /**
  * Creates the batch for adding files to the database.
  *
- * @param array $file_ids
+ * @param array $fileids
  *   The list of file IDs to be processed.
  *
  * @return array
@@ -510,10 +514,10 @@ function _auditfiles_not_in_database_batch_add_process_file($filename) {
   global $user;
   $file = new stdClass();
   $file->uid = $user->uid;
-  // Get the scheme's path.
-  $scheme_path = variable_get('file_' . file_default_scheme() . '_path');
   // Get the path to the file relative to it's file storage location.
   $filename = preg_replace('@' . preg_quote(drupal_realpath('./')) . '.@', '', $filename);
+  // Get the scheme's path.
+  $scheme_path = variable_get('file_' . file_default_scheme() . '_path', conf_path() . '/files');
   $filename = preg_replace('@' . preg_quote($scheme_path) . '.@', '', $filename);
   $file->filename = trim(basename($filename));
   $file->uri = file_build_uri($filename);
@@ -655,21 +659,8 @@ function _auditfiles_not_in_database_get_file_list($directory, $recursive) {
 function _auditfiles_not_in_database_get_file_data($filepathname, $date_format) {
   // Convert the path name to a Drupal URI scheme for comparison in the
   // database.
-  $files_path = '';
   // Get the path of the currently used file scheme.
-  $default_file_scheme = file_default_scheme();
-  if ($default_file_scheme == 'public') {
-    $files_path = variable_get('file_public_path', '');
-  }
-  elseif ($default_file_scheme == 'private') {
-    $files_path = variable_get('file_private_path', '');
-  }
-  else {
-    /**
-     * @todo
-     *   Unknown file scheme.
-     */
-  }
+  $files_path = variable_get('file_' . file_default_scheme() . '_path', conf_path() . '/files');
 
   // Remove the path to the files directory.
   if ($files_path != '') {
