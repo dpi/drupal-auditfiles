@@ -1,3 +1,9 @@
+4 July 2015 (oadaeh)
+-----------
+* auditfiles.usednotreferenced.inc and auditfiles.referencednotused.inc:
+  - Refactored to allow for loading them using Drupal's Batch API, and fixed
+    confirmation of add and delete operations.
+
 27 June 2015 (oadaeh)
 ------------
 * auditfiles.notindatabase.inc, auditfiles.notonserver.inc,
