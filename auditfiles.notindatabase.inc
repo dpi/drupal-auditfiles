@@ -640,7 +640,7 @@ function _auditfiles_not_in_database_get_file_list($directory, $recursive) {
         }
         else {
           // Add the file to the list.
-          $file = $directory . '/' . $file;
+          $file = $directory . DIRECTORY_SEPARATOR . $file;
           $array_item = preg_replace('/\/\//', '/', $file);
           $array_items[$array_item] = $array_item;
         }
