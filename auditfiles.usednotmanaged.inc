@@ -310,6 +310,11 @@ function _auditfiles_used_not_managed_batch_display_get_operations() {
  *
  * @param string $file_id
  *   The ID of the file to add to the file_manage table.
+ *
+ *
+ * @param array $context
+ *   Used by the Batch API to keep track of and pass data from one operation to
+ *   the next.
  */
 function _auditfiles_used_not_managed_batch_display_process_batch($file_id, &$context) {
   // Process the current file.
@@ -318,7 +323,7 @@ function _auditfiles_used_not_managed_batch_display_process_batch($file_id, &$co
   // function.
   $context['results']['files_to_display'][] = $file;
   // Set a progress message.
-  $context['message'] = t('Processed file ID ') . $file_id;
+  $context['message'] = t('Processed file ID %file_id.', array('%file_id' => $file_id));
 }
 
 // Functions for the delete operation.
@@ -396,7 +401,7 @@ function _auditfiles_used_not_managed_confirm_operation($form, &$form_state) {
  * Creates the batch for deleting files from the file_usage table.
  *
  * @param array $fileids
- *   The list of file IDs returned from the form submit.
+ *   The list of file IDs to be processed.
  *
  * @return array
  *   The definition of the batch.
@@ -428,6 +433,9 @@ function _auditfiles_used_not_managed_batch_delete_create_batch($fileids) {
  *
  * @param integer $file_id
  *   The ID of a file to delete.
+ * @param array $context
+ *   Used by the Batch API to keep track of and pass data from one operation to
+ *   the next.
  */
 function _auditfiles_used_not_managed_batch_delete_process_batch($file_id, &$context) {
   // Process the current file.
@@ -440,7 +448,7 @@ function _auditfiles_used_not_managed_batch_delete_process_batch($file_id, &$con
 }
 
 /**
- * Deletes a specified file from the database.
+ * Deletes the specified file from the file_usage table.
  *
  * @param integer $file_id
  *   The ID of the file to delete from the database.

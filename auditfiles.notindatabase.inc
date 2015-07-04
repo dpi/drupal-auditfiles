@@ -362,6 +362,9 @@ function _auditfiles_not_in_database_batch_display_get_operations() {
  *   The full pathname to the file to add to the database.
  * @param string $date_format
  *   The format to display time/date values in.
+ * @param array $context
+ *   Used by the Batch API to keep track of and pass data from one operation to
+ *   the next.
  */
 function _auditfiles_not_in_database_batch_display_process_batch($file_id, $date_format, &$context) {
   // Process the current file.
@@ -372,7 +375,7 @@ function _auditfiles_not_in_database_batch_display_process_batch($file_id, $date
     $context['results']['files_to_display'][] = $file;
   }
   // Set a progress message.
-  $context['message'] = t('Processed ') . check_plain($file['filename']);
+  $context['message'] = t('Processed %filename.', array('%filename' => $file['filename']));
 }
 
 // Functions for the add and delete operations.
@@ -493,15 +496,18 @@ function _auditfiles_not_in_database_batch_add_create_batch($fileids) {
  *
  * @param string $filename
  *   The full pathname to the file to add to the database.
+ * @param array $context
+ *   Used by the Batch API to keep track of and pass data from one operation to
+ *   the next.
  */
-function _auditfiles_not_in_database_batch_add_process_batch($file_id, &$context) {
+function _auditfiles_not_in_database_batch_add_process_batch($filename, &$context) {
   // Process the current file.
-  _auditfiles_not_in_database_batch_add_process_file($file_id);
+  _auditfiles_not_in_database_batch_add_process_file($filename);
   // The contents of 'results' are available as $results in the 'finished'
   // function.
-  $context['results'][] = $file_id;
+  $context['results'][] = $filename;
   // Set a progress message.
-  $context['message'] = t('Processed file ') . $file_id;
+  $context['message'] = t('Processed file ') . $filename;
 }
 
 /**
@@ -540,7 +546,7 @@ function _auditfiles_not_in_database_batch_add_process_file($filename) {
  * Creates the batch for deleting files from the server.
  *
  * @param array $fileids
- *   The list of file IDs returned from the form submit.
+ *   The list of file IDs to be processed.
  *
  * @return array
  *   The definition of the batch.
@@ -572,6 +578,9 @@ function _auditfiles_not_in_database_batch_delete_create_batch($fileids) {
  *
  * @param integer $file_id
  *   The ID of a file to delete.
+ * @param array $context
+ *   Used by the Batch API to keep track of and pass data from one operation to
+ *   the next.
  */
 function _auditfiles_not_in_database_batch_delete_process_batch($file_id, &$context) {
   // Process the current file.
@@ -692,7 +701,7 @@ function _auditfiles_not_in_database_get_file_data($filepathname, $date_format) 
 // Helper functions.
 
 /**
- * Returns report limiting settings.
+ * Returns any report limiting settings.
  *
  * Returns the information that is needed to modify the report and display based
  * on any report limiting options that may have been set on the administrative
