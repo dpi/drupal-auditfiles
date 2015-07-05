@@ -25,10 +25,6 @@ function auditfiles_not_in_database_form($form, &$form_state) {
     return _auditfiles_not_in_database_confirm_operation($form, $form_state);
   }
 
-  $record_limiters = _auditfile_not_in_database_get_record_limiters();
-  $record_selection = $record_limiters['record_selection'];
-  $maximum_records = $record_limiters['maximum_records'];
-
   // Get the records to display.
   // Check to see if the data has been stored.
   if (!empty($form_state['storage']['saved_rows'])) {
@@ -43,19 +39,6 @@ function auditfiles_not_in_database_form($form, &$form_state) {
       // the data using the default options.
       $file_ids = _auditfiles_not_in_database_get_file_list(drupal_realpath(file_default_scheme() . '://'), TRUE);
       if (!empty($file_ids)) {
-        // If record limition has been configured, only use those records within
-        // that specification.
-        $batch_offset = 0;
-        if ($maximum_records > 0) {
-          $batch_offset = variable_get('auditfiles_not_in_database_batch_offset', 0);
-        }
-        if ($batch_offset > 0) {
-          $file_ids = array_slice($file_ids, $batch_offset, $maximum_records);
-        }
-        elseif ($maximum_records > 0) {
-          $file_ids = array_slice($file_ids, 0, $maximum_records);
-        }
-
         $date_format = variable_get('auditfiles_report_options_date_format', 'long');
         foreach ($file_ids as $file_id) {
           $row = _auditfiles_not_in_database_get_file_data($file_id, $date_format);
@@ -81,6 +64,11 @@ function auditfiles_not_in_database_form($form, &$form_state) {
       $pages = array_chunk($rows, $items_per_page, TRUE);
     }
   }
+
+  // Get any specified record selection limiters.
+  $record_limiters = _auditfile_not_in_database_get_record_limiters();
+  $record_selection = $record_limiters['record_selection'];
+  $maximum_records = $record_limiters['maximum_records'];
 
   // Define the form.
   // Setup the record count and related messages.
@@ -329,22 +317,6 @@ function _auditfiles_not_in_database_batch_display_get_operations() {
   $date_format = variable_get('auditfiles_report_options_date_format', 'long');
   $operations = array();
   $file_ids = _auditfiles_not_in_database_get_file_list(drupal_realpath(file_default_scheme() . '://'), TRUE);
-
-  // If record limition has been configured, only use those records within that
-  // specification.
-  $record_limiters = _auditfile_not_in_database_get_record_limiters();
-  $maximum_records = $record_limiters['maximum_records'];
-  $batch_offset = 0;
-  if ($maximum_records > 0) {
-    $batch_offset = variable_get('auditfiles_not_in_database_batch_offset', 0);
-  }
-  if ($batch_offset > 0) {
-    $file_ids = array_slice($file_ids, $batch_offset, $maximum_records);
-  }
-  elseif ($maximum_records > 0) {
-    $file_ids = array_slice($file_ids, 0, $maximum_records);
-  }
-
   // Set up the operations.
   foreach ($file_ids as $file_id) {
     $operations[] = array(
@@ -628,21 +600,33 @@ function _auditfiles_not_in_database_batch_delete_process_file($filename) {
 function _auditfiles_not_in_database_get_file_list($directory, $recursive) {
   $array_items = array();
   $exclusions = _auditfiles_get_exclusions();
-  if ($handle = opendir($directory)) {
-    while (($file = readdir($handle)) !== FALSE) {
-      // Exclude files, paths and extensions according to the admin specified
-      // exclusions list.
-      if ((!$exclusions || !preg_match('@' . $exclusions . '@', $file)) && $file != "." && $file != "..") {
-        if (is_dir($directory . '/' . $file)) {
-          if ($recursive) {
-            $array_items = array_merge($array_items, _auditfiles_not_in_database_get_file_list($directory . '/' . $file, $recursive));
+  // If record limition has been configured, only use those records within that
+  // specification.
+  $record_limiters = _auditfile_not_in_database_get_record_limiters();
+  $maximum_records = $record_limiters['maximum_records'];
+  $batch_offset = variable_get('auditfiles_not_in_database_batch_offset', 0);
+
+  if ($maximum_records > 0 && count($array_items) < $maximum_records + $batch_offset) {
+    // Get the list of files in the specified directory.
+    if ($handle = opendir($directory)) {
+      while (($file = readdir($handle)) !== FALSE) {
+        // Exclude files, paths and extensions according to the admin specified
+        // exclusions list.
+        if ($file != "." && $file != ".."
+          && (empty($exclusions) || (!preg_match('@' . $exclusions . '@', $file)
+          && !preg_match('@' . $exclusions . '@', $directory . DIRECTORY_SEPARATOR . $file)))) {
+          if (is_dir($directory . '/' . $file)) {
+            if ($recursive && count($array_items) < $maximum_records + $batch_offset) {
+              $array_items = array_merge($array_items, _auditfiles_not_in_database_get_file_list($directory . DIRECTORY_SEPARATOR . $file, $recursive));
+            }
           }
-        }
-        else {
-          // Add the file to the list.
-          $file = $directory . DIRECTORY_SEPARATOR . $file;
-          $array_item = preg_replace('/\/\//', '/', $file);
-          $array_items[$array_item] = $array_item;
+          else {
+            // Add the file to the list.
+            $file = $directory . DIRECTORY_SEPARATOR . $file;
+            $file = preg_replace('/\/\//', DIRECTORY_SEPARATOR, $file);
+            $array_item = preg_replace('/\\\\/', DIRECTORY_SEPARATOR, $file);
+            $array_items[$array_item] = $array_item;
+          }
         }
       }
     }
@@ -650,6 +634,9 @@ function _auditfiles_not_in_database_get_file_list($directory, $recursive) {
     closedir($handle);
   }
 
+  if ($maximum_records > 0 && count($array_items) >= $maximum_records + $batch_offset) {
+    $array_items = array_slice($array_items, $batch_offset, $maximum_records);
+  }
   return $array_items;
 }
 

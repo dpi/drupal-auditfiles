@@ -25,10 +25,6 @@ function auditfiles_managed_not_used_form($form, &$form_state) {
     return _auditfiles_managed_not_used_confirm_operation($form, $form_state);
   }
 
-  $record_limiters = _auditfile_managed_not_used_get_record_limiters();
-  $record_selection = $record_limiters['record_selection'];
-  $maximum_records = $record_limiters['maximum_records'];
-
   // Get the records to display.
   // Check to see if the data has been stored.
   if (!empty($form_state['storage']['saved_rows'])) {
@@ -65,6 +61,11 @@ function auditfiles_managed_not_used_form($form, &$form_state) {
       $pages = array_chunk($rows, $items_per_page, TRUE);
     }
   }
+
+  // Get any specified record selection limiters.
+  $record_limiters = _auditfile_managed_not_used_get_record_limiters();
+  $record_selection = $record_limiters['record_selection'];
+  $maximum_records = $record_limiters['maximum_records'];
 
   // Define the form.
   // Setup the record count and related messages.
@@ -487,17 +488,16 @@ function _auditfiles_managed_not_used_get_file_list() {
   // file_usage table.
   $query = "SELECT fid FROM {file_managed} WHERE fid NOT IN (SELECT fid FROM {file_usage})";
 
+  // If record limition has been configured, only use those records within that
+  // specification.
   $record_limiters = _auditfile_managed_not_used_get_record_limiters();
   $maximum_records = $record_limiters['maximum_records'];
   if ($maximum_records > 0) {
     $query .= " LIMIT " . $maximum_records;
-
-    // Figure out if an offest is necessary.
+    // Set the offest.
     $batch_offset = variable_get('auditfiles_managed_not_used_batch_offset', 0);
-    if ($batch_offset > 0) {
-      $query .= " OFFSET " . $batch_offset;
-      variable_set('auditfiles_managed_not_used_report_options_batch_offset', $batch_offset + $maximum_records);
-    }
+    $query .= " OFFSET " . $batch_offset;
+    variable_set('auditfiles_managed_not_used_batch_offset', $batch_offset + $maximum_records);
   }
   else {
     variable_set('auditfiles_managed_not_used_batch_offset', 0);

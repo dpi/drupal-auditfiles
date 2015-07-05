@@ -25,10 +25,6 @@ function auditfiles_used_not_referenced_form($form, &$form_state) {
     return _auditfiles_used_not_referenced_confirm_operation($form, $form_state);
   }
 
-  $record_limiters = _auditfile_used_not_referenced_get_record_limiters();
-  $record_selection = $record_limiters['record_selection'];
-  $maximum_records = $record_limiters['maximum_records'];
-
   // Get the records to display.
   // Check to see if the data has been stored.
   if (!empty($form_state['storage']['saved_rows'])) {
@@ -64,6 +60,11 @@ function auditfiles_used_not_referenced_form($form, &$form_state) {
       $pages = array_chunk($rows, $items_per_page, TRUE);
     }
   }
+
+  // Get any specified record selection limiters.
+  $record_limiters = _auditfile_used_not_referenced_get_record_limiters();
+  $record_selection = $record_limiters['record_selection'];
+  $maximum_records = $record_limiters['maximum_records'];
 
   // Define the form.
   // Setup the record count and related messages.
@@ -480,17 +481,16 @@ function _auditfiles_used_not_referenced_get_file_list() {
   // Get a list of files in the file_usage database table.
   $query = "SELECT DISTINCT(fid) FROM {file_usage}";
 
+  // If record limition has been configured, only use those records within that
+  // specification.
   $record_limiters = _auditfile_used_not_referenced_get_record_limiters();
   $maximum_records = $record_limiters['maximum_records'];
   if ($maximum_records > 0) {
     $query .= " LIMIT " . $maximum_records;
-
-    // Figure out if an offest is necessary.
+    // Set the offest.
     $batch_offset = variable_get('auditfiles_used_not_referenced_batch_offset', 0);
-    if ($batch_offset > 0) {
-      $query .= " OFFSET " . $batch_offset;
-      variable_set('auditfiles_used_not_referenced_report_options_batch_offset', $batch_offset + $maximum_records);
-    }
+    $query .= " OFFSET " . $batch_offset;
+    variable_set('auditfiles_used_not_referenced_batch_offset', $batch_offset + $maximum_records);
   }
   else {
     variable_set('auditfiles_used_not_referenced_batch_offset', 0);
@@ -572,52 +572,6 @@ function _auditfiles_used_not_referenced_get_file_data($file_id) {
   }
 
   return $row;
-}
-
-/**
- * Retrieves a list of files in file_managed that are not in file_usage.
- *
- * @return array
- *   The list of files in the {file_managed} table but not in the {file_usage}
- *   table.
- */
-function _auditfiles_used_not_referenced_get_data() {
-  $record_limiters = _auditfile_used_not_referenced_get_record_limiters();
-  $maximum_records = $record_limiters['maximum_records'];
-  // Get a list of files in the file_usage database table.
-  $query = "SELECT DISTINCT(fid) FROM {file_usage}";
-  if ($maximum_records > 0) {
-    $query .= " LIMIT $maximum_records";
-  }
-  $files_in_file_usage = db_query($query)->fetchAll(PDO::FETCH_COLUMN);
-
-  $files_in_fields = array();
-  // Get a list of all fields on the site.
-  $fields = field_info_fields();
-  foreach ($fields as $field) {
-    /**
-     * @todo
-     * Consider adding a setting to allow the administrator the ability for
-     * spcifying the field types.
-     */
-    if (!empty($field['type']) && ($field['type'] == 'file' || $field['type'] == 'image')) {
-      // Get the database table name for the field.
-      $table = key($field['storage']['details']['sql']['FIELD_LOAD_CURRENT']);
-      // Get the column name in the database table for the field.
-      $column = $field['storage']['details']['sql']['FIELD_LOAD_CURRENT'][$table]['fid'];
-
-      $query = "SELECT t.$column FROM {$table} t INNER JOIN {file_usage} f ON f.fid = t.$column";
-      $result = db_query($query);
-
-      foreach ($result as $fid) {
-        if (in_array($fid->{$column}, $files_in_file_usage)) {
-          $files_in_fields[] = $fid->{$column};
-        }
-      }
-    }
-  }
-
-  return array_diff($files_in_file_usage, $files_in_fields);
 }
 
 // Helper functions.

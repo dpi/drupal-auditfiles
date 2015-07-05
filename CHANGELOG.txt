@@ -1,3 +1,13 @@
+5 July 2015 (oadaeh)
+-----------
+* auditfiles.notindatabase.inc:
+  - Fixed record selection function so it respects admin specified record
+    limiters.
+* auditfiles.managednotused.inc, auditfiles.notonserver.inc,
+  auditfiles.referencednotused.inc, auditfiles.usednotmanaged.inc,
+  auditfiles.usednotreferenced.inc
+  - Fixed batch offest selection."
+
 4 July 2015 (oadaeh)
 -----------
 * auditfiles.usednotreferenced.inc and auditfiles.referencednotused.inc:
