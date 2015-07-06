@@ -1,12 +1,21 @@
+6 July 2015 (oadaeh)
+-----------
+* auditfiles.info, auditfiles.module, auditfiles.views_default.inc:
+  - Added functionality for displaying files and merging their references for
+    the purposes of eliminating duplicates.
+
 5 July 2015 (oadaeh)
 -----------
 * auditfiles.notindatabase.inc:
   - Fixed record selection function so it respects admin specified record
     limiters.
-* auditfiles.managednotused.inc, auditfiles.notonserver.inc,
-  auditfiles.referencednotused.inc, auditfiles.usednotmanaged.inc,
-  auditfiles.usednotreferenced.inc
-  - Fixed batch offest selection."
+* auditfiles.managednotused.inc, auditfiles.notindatabase.inc,
+  auditfiles.notonserver.inc, auditfiles.referencednotused.inc,
+  auditfiles.usednotmanaged.inc, auditfiles.usednotreferenced.inc:
+  - Fixed batch offset selection."
+* auditfiles.notindatabase.inc, auditfiles.notonserver.inc:
+  - Moved applying record selection limiters into their *_get_file_list()
+    functions.
 
 4 July 2015 (oadaeh)
 -----------
