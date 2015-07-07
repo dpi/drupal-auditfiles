@@ -28,6 +28,13 @@ function auditfiles_views_default_views() {
   $handler->display->display_options['pager']['type'] = 'full';
   $handler->display->display_options['pager']['options']['items_per_page'] = '25';
   $handler->display->display_options['style_plugin'] = 'table';
+  $handler->display->display_options['style_options']['grouping'] = array(
+    0 => array(
+      'field' => 'filename',
+      'rendered' => 0,
+      'rendered_strip' => 0,
+    ),
+  );
   $handler->display->display_options['style_options']['columns'] = array(
     'counter' => 'counter',
     'views_bulk_operations' => 'views_bulk_operations',
@@ -210,7 +217,6 @@ function auditfiles_views_default_views() {
   $handler->display->display_options['fields']['filename']['id'] = 'filename';
   $handler->display->display_options['fields']['filename']['table'] = 'file_managed';
   $handler->display->display_options['fields']['filename']['field'] = 'filename';
-  $handler->display->display_options['fields']['filename']['link_to_file'] = FALSE;
   /* Field: File: Path */
   $handler->display->display_options['fields']['uri']['id'] = 'uri';
   $handler->display->display_options['fields']['uri']['table'] = 'file_managed';
@@ -233,16 +239,6 @@ function auditfiles_views_default_views() {
   $handler->display->display_options['fields']['usage']['table'] = 'file_managed';
   $handler->display->display_options['fields']['usage']['field'] = 'usage';
   $handler->display->display_options['fields']['usage']['label'] = 'Usage';
-  /* Field: File: Link */
-  $handler->display->display_options['fields']['link']['id'] = 'link';
-  $handler->display->display_options['fields']['link']['table'] = 'file_managed';
-  $handler->display->display_options['fields']['link']['field'] = 'link';
-  $handler->display->display_options['fields']['link']['label'] = 'View';
-  /* Field: File: Edit link */
-  $handler->display->display_options['fields']['edit']['id'] = 'edit';
-  $handler->display->display_options['fields']['edit']['table'] = 'file_managed';
-  $handler->display->display_options['fields']['edit']['field'] = 'edit';
-  $handler->display->display_options['fields']['edit']['label'] = 'Edit';
   /* Filter criterion: File: File ID */
   $handler->display->display_options['filters']['fid']['id'] = 'fid';
   $handler->display->display_options['filters']['fid']['table'] = 'file_managed';
@@ -382,7 +378,7 @@ function auditfiles_views_default_views() {
 
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = 'duplicated-files';
+  $handler->display->display_options['path'] = 'admin/reports/duplicated-files';
   $handler->display->display_options['menu']['type'] = 'normal';
   $handler->display->display_options['menu']['title'] = 'Duplicated files';
   $handler->display->display_options['menu']['weight'] = '0';
