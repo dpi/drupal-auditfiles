@@ -3,3 +3,4 @@ description = Performs an audit of the files directory and the file_managed and 
 core = 7.x
 configure = admin/config/system/auditfiles
 files[] = auditfiles.views_default.inc
+dependencies[] = views_bulk_operations

@@ -6,21 +6,21 @@ function auditfiles_views_default_views() {
   $views = array();
 
   $view = new view();
-  $view->name = 'duplicated_files';
+  $view->name = 'merge_file_references';
   $view->description = '';
   $view->tag = 'default';
   $view->base_table = 'file_managed';
-  $view->human_name = 'Duplicated files';
+  $view->human_name = 'Merge file references';
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['title'] = 'Duplicated files';
+  $handler->display->display_options['title'] = 'Merge file references';
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['access']['perm'] = 'administer files';
+  $handler->display->display_options['access']['perm'] = 'access audit files reports';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['exposed_form']['type'] = 'basic';
@@ -159,7 +159,7 @@ function auditfiles_views_default_views() {
       'override_label' => 0,
       'label' => '',
     ),
-    'action::auditfiles_merge_duplicates' => array(
+    'action::auditfiles_merge_files' => array(
       'selected' => 1,
       'skip_confirmation' => 0,
       'override_label' => 0,
@@ -378,9 +378,9 @@ function auditfiles_views_default_views() {
 
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = 'admin/reports/duplicated-files';
+  $handler->display->display_options['path'] = 'admin/reports/merge-file-references';
   $handler->display->display_options['menu']['type'] = 'normal';
-  $handler->display->display_options['menu']['title'] = 'Duplicated files';
+  $handler->display->display_options['menu']['title'] = 'Merge file references';
   $handler->display->display_options['menu']['weight'] = '0';
   $handler->display->display_options['menu']['name'] = 'management';
   $handler->display->display_options['menu']['context'] = 0;
