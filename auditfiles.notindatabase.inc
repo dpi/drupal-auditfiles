@@ -374,15 +374,15 @@ function _auditfiles_not_in_database_confirm_operation($form, &$form_state) {
 
   // Prepare the list of items to present to the user.
   if (!empty($values['files'])) {
-    foreach ($values['files'] as $filename => $file_id) {
-      if (!empty($file_id)) {
+    foreach ($values['files'] as $filename) {
+      if (!empty($filename)) {
         if ($values['op'] == 'Add selected items to the database') {
           $message = t('will be added to the database.');
         }
         elseif ($values['op'] == 'Delete selected items from the server') {
           $message = t('will be deleted from the server.');
         }
-        $form['changelist'][$file_id] = array(
+        $form['changelist'][$filename] = array(
           '#type' => 'hidden',
           '#value' => $filename,
           '#prefix' => '<li><strong>' . $filename . '</strong> ' . $message,
@@ -392,7 +392,7 @@ function _auditfiles_not_in_database_confirm_operation($form, &$form_state) {
       else {
         // Unsetting the unprocessed files prevents confirm_submit from dealing
         // with them.
-        unset($form_state['input']['files'][$file_id]);
+        unset($form_state['input']['files'][$filename]);
       }
     }
   }
@@ -523,22 +523,22 @@ function _auditfiles_not_in_database_batch_add_process_file($filename) {
  * @return array
  *   The definition of the batch.
  */
-function _auditfiles_not_in_database_batch_delete_create_batch($fileids) {
+function _auditfiles_not_in_database_batch_delete_create_batch($file_names) {
   $batch = _auditfiles_not_in_database_batch_set_common_values();
   $batch['title'] = t('Deleting files from the server');
   $operations = array();
   // Remove all the empty values from the array.
-  $file_ids = array();
-  foreach ($fileids as $file_id) {
-    if (!empty($file_id)) {
-      $file_ids[] = $file_id;
+  $filenames = array();
+  foreach ($file_names as $file_name) {
+    if (!empty($file_name)) {
+      $filenames[] = $file_name;
     }
   }
   // Fill in the $operations variable.
-  foreach ($file_ids as $file_id) {
+  foreach ($filenames as $filename) {
     $operations[] = array(
       '_auditfiles_not_in_database_batch_delete_process_batch',
-      array($file_id),
+      array($filename),
     );
   }
   $batch['operations'] = $operations;
@@ -554,14 +554,14 @@ function _auditfiles_not_in_database_batch_delete_create_batch($fileids) {
  *   Used by the Batch API to keep track of and pass data from one operation to
  *   the next.
  */
-function _auditfiles_not_in_database_batch_delete_process_batch($file_id, &$context) {
+function _auditfiles_not_in_database_batch_delete_process_batch($filename, &$context) {
   // Process the current file.
-  _auditfiles_not_in_database_batch_delete_process_file($file_id);
+  _auditfiles_not_in_database_batch_delete_process_file($filename);
   // The contents of 'results' are available as $results in the 'finished'
   // function.
-  $context['results'][] = check_plain($file_id);
+  $context['results'][] = check_plain($filename);
   // Set a progress message.
-  $context['message'] = t('Processed file ') . check_plain($file_id);
+  $context['message'] = t('Processed file ') . check_plain($filename);
 }
 
 /**
@@ -571,12 +571,8 @@ function _auditfiles_not_in_database_batch_delete_process_batch($file_id, &$cont
  *   The full pathname of the file to delete from the server.
  */
 function _auditfiles_not_in_database_batch_delete_process_file($filename) {
-  // Get the actual path to the Drupal root directory.
-  $root = drupal_realpath('./');
-  // Make sure the Drupal root path is not already in the filename.
-  $filename = preg_replace('@' . preg_quote(drupal_realpath('./')) . '.@', '', $filename);
   // Delete the file without invoking any hooks.
-  if (file_unmanaged_delete($root . '/' . $filename)) {
+  if (file_unmanaged_delete($filename)) {
     drupal_set_message(t('Sucessfully deleted %file from the server.', array('%file' => $filename)));
   }
   else {
