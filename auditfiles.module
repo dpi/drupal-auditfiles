@@ -316,11 +316,11 @@ function auditfiles_merge_files_form($settings, &$form_state) {
     );
   }
   // Default to sorting by file ID.
-  asort($files);
+  natsort($files);
   $form['file_being_kept'] = array(
     '#type' => 'radios',
     '#title' => t('Which file will be the one the others are merged into'),
-    '#default_value' => $files[0],
+    '#default_value' => key($files),
     '#options' => $files,
   );
   return $form;
