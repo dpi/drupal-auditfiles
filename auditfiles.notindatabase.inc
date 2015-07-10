@@ -171,10 +171,10 @@ function auditfiles_not_in_database_form($form, &$form_state) {
 function auditfiles_not_in_database_form_submit($form, &$form_state) {
   // Check if an operation was performed.
   if (!empty($form_state['values']['op'])) {
-    // Clear the variable, so subsequent pages will load the correct data.
-    variable_del('auditfiles_not_in_database_files_to_display');
     // Check which operation was performed and start the batch process.
     if ($form_state['values']['op'] == 'Load all records' || $form_state['values']['op'] == 'Load first batch set') {
+      // Clear the variable, so subsequent pages will load the correct data.
+      variable_del('auditfiles_not_in_database_files_to_display');
       $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
       if ($batch_size > 0) {
         // Set appropriate variables for this operation.
@@ -188,6 +188,8 @@ function auditfiles_not_in_database_form_submit($form, &$form_state) {
       batch_set(_auditfiles_not_in_database_batch_display_create_batch());
     }
     elseif ($form_state['values']['op'] == 'Load previous batch set') {
+      // Clear the variable, so subsequent pages will load the correct data.
+      variable_del('auditfiles_not_in_database_files_to_display');
       // Set appropriate variables for this operation.
       $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
       $batch_offset = variable_get('auditfiles_not_in_database_batch_offset', 0);
@@ -197,6 +199,8 @@ function auditfiles_not_in_database_form_submit($form, &$form_state) {
       batch_set(_auditfiles_not_in_database_batch_display_create_batch());
     }
     elseif ($form_state['values']['op'] == 'Load next batch set') {
+      // Clear the variable, so subsequent pages will load the correct data.
+      variable_del('auditfiles_not_in_database_files_to_display');
       // Set appropriate variables for this operation.
       $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
       $batch_offset = variable_get('auditfiles_not_in_database_batch_offset', 0);
@@ -206,6 +210,8 @@ function auditfiles_not_in_database_form_submit($form, &$form_state) {
       batch_set(_auditfiles_not_in_database_batch_display_create_batch());
     }
     elseif ($form_state['values']['op'] == 'Reset record selection') {
+      // Clear the variable, so subsequent pages will load the correct data.
+      variable_del('auditfiles_not_in_database_files_to_display');
       // Set appropriate variables for this operation.
       unset($form_state['values']['saved_rows']);
       variable_set('auditfiles_not_in_database_record_selection', 'normal');
@@ -231,14 +237,10 @@ function auditfiles_not_in_database_form_submit($form, &$form_state) {
     elseif ($form_state['values']['op'] == 'Yes') {
       // Process the files.
       if ($form_state['values']['operation'] == 'add') {
-        // Set appropriate variables for this operation.
-        variable_set('auditfiles_not_in_database_record_selection', 'normal');
         // Prepare and set the batch.
         batch_set(_auditfiles_not_in_database_batch_add_create_batch($form_state['values']['changelist']));
       }
       elseif ($form_state['values']['operation'] == 'delete') {
-        // Set appropriate variables for this operation.
-        variable_set('auditfiles_not_in_database_record_selection', 'normal');
         // Prepare and set the batch.
         batch_set(_auditfiles_not_in_database_batch_delete_create_batch($form_state['values']['changelist']));
       }
@@ -344,7 +346,7 @@ function _auditfiles_not_in_database_batch_display_process_batch($file_id, $date
   if (isset($file)) {
     // The contents of 'results' are available as $results in the 'finished'
     // function.
-    $context['results']['files_to_display'][] = $file;
+    $context['results']['files_to_display'][$file_id] = $file;
   }
   // Set a progress message.
   $context['message'] = t('Processed %filename.', array('%filename' => $file['filename']));
@@ -508,6 +510,10 @@ function _auditfiles_not_in_database_batch_add_process_file($filename) {
 
   if ($results === FALSE) {
     drupal_set_message(t('Failed to add %file to the database.', array('%file' => $filename)));
+    // Remove the files from the list of files to display.
+    $rows = variable_get('auditfiles_not_in_database_files_to_display', array());
+    unset($rows[$filename]);
+    variable_set('auditfiles_not_in_database_files_to_display', $rows);
   }
   else {
     drupal_set_message(t('Sucessfully added %file to the database.', array('%file' => $filename)));
@@ -574,6 +580,10 @@ function _auditfiles_not_in_database_batch_delete_process_file($filename) {
   // Delete the file without invoking any hooks.
   if (file_unmanaged_delete($filename)) {
     drupal_set_message(t('Sucessfully deleted %file from the server.', array('%file' => $filename)));
+    // Remove the deleted files from the list of files to display.
+    $rows = variable_get('auditfiles_not_in_database_files_to_display', array());
+    unset($rows[$filename]);
+    variable_set('auditfiles_not_in_database_files_to_display', $rows);
   }
   else {
     drupal_set_message(t('Failed to delete %file from the server.', array('%file' => $filename)));

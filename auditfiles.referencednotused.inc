@@ -142,10 +142,6 @@ function auditfiles_referenced_not_used_form($form, &$form_state) {
   }
 
   if (!empty($rows)) {
-    $form['description'] = array(
-      '#markup' => t("If the file object does not exist for the reference, it cannot be added to Drupal's file management with this method."),
-    );
-
     $form['actions'] = array('#type' => 'actions');
     $form['actions']['add'] = array(
       '#type' => 'submit',
@@ -171,10 +167,10 @@ function auditfiles_referenced_not_used_form($form, &$form_state) {
 function auditfiles_referenced_not_used_form_submit($form, &$form_state) {
   // Check if an operation was performed.
   if (!empty($form_state['values']['op'])) {
-    // Clear the variable, so subsequent pages will load the correct data.
-    variable_del('auditfiles_files_to_display');
     // Check which operation was performed and start the batch process.
     if ($form_state['values']['op'] == 'Load all records' || $form_state['values']['op'] == 'Load first batch set') {
+      // Clear the variable, so subsequent pages will load the correct data.
+      variable_del('auditfiles_files_to_display');
       $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
       if ($batch_size > 0) {
         // Set appropriate variables for this operation.
@@ -188,6 +184,8 @@ function auditfiles_referenced_not_used_form_submit($form, &$form_state) {
       batch_set(_auditfiles_referenced_not_used_batch_display_create_batch());
     }
     elseif ($form_state['values']['op'] == 'Load previous batch set') {
+      // Clear the variable, so subsequent pages will load the correct data.
+      variable_del('auditfiles_files_to_display');
       // Set appropriate variables for this operation.
       $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
       $batch_offset = variable_get('auditfiles_referenced_not_used_batch_offset', 0);
@@ -197,6 +195,8 @@ function auditfiles_referenced_not_used_form_submit($form, &$form_state) {
       batch_set(_auditfiles_referenced_not_used_batch_display_create_batch());
     }
     elseif ($form_state['values']['op'] == 'Load next batch set') {
+      // Clear the variable, so subsequent pages will load the correct data.
+      variable_del('auditfiles_files_to_display');
       // Set appropriate variables for this operation.
       $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
       $batch_offset = variable_get('auditfiles_referenced_not_used_batch_offset', 0);
@@ -206,6 +206,8 @@ function auditfiles_referenced_not_used_form_submit($form, &$form_state) {
       batch_set(_auditfiles_referenced_not_used_batch_display_create_batch());
     }
     elseif ($form_state['values']['op'] == 'Reset record selection') {
+      // Clear the variable, so subsequent pages will load the correct data.
+      variable_del('auditfiles_files_to_display');
       // Set appropriate variables for this operation.
       unset($form_state['values']['saved_rows']);
       variable_set('auditfiles_referenced_not_used_record_selection', 'normal');
@@ -231,14 +233,10 @@ function auditfiles_referenced_not_used_form_submit($form, &$form_state) {
     elseif ($form_state['values']['op'] == 'Yes') {
       // Process the files.
       if ($form_state['values']['operation'] == 'add') {
-        // Set appropriate variables for this operation.
-        variable_set('auditfiles_referenced_not_used_record_selection', 'normal');
         // Prepare and set the batch.
         batch_set(_auditfiles_referenced_not_used_batch_add_create_batch($form_state['values']['changelist']));
       }
       elseif ($form_state['values']['operation'] == 'delete') {
-        // Set appropriate variables for this operation.
-        variable_set('auditfiles_referenced_not_used_record_selection', 'normal');
         // Prepare and set the batch.
         batch_set(_auditfiles_referenced_not_used_batch_delete_create_batch($form_state['values']['changelist']));
       }
@@ -341,7 +339,7 @@ function _auditfiles_referenced_not_used_batch_display_process_operation($refere
   $file = _auditfiles_referenced_not_used_get_file_data($reference_id, $row_data);
   // The contents of 'results' are available as $results in the 'finished'
   // function.
-  $context['results']['files_to_display'][] = $file;
+  $context['results']['files_to_display'][$reference_id] = $file;
   // Set a progress message.
   $context['message'] = t('Processed reference ID @reference_id.', array('@reference_id' => $reference_id));
 }
@@ -505,6 +503,21 @@ function _auditfiles_referenced_not_used_batch_add_process_file($reference_id) {
   $results = db_insert('file_usage')
     ->fields($data)
     ->execute();
+  if (empty($results)) {
+    drupal_set_message(
+      t(
+        'There was a problem adding the record with file ID %fid to the file_usage table. Check the logs for more information.',
+        array('%fid' => $reference_id_parts[4])
+      ),
+      'warning'
+    );
+  }
+  else {
+    // Remove the files from the list of files to display.
+    $rows = variable_get('auditfiles_referenced_not_used_files_to_display', array());
+    unset($rows[$reference_id]);
+    variable_set('auditfiles_referenced_not_used_files_to_display', $rows);
+  }
 }
 
 /**
@@ -565,9 +578,28 @@ function _auditfiles_referenced_not_used_batch_delete_process_batch($reference_i
  */
 function _auditfiles_referenced_not_used_batch_delete_process_file($reference_id) {
   $reference_id_parts = explode('.', $reference_id);
-  db_delete($reference_id_parts[0])
+  $num_rows = db_delete($reference_id_parts[0])
     ->condition($reference_id_parts[1], $reference_id_parts[4])
     ->execute();
+  if (empty($num_rows)) {
+    drupal_set_message(
+      t(
+        'There was a problem deleting the reference to file ID %fid in the %entity_type with ID %eid. Check the logs for more information.',
+        array(
+          '%fid' => $reference_id_parts[4],
+          '%entity_type' => $reference_id_parts[3],
+          '%eid' => $reference_id_parts[2],
+        )
+      ),
+      'warning'
+    );
+  }
+  else {
+    // Remove the deleted files from the list of files to display.
+    $rows = variable_get('auditfiles_referenced_not_used_files_to_display', array());
+    unset($rows[$reference_id]);
+    variable_set('auditfiles_referenced_not_used_files_to_display', $rows);
+  }
 }
 
 // Functions for retrieving and processing the files and file data.
@@ -606,9 +638,7 @@ function _auditfiles_referenced_not_used_get_file_list() {
       if ($maximum_records > 0) {
         $query .= " LIMIT $maximum_records";
         // Set the offest.
-        $batch_offset = variable_get('auditfiles_referenced_not_used_batch_offset', 0);
-        $query .= " OFFSET " . $batch_offset;
-        variable_set('auditfiles_referenced_not_used_batch_offset', $batch_offset + $maximum_records);
+        $query .= " OFFSET " . variable_get('auditfiles_referenced_not_used_batch_offset', 0);
       }
       else {
         variable_set('auditfiles_referenced_not_used_batch_offset', 0);

@@ -1,3 +1,41 @@
+10 July 2015 (oadaeh)
+------------
+* auditfiles.notindatabase.inc, auditfiles.notonserver.inc,
+  auditfiles.managednotused.inc, auditfiles.usednotmanaged.inc,
+  auditfiles.usednotreferenced.inc, auditfiles.referencednotused.inc
+  - Removed batch offset calculation from *_get_file_list() functions.
+  - Changed the reports to not reset the file list when adding or deleting files
+    or records.
+  - Set the file ID as the key for the array containing the list of files.
+* auditfiles.notonserver.inc, auditfiles.managednotused.inc,
+  auditfiles.usednotmanaged.inc, auditfiles.usednotreferenced.inc,
+  auditfiles.referencednotused.inc
+  - Fixed the add/delete operation messages to show the correct information.
+
+9 July 2015 (oadaeh)
+-----------
+* auditfiles.notindatabase.inc:
+  - Rename variables from $file_id to $file_name.
+  - Change confirmation dialog to use the array value and not the key, as that
+    sometimes produced results that were using the numbered array keys, instead
+    of the filenames.
+  - Removed the path modification fucntionality from
+    _auditfiles_not_in_database_batch_delete_process_file(), as the file
+    pathname is already correct, and the functionality sometimes produced
+    results that were incorrect, when the root already existed, but was
+    different (in the case of symbolic links).
+* auditfiles.module:
+  - Default the selection for the file to keep to the one with the lowest file
+    ID.
+
+8 July 2015 (oadaeh)
+-----------
+* auditfiles.module:
+  - Add a form during the file merge process in order for the admin to choose
+    which file to keep.
+* README.txt:
+  - Began updating the documentation.
+
 7 July 2015 (oadaeh)
 -----------
 * auditfiles.views_default.inc:

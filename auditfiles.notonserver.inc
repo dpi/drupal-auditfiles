@@ -164,10 +164,10 @@ function auditfiles_not_on_server_form($form, &$form_state) {
 function auditfiles_not_on_server_form_submit($form, &$form_state) {
   // Check if an operation was performed.
   if (!empty($form_state['values']['op'])) {
-    // Clear the variable, so subsequent pages will load the correct data.
-    variable_del('auditfiles_not_on_server_files_to_display');
     // Check which operation was performed and start the batch process.
     if ($form_state['values']['op'] == 'Load all records' || $form_state['values']['op'] == 'Load first batch set') {
+      // Clear the variable, so subsequent pages will load the correct data.
+      variable_del('auditfiles_not_on_server_files_to_display');
       $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
       if ($batch_size > 0) {
         // Set appropriate variables for this operation.
@@ -181,6 +181,8 @@ function auditfiles_not_on_server_form_submit($form, &$form_state) {
       batch_set(_auditfiles_not_on_server_batch_display_create_batch());
     }
     elseif ($form_state['values']['op'] == 'Load previous batch set') {
+      // Clear the variable, so subsequent pages will load the correct data.
+      variable_del('auditfiles_not_on_server_files_to_display');
       // Set appropriate variables for this operation.
       $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
       $batch_offset = variable_get('auditfiles_not_on_server_batch_offset', 0);
@@ -190,6 +192,8 @@ function auditfiles_not_on_server_form_submit($form, &$form_state) {
       batch_set(_auditfiles_not_on_server_batch_display_create_batch());
     }
     elseif ($form_state['values']['op'] == 'Load next batch set') {
+      // Clear the variable, so subsequent pages will load the correct data.
+      variable_del('auditfiles_not_on_server_files_to_display');
       // Set appropriate variables for this operation.
       $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
       $batch_offset = variable_get('auditfiles_not_on_server_batch_offset', 0);
@@ -199,6 +203,8 @@ function auditfiles_not_on_server_form_submit($form, &$form_state) {
       batch_set(_auditfiles_not_on_server_batch_display_create_batch());
     }
     elseif ($form_state['values']['op'] == 'Reset record selection') {
+      // Clear the variable, so subsequent pages will load the correct data.
+      variable_del('auditfiles_not_on_server_files_to_display');
       // Set appropriate variables for this operation.
       unset($form_state['values']['saved_rows']);
       variable_set('auditfiles_not_on_server_record_selection', 'normal');
@@ -222,8 +228,6 @@ function auditfiles_not_on_server_form_submit($form, &$form_state) {
     }
     elseif ($form_state['values']['op'] == 'Yes') {
       if ($form_state['values']['operation'] == 'delete') {
-        // Set appropriate variables for this operation.
-        variable_set('auditfiles_not_on_server_record_selection', 'normal');
         // Prepare and set the batch.
         batch_set(_auditfiles_not_on_server_batch_delete_create_batch($form_state['values']['changelist']));
       }
@@ -329,7 +333,7 @@ function _auditfiles_not_on_server_batch_display_process_batch($file_id, $date_f
   if (isset($file)) {
     // The contents of 'results' are available as $results in the 'finished'
     // function.
-    $context['results']['files_to_display'][] = $file;
+    $context['results']['files_to_display'][$file_id] = $file;
   }
   // Set a progress message.
   $context['message'] = t('Processed %filename.', array('%filename' => $file['filename']));
@@ -463,19 +467,23 @@ function _auditfiles_not_on_server_batch_delete_process_batch($file_id, &$contex
  *   The ID of the file to delete from the database.
  */
 function _auditfiles_not_on_server_batch_delete_process_file($file_id) {
-  $file = file_load($file_id);
-  $result = file_delete($file, TRUE);
-  if ($result != TRUE) {
+  $num_rows = db_delete('file_managed')
+    ->condition('fid', $file_id)
+    ->execute();
+  if (empty($num_rows)) {
     drupal_set_message(
       t(
-        'File %filename with ID of %fid was not deleted. Check the logs for more information.',
-        array(
-          '%filename' => $file->filename,
-          '%fid' => $file_id,
-        )
+        'There was a problem deleting the record with file ID %fid from the file_managed table. Check the logs for more information.',
+        array('%fid' => $file_id)
       ),
       'warning'
     );
+  }
+  else {
+    // Remove the deleted files from the list of files to display.
+    $rows = variable_get('auditfiles_not_on_server_files_to_display', array());
+    unset($rows[$file_id]);
+    variable_set('auditfiles_not_on_server_files_to_display', $rows);
   }
 }
 
@@ -499,9 +507,7 @@ function _auditfiles_not_on_server_get_file_list() {
   if ($maximum_records > 0) {
     $query .= " LIMIT " . $maximum_records;
     // Set the offest.
-    $batch_offset = variable_get('auditfiles_not_on_server_batch_offset', 0);
-    $query .= " OFFSET " . $batch_offset;
-    variable_set('auditfiles_not_on_server_batch_offset', $batch_offset + $maximum_records);
+    $query .= " OFFSET " . variable_get('auditfiles_not_on_server_batch_offset', 0);
   }
   else {
     variable_set('auditfiles_not_on_server_batch_offset', 0);

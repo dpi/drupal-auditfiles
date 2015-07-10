@@ -2,11 +2,16 @@ CONTENTS
 --------
  * Introduction
  * Reports
- * Migration
- * Issues
- * Troubleshooting (currently empty)
- * FAQ (currently empty)
- * Maintainers (currently empty)
+   - Not in database
+   - Not on server
+   - Managed not used
+   - Used not managed
+   - Used not referenced
+   - Referenced not used
+   - Duplicated files
+ * Buttons on reports
+ * Troubleshooting
+ * Maintainers
 
 INTRODUCTION
 ------------
@@ -32,7 +37,6 @@ This report lists the files that are on the server but are not in the
 file_managed database table. These may be orphan files whose parent node has
 been deleted, or they may be the result of a module not tidying up after itself,
 or they may be the result of uploading files outside of Drupal (e.g., via FTP).
-You can sort the table by node number or by filename as you prefer.
 
 From this report you can mark files for deletion. There is intentionally no
 "select all" check box because you probably don't want to accidentally get rid
@@ -43,6 +47,8 @@ file is no longer needed before erasing it!
 
 If you're not sure what the file is then you can click on the filename to
 open the file in your browser.
+
+You can also add one or more files to the file_managed table from this report.
 
 Not on server
 -------------
@@ -64,44 +70,31 @@ Used not managed
 ----------------
 The files listed in this report are in the file_usage database table but not in
 the file_managed table. Files listed here have had their Drupal management
-removed, but are still being listed as used somewhere.
+removed, but are still being listed as used somewhere and may have content
+referencing them.
 
-You should verify the file's existence in the server and in the objects it is
+You should verify the file's existence on the server and in the objects it is
 listed as being used in, and either delete the reference in this report, or add
-it to the file_managed table.
+it to the file_managed table (which is a manual process, due to the fact that
+the necessary data is not available to this module).
 
 Used not referenced
 -------------------
-The files listed here are in the file_managed table but no nodes are recorded as
-referencing them (i.e., there's no entry in the file_usage table). This might mean
-the node has been deleted without deleting the file, or that the files were uploaded
-by some means other than the upload module (e.g., via FTP) and the relationships between
-files and nodes have not been made. If you have used the File references report and
-accounted for all files that should be referenced, and are sure that the files below
-are not needed, you can delete them.
+The files listed here are in the file_usage database table, but the content that
+has the file field no longer contains the file reference.
 
 Referenced not used
 -------------------
-Listed here are file references embedded in node bodies which do not have
-exact correspondences in the file_managed and file_usage tables. If there is a
-file in the file_managed table with a corresponding base name, that is listed.
+Listed here are the file references in file fields attached to entities Which do
+not have a corresponding listing in the file_usage table. If there is a file in
+the file_managed table with a corresponding base name, it is listed in this
+report.
 Scenarios are:
 
-* No match at all in the file_managed table. Go to Files not in database and make
-  sure any files that exist have been added to the database. If they have, you 
-  should either find and upload the missing file and run this report again, or 
-  remove the reference from the node.
-* Multiple matches in the file_managed table. This can happen when the same filename
-  is in multiple directories in the uploded file hierarchy. You can review the 
-  alternate files and delete any that are true duplicates. When different files 
-  have the same basename, you can select the one that goes with the given node 
-  and choose Attach selected files. This will rewrite the reference in the node 
-  to use the canonical relative URL to the file, and if necessary add the reference
-  to the file_usage table.
-* A single match in the file_managed table. You can make the attachments between these
-  nodes and the corresponding files one-by-one by selecting them and choosing Attach 
-  selected files, or automatically apply it to all single-match cases with Attach 
-  all unique matches.
+
+BUTTONS ON THE REPORTS
+----------------------
+
 
 LIMITING FEATURES EXPLAINED
 ---------------------------
@@ -119,8 +112,8 @@ There are four possible combinations of these settings, one of which is invalid:
    be intially loaded and displayed. At the top of the report page, there will
    be a button labeled "Load all records," with which you can load all records
    using Drupal's Batch API. This combination is also useful if you have a
-   sizeable number of records that take a while to display, but don't timeout or
-   exceed the memory limit, as it will allow a quicker initial load.
+   sizeable number of records that take a while to display, but don't time out
+   or exceed the memory limit, as it will allow a quicker initial load.
 3) "Maximum records" set to zero and "Batch size" set to some positive integer
    grater than zero:
    This combination is invalid, because if "Maximum records" set to zero, it
@@ -128,7 +121,7 @@ There are four possible combinations of these settings, one of which is invalid:
    loaded via the Batch API.
 4) Both set to some positive integer grater than zero:
    Sometimes, setting "Maximum records" and batch loading all the records isn't
-   enough, and a report may still timeout or exhaust the available memory. If
+   enough, and a report may still time out or exhaust the available memory. If
    that is the case, entering a positive integer in this setting will limit the
    batch operation and provide a paging mechanizm for accessing the other
    records.
@@ -139,50 +132,6 @@ There are four possible combinations of these settings, one of which is invalid:
 
 For all options above, paging can be enabled with the "Number of items per page"
 setting.
-
-MIGRATION
----------
-In typical usage, the reports can be used independently and the occasional
-issues revealed dealt with one-by-one. Another application is the migration of
-content and images from another web site (for example, using the node_import
-module or pasting HTML content manually into a node creation form), which
-typically will break any embedded image references. The file audit tools can
-automate much of rectifying this situation.
-
-A typical workflow for migrating content containing embedded images would be:
-
-1. Copy all referenced images to the Drupal files directory (typically
-   sites/default/files).
-2. Go to the Not in database report, and after sanity-checking the list, execute
-   the Add All Files to Database action. This will add each file you've copied
-   to the file_managed table.
-
-3. Go to the Missing References report, and after sanity-checking the list execute the
-   Attach All Unique Matches action. This will rewrite the image references in your content
-   to properly point to their path on the Drupal server, in every case where there is a
-   single matching filename.
-4. The Missing References report will now show you image references which don't match any
-   files in the Drupal files directory - review these to see if you missed any. Some cases
-   may be offsite references that can be safely ignored - in other cases, where you can't
-   track down the missing image, you can go to the node and edit it to remove the image reference.
-5. The Unreferenced report will now show you files that are not in the file_managed and file_usage
-   tables. Review these carefully to make sure they aren't being used in some way not picked 
-   up by the other tools (e.g., through Javascript). Suggestion: take some sample filenames
-   and query the Drupal database directly: 
-   SELECT * FROM node_revisions WHERE body LIKE '%file.jpg%'
-   If you find any files you're sure are not being used, you may (after making sure you have
-   a fresh backup of the directory tree) delete them from the Unreferenced report.
-
-ISSUES
-------
-Files are associated with nodes using the file_usage table, behind the upload module's back. The
-main issue here is that we may associate a single file with multiple nodes, but the upload
-module assumes that each file is only associated with a single node and thus deletes the file
-when the node is deleted. This suggests that our generated associations should be saved in our
-own table, which would require every place that now checks the file_usage table to check two
-tables.
-
-The newer functionality is untested with private downloads.
 
 TROUBLESHOOTING
 ---------------
@@ -205,10 +154,5 @@ administrative settings configuration page (admin/config/system/auditfiles), and
 then use the "Load all records" button on the report that is producing the
 error.
 
-FAQ
----
-- None, yet -
-
 MAINTAINERS
 -----------
-
