@@ -1,11 +1,12 @@
 <?php
 /**
  * @file
- * This generates the report showing the files referenced by content that are
- * not in the file_usage table.
+ * Generates report showing files referenced by content, but not in file_usage.
  */
 
-// Functions for displaying the list of files on the page.
+/**
+ * The following are functions for displaying the list of files on the page.
+ */
 
 /**
  * Generates the report.
@@ -32,7 +33,7 @@ function auditfiles_referenced_not_used_form($form, &$form_state) {
     $rows = unserialize($form_state['storage']['saved_rows']);
   }
   else {
-    // Check to see if the batch operation was just run, and if so, use that data.
+    // Check to see if the batch operation was just run. If so, use that data.
     $rows = variable_get('auditfiles_referenced_not_used_files_to_display', array());
     if (empty($rows)) {
       // The data is not saved and the batch operation has not been run, so get
@@ -62,7 +63,7 @@ function auditfiles_referenced_not_used_form($form, &$form_state) {
   }
 
   // Get any specified record selection limiters.
-  $record_limiters = _auditfile_referenced_not_used_get_record_limiters();
+  $record_limiters = _auditfiles_referenced_not_used_get_record_limiters();
   $record_selection = $record_limiters['record_selection'];
   $maximum_records = $record_limiters['maximum_records'];
 
@@ -126,7 +127,7 @@ function auditfiles_referenced_not_used_form($form, &$form_state) {
 
   $form['files'] = array(
     '#type' => 'tableselect',
-    '#header' => _auditfile_referenced_not_used_get_header(),
+    '#header' => _auditfiles_referenced_not_used_get_header(),
     '#empty' => t('No items found.'),
     '#prefix' => '<div><em>' . $form_count . '</em></div>',
   );
@@ -248,10 +249,12 @@ function auditfiles_referenced_not_used_form_submit($form, &$form_state) {
   }
 }
 
-// Functions that are common for all batches in this file.
+/**
+ * The following are functions that are common for all batches in this file.
+ */
 
 /**
- * Adds vaules to a batch definition that are common to all batches in this file.
+ * Adds vaules to a batch definition that are common to all batches in the file.
  *
  * @return array
  *   The beginning of the batch definition.
@@ -290,7 +293,9 @@ function _auditfiles_referenced_not_used_batch_finish_batch($success, $results, 
   }
 }
 
-// Functions for preparing the batch for displaying the list of files.
+/**
+ * The following are functions for preparing the batch for displaying the files.
+ */
 
 /**
  * Prepares the definition for the page display batch.
@@ -326,10 +331,10 @@ function _auditfiles_referenced_not_used_batch_display_get_operations() {
 /**
  * The batch process for displaying the files.
  *
- * @param string $filename
- *   The full pathname to the file to add to the database.
- *
- *
+ * @param string $reference_id
+ *   The ID for keeping track of the reference.
+ * @param array $row_data
+ *   The data to use for creating the row.
  * @param array $context
  *   Used by the Batch API to keep track of and pass data from one operation to
  *   the next.
@@ -341,10 +346,12 @@ function _auditfiles_referenced_not_used_batch_display_process_operation($refere
   // function.
   $context['results']['files_to_display'][$reference_id] = $file;
   // Set a progress message.
-  $context['message'] = t('Processed reference ID @reference_id.', array('@reference_id' => $reference_id));
+  $context['message'] = t('Processed reference ID %reference_id.', array('%reference_id' => $reference_id));
 }
 
-// Functions for the add and delete operations.
+/**
+ * The following are functions for the batch add & delete operations.
+ */
 
 /**
  * Presents a confimation form to verify the user wants to complete the action.
@@ -412,12 +419,12 @@ function _auditfiles_referenced_not_used_confirm_operation($form, &$form_state) 
   // Tell the submit handler to process the confirmation.
   $form['process'] = array(
     '#type' => 'hidden',
-    '#value' => 'TRUE'
+    '#value' => 'TRUE',
   );
   // Go back to the main form, when done with this one.
   $form['destination'] = array(
     '#type' => 'hidden',
-    '#value' => 'admin/reports/auditfiles/referencednotused'
+    '#value' => 'admin/reports/auditfiles/referencednotused',
   );
 
   return confirm_form(
@@ -464,7 +471,7 @@ function _auditfiles_referenced_not_used_batch_add_create_batch($referenceids) {
 /**
  * The batch process for adding the file.
  *
- * @param integer $reference_id
+ * @param int $reference_id
  *   The ID of a file to add to the file_usage table.
  * @param array $context
  *   Used by the Batch API to keep track of and pass data from one operation to
@@ -484,17 +491,16 @@ function _auditfiles_referenced_not_used_batch_add_process_batch($reference_id, 
  * Adds the specified file to the file_usage table.
  *
  * @param string $reference_id
- *   Information about the file to be added.
+ *   The ID for keeping track of the reference.
  */
 function _auditfiles_referenced_not_used_batch_add_process_file($reference_id) {
   $reference_id_parts = explode('.', $reference_id);
   $data = array(
     'fid' => $reference_id_parts[4],
-    /**
-     * @todo
-     * This is hard coded for now, but need to determine how to figure out which
-     * module needs to be here.
-     */
+
+    // @todo
+    // This is hard coded for now, but need to determine how to figure out which
+    // module needs to be here.
     'module' => 'file',
     'type' => $reference_id_parts[3],
     'id' => $reference_id_parts[2],
@@ -555,7 +561,7 @@ function _auditfiles_referenced_not_used_batch_delete_create_batch($referenceids
  * The batch process for deleting the file.
  *
  * @param string $reference_id
- *   The ID of a file to delete.
+ *   The ID for keeping track of the reference.
  * @param array $context
  *   Used by the Batch API to keep track of and pass data from one operation to
  *   the next.
@@ -573,8 +579,8 @@ function _auditfiles_referenced_not_used_batch_delete_process_batch($reference_i
 /**
  * Deletes a specified file from the database.
  *
- * @param integer $file_id
- *   The ID of the file to delete from the database.
+ * @param string $reference_id
+ *   The ID for keeping track of the reference.
  */
 function _auditfiles_referenced_not_used_batch_delete_process_file($reference_id) {
   $reference_id_parts = explode('.', $reference_id);
@@ -602,7 +608,9 @@ function _auditfiles_referenced_not_used_batch_delete_process_file($reference_id
   }
 }
 
-// Functions for retrieving and processing the files and file data.
+/**
+ * The following are functions for retrieving and processing the file data.
+ */
 
 /**
  * Retrieves the file IDs to operate on.
@@ -615,17 +623,16 @@ function _auditfiles_referenced_not_used_get_file_list() {
   $files_referenced = array();
   // If record limition has been configured, only use those records within that
   // specification.
-  $record_limiters = _auditfile_referenced_not_used_get_record_limiters();
+  $record_limiters = _auditfiles_referenced_not_used_get_record_limiters();
   $maximum_records = $record_limiters['maximum_records'];
 
   // Get a list of all files that are referenced in content.
   $fields = field_info_fields();
   foreach ($fields as $field) {
-    /**
-     * @todo
-     * Add an setting to allow the administrator the ability for spcifying the
-     * field types.
-     */
+
+    // @todo
+    // Add an setting to allow the administrator the ability for spcifying the
+    // field types.
     if (!empty($field['type']) && ($field['type'] == 'file' || $field['type'] == 'image')) {
       // Get the database table name for the field.
       $table = key($field['storage']['details']['sql']['FIELD_LOAD_CURRENT']);
@@ -665,7 +672,9 @@ function _auditfiles_referenced_not_used_get_file_list() {
  * Retrieves information about an individual file from the database.
  *
  * @param string $reference_id
+ *   The ID for keeping track of the reference.
  * @param array $row_data
+ *   The data to use for creating the row.
  *
  * @return array
  *   The row for the table on the report, with the file's information formatted
@@ -714,13 +723,13 @@ function _auditfiles_referenced_not_used_get_file_data($reference_id, $row_data)
 }
 
 
+/****************************************************************************
+ *
+ * The following code is from the old method of looking for files in content.
+ * It includes searching body fields for files referenced in HTML.
+ *
+ ****************************************************************************/
 
-  /****************************************************************************
-   *
-   * The following code is from the old method of looking for files in content.
-   * It includes searching body fields for files referenced in HTML.
-   *
-   ****************************************************************************/
 
   // Start at 1; $files checkboxes shouldn't have a 0 key
 //  $match_id = 1;
@@ -976,9 +985,9 @@ function _auditfiles_referenced_not_used_get_file_data($reference_id, $row_data)
 //    );
 //  }
 
-
-
-// Helper functions.
+/**
+ * The following are helper functions.
+ */
 
 /**
  * Returns any report limiting settings.
@@ -994,7 +1003,7 @@ function _auditfiles_referenced_not_used_get_file_data($reference_id, $row_data)
  *   - maximum_records: An integer representing the total number of records to
  *     display on a report. (A value of 0 means there is no limit.)
  */
-function _auditfile_referenced_not_used_get_record_limiters() {
+function _auditfiles_referenced_not_used_get_record_limiters() {
   $record_selection = variable_get('auditfiles_referenced_not_used_record_selection', 'normal');
   $maximum_records = 0;
   if ($record_selection == 'batch_sets') {
@@ -1019,7 +1028,7 @@ function _auditfile_referenced_not_used_get_record_limiters() {
  * @return array
  *   The header to use.
  */
-function _auditfile_referenced_not_used_get_header() {
+function _auditfiles_referenced_not_used_get_header() {
   return array(
     'file_id' => array(
       'data' => t('File ID'),

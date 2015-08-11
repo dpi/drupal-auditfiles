@@ -72,11 +72,8 @@ function auditfiles_help($path, $arg) {
       $output .= '</p>';
       break;
 
-    /**
-     * @todo
-     *   The next two items need more information.
-     */
-
+    // @todo
+    // The next two items need more information.
     case 'admin/reports/auditfiles/managednotused':
       $output = '<p>';
       $output .= t('The files listed below are in the file_managed
@@ -207,7 +204,7 @@ function auditfiles_menu() {
     'page arguments' => array('auditfiles_not_in_database_form'),
     'access arguments' => array('access audit files reports'),
     'file' => 'auditfiles.notindatabase.inc',
-    'description' => 'Lists files that have inconsistant or incomplete implementations.',
+    'description' => 'Lists files that have inconsistent or incomplete implementations.',
   );
   $items['admin/reports/auditfiles/notindatabase'] = array(
     'title' => 'Not in database',
@@ -346,9 +343,9 @@ function auditfiles_merge_files_submit($form, $form_state) {
  * This function does not verify that the files are actually duplicates. The
  * assumption is made that the user has already done that.
  *
- * @param type $files
+ * @param arary $files
  *   An array of file objects, keyed by file ID.
- * @param type $context
+ * @param array $context
  *   The context the action is executed in.
  */
 function auditfiles_merge_files(&$files, $context) {
@@ -359,7 +356,7 @@ function auditfiles_merge_files(&$files, $context) {
     $keeper = $files[$context['file_being_kept']];
     unset($files[$context['file_being_kept']]);
     // Iterate through the rest of the files in the array.
-    foreach ($files as $fid => $file) {
+    foreach ($files as $file) {
       // Make all file usages for all files point to the first fid.
       db_update('file_usage')
         ->fields(array('fid' => $keeper->fid))
@@ -369,7 +366,7 @@ function auditfiles_merge_files(&$files, $context) {
       db_delete('file_managed')
         ->condition('fid', $file->fid)
         ->execute();
-       // Delete the duplicate files.
+      // Delete the duplicate files.
       file_unmanaged_delete($file->uri);
     }
   }

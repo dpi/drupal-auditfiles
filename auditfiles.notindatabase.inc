@@ -1,11 +1,12 @@
 <?php
 /**
  * @file
- * This generates a report showing all the files on the server that are not in
- * the database.
+ * Generates a report showing files on the server, but not in the database.
  */
 
-// Functions for displaying the list of files on the page.
+/**
+ * The following are functions for displaying the list of files on the page.
+ */
 
 /**
  * Generates the report.
@@ -32,7 +33,7 @@ function auditfiles_not_in_database_form($form, &$form_state) {
     $rows = unserialize($form_state['storage']['saved_rows']);
   }
   else {
-    // Check to see if the batch operation was just run, and if so, use that data.
+    // Check to see if the batch operation was just run. If so, use that data.
     $rows = variable_get('auditfiles_not_in_database_files_to_display', array());
     if (empty($rows)) {
       // The data is not saved and the batch operation has not been run, so get
@@ -66,7 +67,7 @@ function auditfiles_not_in_database_form($form, &$form_state) {
   }
 
   // Get any specified record selection limiters.
-  $record_limiters = _auditfile_not_in_database_get_record_limiters();
+  $record_limiters = _auditfiles_not_in_database_get_record_limiters();
   $record_selection = $record_limiters['record_selection'];
   $maximum_records = $record_limiters['maximum_records'];
 
@@ -130,7 +131,7 @@ function auditfiles_not_in_database_form($form, &$form_state) {
 
   $form['files'] = array(
     '#type' => 'tableselect',
-    '#header' => _auditfile_not_in_database_get_header(),
+    '#header' => _auditfiles_not_in_database_get_header(),
     '#empty' => t('No items found.'),
     '#prefix' => '<div><em>' . $form_count . '</em></div>',
   );
@@ -252,10 +253,12 @@ function auditfiles_not_in_database_form_submit($form, &$form_state) {
   }
 }
 
-// Functions that are common for all batches in this file.
+/**
+ * The following are functions that are common for all batches in this file.
+ */
 
 /**
- * Adds vaules to a batch definition that are common to all batches in this file.
+ * Adds vaules to a batch definition that are common to all batches in the file.
  *
  * @return array
  *   The beginning of the batch definition.
@@ -294,7 +297,9 @@ function _auditfiles_not_in_database_batch_finish_batch($success, $results, $ope
   }
 }
 
-// Functions for preparing the batch for displaying the list of files.
+/**
+ * The following are functions for preparing the batch for displaying the files.
+ */
 
 /**
  * Prepares the definition for the page display batch.
@@ -332,8 +337,8 @@ function _auditfiles_not_in_database_batch_display_get_operations() {
 /**
  * The batch process for displaying the files.
  *
- * @param string $filename
- *   The full pathname to the file to add to the database.
+ * @param int $file_id
+ *   The ID for the file being processed.
  * @param string $date_format
  *   The format to display time/date values in.
  * @param array $context
@@ -352,7 +357,9 @@ function _auditfiles_not_in_database_batch_display_process_batch($file_id, $date
   $context['message'] = t('Processed %filename.', array('%filename' => $file['filename']));
 }
 
-// Functions for the add and delete operations.
+/**
+ * The following are functions for the batch add & delete operations.
+ */
 
 /**
  * Presents a confimation form to verify the user wants to complete the action.
@@ -416,12 +423,12 @@ function _auditfiles_not_in_database_confirm_operation($form, &$form_state) {
   // Tell the submit handler to process the confirmation.
   $form['process'] = array(
     '#type' => 'hidden',
-    '#value' => 'TRUE'
+    '#value' => 'TRUE',
   );
   // Go back to the main form, when done with this one.
   $form['destination'] = array(
     '#type' => 'hidden',
-    '#value' => 'admin/reports/auditfiles/notindatabase'
+    '#value' => 'admin/reports/auditfiles/notindatabase',
   );
 
   return confirm_form(
@@ -481,7 +488,7 @@ function _auditfiles_not_in_database_batch_add_process_batch($filename, &$contex
   // function.
   $context['results'][] = $filename;
   // Set a progress message.
-  $context['message'] = t('Processed file ') . $filename;
+  $context['message'] = t('Processed %filename.', array('%filename' => $file['filename']));
 }
 
 /**
@@ -523,8 +530,8 @@ function _auditfiles_not_in_database_batch_add_process_file($filename) {
 /**
  * Creates the batch for deleting files from the server.
  *
- * @param array $fileids
- *   The list of file IDs to be processed.
+ * @param array $file_names
+ *   The list of file names to be processed.
  *
  * @return array
  *   The definition of the batch.
@@ -554,8 +561,8 @@ function _auditfiles_not_in_database_batch_delete_create_batch($file_names) {
 /**
  * The batch process for deleting the file.
  *
- * @param integer $file_id
- *   The ID of a file to delete.
+ * @param string $filename
+ *   The filename to delete.
  * @param array $context
  *   Used by the Batch API to keep track of and pass data from one operation to
  *   the next.
@@ -567,7 +574,7 @@ function _auditfiles_not_in_database_batch_delete_process_batch($filename, &$con
   // function.
   $context['results'][] = check_plain($filename);
   // Set a progress message.
-  $context['message'] = t('Processed file ') . check_plain($filename);
+  $context['message'] = t('Processed %filename.', array('%filename' => $file['filename']));
 }
 
 /**
@@ -590,14 +597,16 @@ function _auditfiles_not_in_database_batch_delete_process_file($filename) {
   }
 }
 
-// Functions for retrieving and processing the files and file data.
+/**
+ * The following are functions for retrieving and processing the file data.
+ */
 
 /**
  * Recurse directories and add files to an array.
  *
  * @param string $directory
  *   The directory in which to look for files.
- * @param boolean $recursive
+ * @param bool $recursive
  *   Whether or not to recurse into subdirectories.
  *
  * @return array
@@ -608,7 +617,7 @@ function _auditfiles_not_in_database_get_file_list($directory, $recursive) {
   $exclusions = _auditfiles_get_exclusions();
   // If record limition has been configured, only use those records within that
   // specification.
-  $record_limiters = _auditfile_not_in_database_get_record_limiters();
+  $record_limiters = _auditfiles_not_in_database_get_record_limiters();
   $maximum_records = $record_limiters['maximum_records'];
   $batch_offset = variable_get('auditfiles_not_in_database_batch_offset', 0);
 
@@ -649,7 +658,7 @@ function _auditfiles_not_in_database_get_file_list($directory, $recursive) {
 /**
  * Retrieves file data from the database and checks if it is on the server.
  *
- * @param integer $filepathname
+ * @param string $filepathname
  *   The path and name of the file to prepare for display.
  * @param string $date_format
  *   The format to display time/date values in.
@@ -680,7 +689,7 @@ function _auditfiles_not_in_database_get_file_data($filepathname, $date_format) 
     // This file is not in the database.
     // Get the filename from the filepathname.
     $filename = substr($filepathname, strrpos($filepathname, '/') + 1);
-    // Return the file
+    // Return the file.
     return array(
       'filepathname' => $filepathname,
       'filemime' => file_get_mimetype($filepathname),
@@ -691,7 +700,9 @@ function _auditfiles_not_in_database_get_file_data($filepathname, $date_format) 
   }
 }
 
-// Helper functions.
+/**
+ * The following are helper functions.
+ */
 
 /**
  * Returns any report limiting settings.
@@ -707,7 +718,7 @@ function _auditfiles_not_in_database_get_file_data($filepathname, $date_format) 
  *   - maximum_records: An integer representing the total number of records to
  *     display on a report. (A value of 0 means there is no limit.)
  */
-function _auditfile_not_in_database_get_record_limiters() {
+function _auditfiles_not_in_database_get_record_limiters() {
   $record_selection = variable_get('auditfiles_not_in_database_record_selection', 'normal');
   $maximum_records = 0;
   if ($record_selection == 'batch_sets') {
@@ -732,7 +743,7 @@ function _auditfile_not_in_database_get_record_limiters() {
  * @return array
  *   The header to use.
  */
-function _auditfile_not_in_database_get_header() {
+function _auditfiles_not_in_database_get_header() {
   return array(
     'filepathname' => array(
       'data' => t('File pathname'),
@@ -790,10 +801,10 @@ function _auditfiles_get_exclusions() {
     $exclusions_array[] = $extensions;
   }
 
-  // Implode exclusions array to a string
+  // Implode exclusions array to a string.
   $exclusions = implode('|', $exclusions_array);
 
-  // Return prepared exclusion string
+  // Return prepared exclusion string.
   return $exclusions;
 }
 
@@ -804,8 +815,7 @@ function _auditfiles_get_exclusions() {
  *   The string to escape.
  * @param mixed $key
  *   The key or index for the array item passed into $element.
- *
- * @param boolean $makefilepath
+ * @param bool $makefilepath
  *   Set to TRUE to change elements to file paths at the same time.
  */
 function _auditfiles_make_preg(&$element, $key, $makefilepath = FALSE) {

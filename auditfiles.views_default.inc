@@ -1,5 +1,10 @@
 <?php
 /**
+ * @file
+ * The view for finding and merging duplicate file references.
+ */
+
+/**
  * Implements hook_views_default_views().
  */
 function auditfiles_views_default_views() {

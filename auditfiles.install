@@ -14,8 +14,7 @@ function auditfiles_uninstall() {
 }
 
 /**
- * Updates the inclusion and exclusion strings to use semi-colons, rather than
- * spaces.
+ * Updates the inclusion and exclusion strings to use semi-colons.
  */
 function auditfiles_update_7100() {
   $strings = array(

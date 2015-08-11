@@ -1,11 +1,12 @@
 <?php
 /**
  * @file
- * This generates a report showing all the files in the database that are not on
- * the server.
+ * Generates a report showing files in the database, but not on the server.
  */
 
-// Functions for displaying the list of files on the page.
+/**
+ * The following are functions for displaying the list of files on the page.
+ */
 
 /**
  * Generates the report.
@@ -32,7 +33,7 @@ function auditfiles_not_on_server_form($form, &$form_state) {
     $rows = unserialize($form_state['storage']['saved_rows']);
   }
   else {
-    // Check to see if the batch operation was just run, and if so, use that data.
+    // Check to see if the batch operation was just run. If so, use that data.
     $rows = variable_get('auditfiles_not_on_server_files_to_display', array());
     if (empty($rows)) {
       // The data is not saved and the batch operation has not been run, so get
@@ -66,7 +67,7 @@ function auditfiles_not_on_server_form($form, &$form_state) {
   }
 
   // Get any specified record selection limiters.
-  $record_limiters = _auditfile_not_on_server_get_record_limiters();
+  $record_limiters = _auditfiles_not_on_server_get_record_limiters();
   $record_selection = $record_limiters['record_selection'];
   $maximum_records = $record_limiters['maximum_records'];
 
@@ -130,7 +131,7 @@ function auditfiles_not_on_server_form($form, &$form_state) {
 
   $form['files'] = array(
     '#type' => 'tableselect',
-    '#header' => _auditfile_not_on_server_get_header(),
+    '#header' => _auditfiles_not_on_server_get_header(),
     '#empty' => t('No items found.'),
     '#prefix' => '<div><em>' . $form_count . '</em></div>',
   );
@@ -239,10 +240,12 @@ function auditfiles_not_on_server_form_submit($form, &$form_state) {
   }
 }
 
-// Functions that are common for all batches in this file.
+/**
+ * The following are functions that are common for all batches in this file.
+ */
 
 /**
- * Adds vaules to a batch definition that are common to all batches in this file.
+ * Adds vaules to a batch definition that are common to all batches in the file.
  *
  * @return array
  *   The beginning of the batch definition.
@@ -281,7 +284,9 @@ function _auditfiles_not_on_server_batch_finish_batch($success, $results, $opera
   }
 }
 
-// Functions for preparing the batch for displaying the list of files.
+/**
+ * The following are functions for preparing the batch for displaying the files.
+ */
 
 /**
  * Prepares the definition for the page display batch.
@@ -319,11 +324,11 @@ function _auditfiles_not_on_server_batch_display_get_operations() {
 /**
  * The batch process for displaying the files.
  *
- * @param string $filename
- *   The full pathname to the file to add to the database.
+ * @param int $file_id
+ *   The ID for the file being processed.
  * @param string $date_format
  *   The format to display time/date values in.
- * @param array $context
+ * @param array &$context
  *   Used by the Batch API to keep track of and pass data from one operation to
  *   the next.
  */
@@ -339,7 +344,9 @@ function _auditfiles_not_on_server_batch_display_process_batch($file_id, $date_f
   $context['message'] = t('Processed %filename.', array('%filename' => $file['filename']));
 }
 
-// Functions for the delete operation.
+/**
+ * The following are functions for the batch delete operation.
+ */
 
 /**
  * Presents a confimation form to verify the user wants to complete the action.
@@ -370,8 +377,7 @@ function _auditfiles_not_on_server_confirm_operation($form, &$form_state) {
           $form['changelist'][$file_id] = array(
             '#type' => 'hidden',
             '#value' => $file_id,
-            '#prefix' => '<li><strong>' . $file->filename . '</strong> '
-              . t('and all usages will be deleted from the database.'),
+            '#prefix' => '<li><strong>' . $file->filename . '</strong> ' . t('and all usages will be deleted from the database.'),
             '#suffix' => "</li>\n",
           );
         }
@@ -392,12 +398,12 @@ function _auditfiles_not_on_server_confirm_operation($form, &$form_state) {
   // Tell the submit handler to process the confirmation.
   $form['process'] = array(
     '#type' => 'hidden',
-    '#value' => 'TRUE'
+    '#value' => 'TRUE',
   );
   // Go back to the main form, when done with this one.
   $form['destination'] = array(
     '#type' => 'hidden',
-    '#value' => 'admin/reports/auditfiles/notonserver'
+    '#value' => 'admin/reports/auditfiles/notonserver',
   );
 
   return confirm_form(
@@ -444,7 +450,7 @@ function _auditfiles_not_on_server_batch_delete_create_batch($fileids) {
 /**
  * The batch process for deleting the file.
  *
- * @param integer $file_id
+ * @param int $file_id
  *   The ID of a file to delete.
  * @param array $context
  *   Used by the Batch API to keep track of and pass data from one operation to
@@ -457,13 +463,13 @@ function _auditfiles_not_on_server_batch_delete_process_batch($file_id, &$contex
   // function.
   $context['results'][] = $file_id;
   // Set a progress message.
-  $context['message'] = t('Processed file ID ') . $file_id;
+  $context['message'] = t('Processed file ID %file_id.', array('%file_id' => $file_id));
 }
 
 /**
  * Deletes the specified file from the database.
  *
- * @param integer $file_id
+ * @param int $file_id
  *   The ID of the file to delete from the database.
  */
 function _auditfiles_not_on_server_batch_delete_process_file($file_id) {
@@ -487,7 +493,9 @@ function _auditfiles_not_on_server_batch_delete_process_file($file_id) {
   }
 }
 
-// Functions for retrieving and processing the files and file data.
+/**
+ * The following are functions for retrieving and processing the file data.
+ */
 
 /**
  * Retrieves the file IDs to operate on.
@@ -502,7 +510,7 @@ function _auditfiles_not_on_server_get_file_list() {
 
   // If record limition has been configured, only use those records within that
   // specification.
-  $record_limiters = _auditfile_not_on_server_get_record_limiters();
+  $record_limiters = _auditfiles_not_on_server_get_record_limiters();
   $maximum_records = $record_limiters['maximum_records'];
   if ($maximum_records > 0) {
     $query .= " LIMIT " . $maximum_records;
@@ -531,7 +539,7 @@ function _auditfiles_not_on_server_get_file_list() {
 /**
  * Retrieves information about an individual file from the database.
  *
- * @param integer $file_id
+ * @param int $file_id
  *   The ID of the file to prepare for display.
  *
  * @return array
@@ -553,7 +561,9 @@ function _auditfiles_not_on_server_get_file_data($file_id, $date_format) {
   );
 }
 
-// Helper functions.
+/**
+ * The following are helper functions.
+ */
 
 /**
  * Returns any report limiting settings.
@@ -569,7 +579,7 @@ function _auditfiles_not_on_server_get_file_data($file_id, $date_format) {
  *   - maximum_records: An integer representing the total number of records to
  *     display on a report. (A value of 0 means there is no limit.)
  */
-function _auditfile_not_on_server_get_record_limiters() {
+function _auditfiles_not_on_server_get_record_limiters() {
   $record_selection = variable_get('auditfiles_not_on_server_record_selection', 'normal');
   $maximum_records = 0;
   if ($record_selection == 'batch_sets') {
@@ -594,7 +604,7 @@ function _auditfile_not_on_server_get_record_limiters() {
  * @return array
  *   The header to use.
  */
-function _auditfile_not_on_server_get_header() {
+function _auditfiles_not_on_server_get_header() {
   return array(
     'fid' => array(
       'data' => t('File ID'),

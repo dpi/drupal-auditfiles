@@ -5,8 +5,7 @@
  */
 
 /**
- * @file
- * Callback for settings page
+ * Creates page for configuring the administrative settings.
  */
 function auditfiles_admin_settings($form, &$form_state) {
   $form['auditfiles_exclusions'] = array(
@@ -118,7 +117,7 @@ function auditfiles_admin_settings($form, &$form_state) {
     '#description' => t('Select the date format to use when displaying file
       dates in the reports.<br />
       Date types and formats can be modified in the system !datetime settings
-      pages.', array('!datetime' => l('Date and time', 'admin/config/regional/date-time'))),
+      pages.', array('!datetime' => l(t('Date and time'), 'admin/config/regional/date-time'))),
   );
 
   return system_settings_form($form);
