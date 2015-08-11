@@ -19,7 +19,7 @@
  * @return array
  *   The form definition.
  */
-function auditfiles_referenced_not_used_form($form, &$form_state) {
+function auditfiles_referenced_not_used_form(array $form, array &$form_state) {
   // Check to see if the confirmation form needs to be displayed instead of the
   // normal form.
   if (isset($form_state['storage']['confirm'])) {
@@ -339,7 +339,7 @@ function _auditfiles_referenced_not_used_batch_display_get_operations() {
  *   Used by the Batch API to keep track of and pass data from one operation to
  *   the next.
  */
-function _auditfiles_referenced_not_used_batch_display_process_operation($reference_id, $row_data, &$context) {
+function _auditfiles_referenced_not_used_batch_display_process_operation($reference_id, array $row_data, array &$context) {
   // Process the current file.
   $file = _auditfiles_referenced_not_used_get_file_data($reference_id, $row_data);
   // The contents of 'results' are available as $results in the 'finished'
@@ -364,7 +364,7 @@ function _auditfiles_referenced_not_used_batch_display_process_operation($refere
  * @return array
  *   A form array for a confirmation form.
  */
-function _auditfiles_referenced_not_used_confirm_operation($form, &$form_state) {
+function _auditfiles_referenced_not_used_confirm_operation(array $form, array &$form_state) {
   $values = $form_state['input'];
 
   $form['changelist'] = array(
@@ -446,7 +446,7 @@ function _auditfiles_referenced_not_used_confirm_operation($form, &$form_state) 
  * @return array
  *   The definition of the batch.
  */
-function _auditfiles_referenced_not_used_batch_add_create_batch($referenceids) {
+function _auditfiles_referenced_not_used_batch_add_create_batch(array $referenceids) {
   $batch = _auditfiles_referenced_not_used_batch_set_common_values();
   $batch['title'] = t('Adding files to the file_usage table');
   $operations = array();
@@ -477,7 +477,7 @@ function _auditfiles_referenced_not_used_batch_add_create_batch($referenceids) {
  *   Used by the Batch API to keep track of and pass data from one operation to
  *   the next.
  */
-function _auditfiles_referenced_not_used_batch_add_process_batch($reference_id, &$context) {
+function _auditfiles_referenced_not_used_batch_add_process_batch($reference_id, array &$context) {
   // Process the current file.
   _auditfiles_referenced_not_used_batch_add_process_file($reference_id);
   // The contents of 'results' are available as $results in the 'finished'
@@ -535,7 +535,7 @@ function _auditfiles_referenced_not_used_batch_add_process_file($reference_id) {
  * @return array
  *   The definition of the batch.
  */
-function _auditfiles_referenced_not_used_batch_delete_create_batch($referenceids) {
+function _auditfiles_referenced_not_used_batch_delete_create_batch(array $referenceids) {
   $batch = _auditfiles_referenced_not_used_batch_set_common_values();
   $batch['title'] = t('Deleting file references from their content');
   $operations = array();
@@ -566,7 +566,7 @@ function _auditfiles_referenced_not_used_batch_delete_create_batch($referenceids
  *   Used by the Batch API to keep track of and pass data from one operation to
  *   the next.
  */
-function _auditfiles_referenced_not_used_batch_delete_process_batch($reference_id, &$context) {
+function _auditfiles_referenced_not_used_batch_delete_process_batch($reference_id, array &$context) {
   // Process the current file.
   _auditfiles_referenced_not_used_batch_delete_process_file($reference_id);
   // The contents of 'results' are available as $results in the 'finished'
@@ -680,7 +680,7 @@ function _auditfiles_referenced_not_used_get_file_list() {
  *   The row for the table on the report, with the file's information formatted
  *   for display.
  */
-function _auditfiles_referenced_not_used_get_file_data($reference_id, $row_data) {
+function _auditfiles_referenced_not_used_get_file_data($reference_id, array $row_data) {
   $row = array();
   // Get the data for this record.
   $query = "SELECT * FROM {" . $row_data['table'] . "} WHERE " . $row_data['column'] . " = " . $row_data['file_id'];

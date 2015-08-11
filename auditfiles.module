@@ -343,12 +343,12 @@ function auditfiles_merge_files_submit($form, $form_state) {
  * This function does not verify that the files are actually duplicates. The
  * assumption is made that the user has already done that.
  *
- * @param arary $files
+ * @param array $files
  *   An array of file objects, keyed by file ID.
  * @param array $context
  *   The context the action is executed in.
  */
-function auditfiles_merge_files(&$files, $context) {
+function auditfiles_merge_files(array &$files, array $context) {
   // Make sure that more than one file was selected.
   if (count($files) > 1) {
     // Get the first file out of the array, as a reference and so it is not

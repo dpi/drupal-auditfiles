@@ -19,7 +19,7 @@
  * @return array
  *   The form definition.
  */
-function auditfiles_managed_not_used_form($form, &$form_state) {
+function auditfiles_managed_not_used_form(array $form, array &$form_state) {
   // Check to see if the confirmation form needs to be displayed instead of the
   // normal form.
   if (isset($form_state['storage']['confirm'])) {
@@ -328,7 +328,7 @@ function _auditfiles_managed_not_used_batch_display_get_operations() {
  *   Used by the Batch API to keep track of and pass data from one operation to
  *   the next.
  */
-function _auditfiles_managed_not_used_batch_display_process_batch($file_id, $date_format, &$context) {
+function _auditfiles_managed_not_used_batch_display_process_batch($file_id, $date_format, array &$context) {
   // Process the current file.
   $file = _auditfiles_managed_not_used_get_file_data($file_id, $date_format);
   // The contents of 'results' are available as $results in the 'finished'
@@ -353,7 +353,7 @@ function _auditfiles_managed_not_used_batch_display_process_batch($file_id, $dat
  * @return array
  *   A form array for a confirmation form.
  */
-function _auditfiles_managed_not_used_confirm_operation($form, &$form_state) {
+function _auditfiles_managed_not_used_confirm_operation(array $form, array &$form_state) {
   $values = $form_state['input'];
 
   $form['changelist'] = array(
@@ -419,7 +419,7 @@ function _auditfiles_managed_not_used_confirm_operation($form, &$form_state) {
  * @return array
  *   The definition of the batch.
  */
-function _auditfiles_managed_not_used_batch_delete_create_batch($fileids) {
+function _auditfiles_managed_not_used_batch_delete_create_batch(array $fileids) {
   $batch = _auditfiles_managed_not_used_batch_set_common_values();
   $batch['title'] = t('Deleting files from the file_managed table');
   $operations = array();
@@ -450,7 +450,7 @@ function _auditfiles_managed_not_used_batch_delete_create_batch($fileids) {
  *   Used by the Batch API to keep track of and pass data from one operation to
  *   the next.
  */
-function _auditfiles_managed_not_used_batch_delete_process_batch($file_id, &$context) {
+function _auditfiles_managed_not_used_batch_delete_process_batch($file_id, array &$context) {
   // Process the current file.
   _auditfiles_managed_not_used_batch_delete_process_file($file_id);
   // The contents of 'results' are available as $results in the 'finished'
