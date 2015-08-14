@@ -123,3 +123,22 @@ function auditfiles_admin_settings($form, &$form_state) {
 
   return system_settings_form($form);
 }
+
+/**
+ * Validates some user input for auditfiles_admin_settings().
+ */
+function auditfiles_admin_settings_validate($form, &$form_state) {
+  $fields = array(
+    'auditfiles_report_options_items_per_page' => t('Number of items per page'),
+    'auditfiles_report_options_maximum_records' => t('Maximum records'),
+    'auditfiles_report_options_batch_size' => t('Batch set size'),
+  );
+  foreach ($fields as $field => $label) {
+    if (!is_numeric($form_state['values'][$field])) {
+      form_set_error($field, t('You must enter zero or a positive integer for !label.', array('!label' => $label)));
+    }
+    elseif (!is_int($form_state['values'][$field] + 0) || $form_state['values'][$field] < 0) {
+      form_set_error($field, t('!label must be zero or a positive integer.', array('!label' => $label)));
+    }
+  }
+}

@@ -1,5 +1,12 @@
 10 July 2015 (oadaeh)
 ------------
+* (all files)
+  - Added, updated and/or corrected user text and documentation.
+* auditfiles.admin.inc
+  - Added validation for the administrative settings form.
+
+10 July 2015 (oadaeh)
+------------
 * auditfiles.notindatabase.inc, auditfiles.notonserver.inc,
   auditfiles.managednotused.inc, auditfiles.usednotmanaged.inc,
   auditfiles.usednotreferenced.inc, auditfiles.referencednotused.inc
