@@ -1,6 +1,5 @@
 name = Audit Files
-description = Performs an audit of the files directory and the file_managed and file_usage database tables.
+description = Allows for comparing and correcting files and file references in the "files" directory, in the database, and in content.
 core = 7.x
 configure = admin/config/system/auditfiles
-files[] = auditfiles.views_default.inc
 dependencies[] = views_bulk_operations

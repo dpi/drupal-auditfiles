@@ -26,6 +26,23 @@ function auditfiles_not_on_server_form(array $form, array &$form_state) {
     return _auditfiles_not_on_server_confirm_operation($form, $form_state);
   }
 
+  $output = '<p>' . t('Any files listed below are in the file_managed database
+    table but the physical files do not exist on the server. This might mean the
+    file has been deleted using a program such as FTP, or it may mean there is
+    an error in the database. You should determine if the file is still being
+    used or not and either replace the missing file or delete the references to
+    it from the database.') . '</p>';
+  $output .= t('The files in this list are using the %scheme scheme and are
+    relative to the files directory path, located at %path.',
+    array(
+      '%scheme' => file_default_scheme(),
+      '%path' => variable_get('file_' . file_default_scheme() . '_path', conf_path() . '/files'),
+    )
+  ) . '</p>';
+  $form['introduction'] = array(
+    '#markup' => $output,
+  );
+
   // Get the records to display.
   // Check to see if the data has been stored.
   if (!empty($form_state['storage']['saved_rows'])) {
@@ -360,7 +377,7 @@ function _auditfiles_not_on_server_batch_display_process_batch($file_id, $date_f
  *   A form array for a confirmation form.
  */
 function _auditfiles_not_on_server_confirm_operation(array $form, array &$form_state) {
-  $values = $form_state['input'];
+  $values = $form_state['values'];
 
   $form['changelist'] = array(
     '#prefix' => '<ul>',
@@ -385,7 +402,7 @@ function _auditfiles_not_on_server_confirm_operation(array $form, array &$form_s
       else {
         // Unsetting the unprocessed files prevents confirm_submit from dealing
         // with them.
-        unset($form_state['input']['files'][$file_id]);
+        unset($form_state['values']['files'][$file_id]);
       }
     }
   }

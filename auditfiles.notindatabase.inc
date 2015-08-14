@@ -26,6 +26,25 @@ function auditfiles_not_in_database_form(array $form, array &$form_state) {
     return _auditfiles_not_in_database_confirm_operation($form, $form_state);
   }
 
+  $output = '<p>' . t('Files in "temporary" folders such as those created by
+    the image module are included in order to check that they are not filling
+    up.') . '</p>';
+  $output .= '<p>' . t(' You can choose to delete files on this report, but
+    remember that if you do that, the action cannot be undone.');
+  $output .= t(' You can also add files to the file_managed table - you
+    might do that, if you have uploaded files outside of Drupal (e.g., via FTP)
+    and will be attaching them to nodes through other tools.') . '</p>';
+  $output .= t('The files in this list are using the %scheme scheme and are
+    relative to the files directory path, located at %path.',
+    array(
+      '%scheme' => file_default_scheme(),
+      '%path' => variable_get('file_' . file_default_scheme() . '_path', conf_path() . '/files'),
+    )
+  ) . '</p>';
+  $form['introduction'] = array(
+    '#markup' => $output,
+  );
+
   // Get the records to display.
   // Check to see if the data has been stored.
   if (!empty($form_state['storage']['saved_rows'])) {
@@ -373,7 +392,7 @@ function _auditfiles_not_in_database_batch_display_process_batch($file_id, $date
  *   A form array for a confirmation form.
  */
 function _auditfiles_not_in_database_confirm_operation(array $form, array &$form_state) {
-  $values = $form_state['input'];
+  $values = $form_state['values'];
 
   $form['changelist'] = array(
     '#prefix' => '<ul>',
@@ -401,7 +420,7 @@ function _auditfiles_not_in_database_confirm_operation(array $form, array &$form
       else {
         // Unsetting the unprocessed files prevents confirm_submit from dealing
         // with them.
-        unset($form_state['input']['files'][$filename]);
+        unset($form_state['values']['files'][$filename]);
       }
     }
   }
@@ -488,7 +507,7 @@ function _auditfiles_not_in_database_batch_add_process_batch($filename, array &$
   // function.
   $context['results'][] = $filename;
   // Set a progress message.
-  $context['message'] = t('Processed %filename.', array('%filename' => $file['filename']));
+  $context['message'] = t('Processed %filename.', array('%filename' => $filename));
 }
 
 /**
@@ -574,7 +593,7 @@ function _auditfiles_not_in_database_batch_delete_process_batch($filename, array
   // function.
   $context['results'][] = check_plain($filename);
   // Set a progress message.
-  $context['message'] = t('Processed %filename.', array('%filename' => $file['filename']));
+  $context['message'] = t('Processed %filename.', array('%filename' => $filename));
 }
 
 /**

@@ -26,6 +26,28 @@ function auditfiles_used_not_referenced_form(array $form, array &$form_state) {
     return _auditfiles_used_not_referenced_confirm_operation($form, $form_state);
   }
 
+  $output = '<p>' . t("Any file references listed below are in the file_usage
+    database table, but no content is recorded as referencing them. This might
+    mean the content or field has been deleted without deleting the file, or
+    that the files were uploaded by some means other than through a mechanizm
+    that utilized Drupal's file management, and the relationships between files
+    and content have not been made.
+    Click on the basename to get a list
+    of all nodes referencing that base filename (the <strong>Missing
+    references</strong> report only identifies <strong>&lt;img&gt;</strong>
+    and <strong>window.open</strong> references, this may help you identify
+    if the file is referenced by another means).");
+  $output .= t('The files in this list are using the %scheme scheme and are
+    relative to the files directory path, located at %path.',
+    array(
+      '%scheme' => file_default_scheme(),
+      '%path' => variable_get('file_' . file_default_scheme() . '_path', conf_path() . '/files'),
+    )
+  ) . '</p>';
+  $form['introduction'] = array(
+    '#markup' => $output,
+  );
+
   // Get the records to display.
   // Check to see if the data has been stored.
   if (!empty($form_state['storage']['saved_rows'])) {
@@ -350,7 +372,7 @@ function _auditfiles_used_not_referenced_batch_display_process_operation($file_i
  *   A form array for a confirmation form.
  */
 function _auditfiles_used_not_referenced_confirm_operation(array $form, array &$form_state) {
-  $values = $form_state['input'];
+  $values = $form_state['values'];
 
   $form['changelist'] = array(
     '#prefix' => '<ul>',
@@ -375,7 +397,7 @@ function _auditfiles_used_not_referenced_confirm_operation(array $form, array &$
       else {
         // Unsetting the unprocessed files prevents confirm_submit from dealing
         // with them.
-        unset($form_state['input']['files'][$file_id]);
+        unset($form_state['values']['files'][$file_id]);
       }
     }
   }

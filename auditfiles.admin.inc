@@ -62,6 +62,34 @@ function auditfiles_admin_settings($form, &$form_state) {
     '#title' => t('Report options'),
     '#collapsible' => TRUE,
   );
+  // Show date format select list.
+  $date_types = system_get_date_types();
+  $options = array();
+  foreach ($date_types as $date_type) {
+    $options[$date_type['type']] = $date_type['title'];
+  }
+  $form['auditfiles_report_options']['auditfiles_report_options_date_format'] = array(
+    '#type' => 'select',
+    '#title' => 'Date format',
+    '#default_value' => variable_get('auditfiles_report_options_date_format', ''),
+    '#options' => $options,
+    '#description' => t('Select the date format to use when displaying file
+      dates in the reports.<br />
+      Date types and formats can be modified in the system !datetime settings
+      pages.', array('!datetime' => l(t('Date and time'), 'admin/config/regional/date-time'))),
+  );
+  $form['auditfiles_report_options']['auditfiles_report_options_items_per_page'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of items per page'),
+    '#default_value' => variable_get('auditfiles_report_options_items_per_page', 50),
+    '#size' => 10,
+    '#description' => t('Enter an integer representing the number of items to
+      display on each page of a report.<br />
+      If there are more than this number on a page, then a pager will be used to
+      display the additional items.<br />
+      Set this to 0 to show all items on a single page.'),
+  );
+
   $form['auditfiles_report_options']['auditfiles_report_options_maximum_records'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximum records'),
@@ -75,17 +103,6 @@ function auditfiles_admin_settings($form, &$form_state) {
       page will be available that will allow all records to be retrieved without
       timing out.<br />
       Set this to 0 for no limit.'),
-  );
-  $form['auditfiles_report_options']['auditfiles_report_options_items_per_page'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Number of items per page'),
-    '#default_value' => variable_get('auditfiles_report_options_items_per_page', 50),
-    '#size' => 10,
-    '#description' => t('Enter an integer representing the number of items to
-      display on each page of a report.<br />
-      If there are more than this number on a page, then a pager will be used to
-      display the additional items.<br />
-      Set this to 0 to show all items on a single page.'),
   );
   $form['auditfiles_report_options']['auditfiles_report_options_batch_size'] = array(
     '#type' => 'textfield',
@@ -102,22 +119,6 @@ function auditfiles_admin_settings($form, &$form_state) {
       report loads, then set it to a higher number to access more records per
       batch load operation.<br />
       Set this to 0 for no limit."),
-  );
-  // Show date format select list.
-  $date_types = system_get_date_types();
-  $options = array();
-  foreach ($date_types as $date_type) {
-    $options[$date_type['type']] = $date_type['title'];
-  }
-  $form['auditfiles_report_options']['auditfiles_report_options_date_format'] = array(
-    '#type' => 'select',
-    '#title' => 'Date format',
-    '#default_value' => variable_get('auditfiles_report_options_date_format', ''),
-    '#options' => $options,
-    '#description' => t('Select the date format to use when displaying file
-      dates in the reports.<br />
-      Date types and formats can be modified in the system !datetime settings
-      pages.', array('!datetime' => l(t('Date and time'), 'admin/config/regional/date-time'))),
   );
 
   return system_settings_form($form);

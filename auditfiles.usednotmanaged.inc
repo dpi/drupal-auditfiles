@@ -26,6 +26,23 @@ function auditfiles_used_not_managed_form(array $form, array &$form_state) {
     return _auditfiles_used_not_managed_confirm_operation($form, $form_state);
   }
 
+  $output = '<p>' . t("Any files listed below are in the file_usage database
+    table, but not in the file_managed table. Files listed here have been
+    removed from Drupal's file management, but are still being listed as used
+    somewhere. You should verify the file's existence in the server and in the
+    content it is listed as being used in, and either delete the reference in
+    the report below, or add it to the file_managed table.") . '</p>';
+  $output .= t('The files in this list are using the %scheme scheme and are
+    relative to the files directory path, located at %path.',
+    array(
+      '%scheme' => file_default_scheme(),
+      '%path' => variable_get('file_' . file_default_scheme() . '_path', conf_path() . '/files'),
+    )
+  ) . '</p>';
+  $form['introduction'] = array(
+    '#markup' => $output,
+  );
+
   // Get the records to display.
   // Check to see if the data has been stored.
   if (!empty($form_state['storage']['saved_rows'])) {
@@ -350,7 +367,7 @@ function _auditfiles_used_not_managed_batch_display_process_batch($file_id, arra
  *   A form array for a confirmation form.
  */
 function _auditfiles_used_not_managed_confirm_operation(array $form, array &$form_state) {
-  $values = $form_state['input'];
+  $values = $form_state['values'];
 
   $form['changelist'] = array(
     '#prefix' => '<ul>',
@@ -375,7 +392,7 @@ function _auditfiles_used_not_managed_confirm_operation(array $form, array &$for
       else {
         // Unsetting the unprocessed files prevents confirm_submit from dealing
         // with them.
-        unset($form_state['input']['files'][$file_id]);
+        unset($form_state['values']['files'][$file_id]);
       }
     }
   }

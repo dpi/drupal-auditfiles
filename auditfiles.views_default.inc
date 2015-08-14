@@ -383,10 +383,11 @@ function auditfiles_views_default_views() {
 
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = 'admin/reports/merge-file-references';
+  $handler->display->display_options['path'] = 'admin/reports/auditfiles/merge-file-references';
   $handler->display->display_options['menu']['type'] = 'normal';
   $handler->display->display_options['menu']['title'] = 'Merge file references';
-  $handler->display->display_options['menu']['weight'] = '0';
+  $handler->display->display_options['menu']['description'] = 'Lists all file references in the file_managed database table, grouped by file name.';
+  $handler->display->display_options['menu']['weight'] = '6';
   $handler->display->display_options['menu']['name'] = 'management';
   $handler->display->display_options['menu']['context'] = 0;
   $handler->display->display_options['menu']['context_only_inline'] = 0;

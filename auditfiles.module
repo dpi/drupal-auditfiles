@@ -1,10 +1,11 @@
 <?php
 /**
  * @file
- * This is the main code file, containing the various hooks used by the module.
+ * Implements various Drupal hooks.
  *
- * Audit Files carries out a simple audit of the Drupal files directory and the
- * file_managed and file_usage database tables.
+ * This is the main module file that includes the various Drupal hook
+ * implementations, along with any additional helper functions.
+ * Most for the code for the reports is included in separate files.
  */
 
 /**
@@ -13,151 +14,109 @@
 function auditfiles_help($path, $arg) {
   $output = '';
 
+  // If on a confirmation form, then suppress the help message.
+  if (array_key_exists('files', $_POST) && array_key_exists('op', $_POST)
+     && (substr($_POST['op'], 0, 4) == 'Add ' || substr($_POST['op'], 0, 7) == 'Delete ')) {
+    return $output;
+  }
+
   switch ($path) {
-    case 'admin/config/auditfiles':
-      $output = t('You may choose to exclude specific files, paths and
-        extensions from the "Not in database" audit report by adding them to the
-        relevant lists below.');
+    // Main module help for this module.
+    case 'admin/help#auditfiles':
+      $files_link = l(t('files'), 'admin/config/media/file-system');
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>';
+      $output .= t(
+        'The Audit Files module allows for comparing and correcting files and file references in the "!files_link" directory, in the database, and in content.',
+        array('!files_link' => $files_link)
+      );
+
+      $output .= '<h3>' . t('Uses') . '</h3>';
+      $output .= '<dl>';
+      $reports_link = l(t("Audit Files' reports page"), 'admin/reports/auditfiles');
+      $output .= '<dt>' . t('Comparing and correcting file references') . '</dt>';
+      $output .= '<dd>' . t('To compare and correct the various file references and usages, visit the !reports_link.', array('!reports_link' => $reports_link)) . '</dd>';
+
+      $reports_link = l(t("Audit Files' Merge file references report page"), 'admin/reports/auditfiles/merge-file-references');
+      $output .= '<dt>' . t('Merging duplicate file references') . '</dt>';
+      $output .= '<dd>' . t('To merge duplicate file references, visit the !reports_link.', array('!reports_link' => $reports_link)) . '</dd>';
+      $output .= '</dl>';
+
+      // Include the INSTALL.txt file.
+      $filepath = dirname(__FILE__) . '/INSTALL.txt';
+      if (file_exists($filepath)) {
+        $readme = file_get_contents($filepath);
+      }
+      if (isset($readme)) {
+        $output .= '<h3>' . t('The contents of the INSTALL.txt file') . '</h3>';
+        $output .= '<p><pre>' . $readme . '</pre></p>';
+      }
+
+      // Include the README.txt file.
+      $filepath = dirname(__FILE__) . '/README.txt';
+      if (file_exists($filepath)) {
+        $readme = file_get_contents($filepath);
+      }
+      if (isset($readme)) {
+        $output .= '<h3>' . t('The contents of the README.txt file') . '</h3>';
+        $output .= '<p><pre>' . $readme . '</pre></p>';
+      }
+
       break;
 
-    case 'admin/help#auditfiles':
-      $output = '<p>';
-      $output .= t('The Audit Files module performs an audit of the file tables
-          and the files directory to check for inconsistencies.');
+    case 'admin/config/system/auditfiles':
+      $output .= '<p>';
+      $output .= t('Configure the administrative settings for this module.');
       $output .= '</p>';
       break;
 
     case 'admin/reports/auditfiles':
-      $output = '<p>';
-      $output .= t('The files listed below are in the files directory on
-        the server but appear to have no corresponding entry in the
-        file_managed database table. Files in "temporary" folders such as those
-        created by the image module are included in order to check that they are
-        not filling up. You can choose to delete files on this report, but
-        remember that if you do that, the action cannot be undone. You can also
-        add files to the file_managed table - you might do that, if you have
-        uploaded files outside of Drupal (e.g., by FTP) and will be attaching
-        them to nodes through other tools.');
-      $output .= '</p><p>';
+      $output .= '<p>';
+      $output .= t('The various reports provided for by this module.');
+      $output .= '</p>';
+      break;
+
+    case 'admin/reports/auditfiles/notindatabase':
+      $files_link = l(t('files'), 'admin/config/media/file-system');
+      $output .= '<p>';
       $output .= t(
-        'The files in this list are using the %scheme scheme and are relative to
-        the files directory %path path.',
-        array(
-          '%scheme' => file_default_scheme(),
-          '%path' => file_default_scheme(),
-        )
+        'This report lists the files that are in the "!files_link" directory, but are not in the file_managed database table.',
+        array('!files_link' => $files_link)
       );
       $output .= '</p>';
-      // If on a confirmation form then suppress the help message.
-      if (array_key_exists('operation', $_POST) && $_POST['operation'] == 'delete' && array_key_exists('files', $_POST)) {
-        $output = '';
-      }
       break;
 
     case 'admin/reports/auditfiles/notonserver':
-      $output = '<p>';
-      $output .= t('The files listed below are in the file_managed database
-        table but the physical files do not exist on the server. This might mean
-        the file has been deleted using a program such as FTP, or it may mean
-        there is an error in the database.');
-      $output .= '</p><p>';
-      $output .= t('You should determine if the file is still being used or not
-        and either replace the missing file or delete the references to it from
-        the database.');
-      $output .= '</p><p>';
+      $files_link = l(t('files'), 'admin/config/media/file-system');
+      $output .= '<p>';
       $output .= t(
-        'Files in this list are relative to the files directory %path.',
-        array('%path' => file_default_scheme())
+        'This report lists the files that are in the file_managed database table, but are not in the "!files_link" directory.',
+        array('!files_link' => $files_link)
       );
       $output .= '</p>';
       break;
 
-    // @todo
-    // The next two items need more information.
     case 'admin/reports/auditfiles/managednotused':
-      $output = '<p>';
-      $output .= t('The files listed below are in the file_managed
-        database table but not in the file_usage table. Usually, this is normal
-        and acceptable. This report exists for completeness, so you may verify
-        that what is listed here is correct.');
-      $output .= '</p><p>';
-      $output .= t(
-        'Files in this list are relative to the files directory %path.',
-        array('%path' => file_default_scheme())
-      );
+      $output .= '<p>';
+      $output .= t('This report lists the files that are in the file_managed database table, but are not in the file_usage table.');
       $output .= '</p>';
       break;
 
     case 'admin/reports/auditfiles/usednotmanaged':
-      $output = '<p>';
-      $output .= t('The files listed below are in the file_usage database
-        table, but not in the file_managed table. Files listed here have had
-        their Drupal management removed, but are still being listed as used
-        somewhere.');
-      $output .= '</p><p>';
-      $output .= t("You should verify the file's existence in the server and in
-        the objects it is listed as being used in, and either delete the
-        reference in the report below, or add it to the file_managed table.");
-      $output .= '</p><p>';
-      $output .= t(
-        'Files in this list are relative to the files directory %path.',
-        array('%path' => file_default_scheme())
-      );
+      $output .= '<p>';
+      $output .= t('This report lists the files that are in the file_usage database table, but are not in the file_managed table.');
       $output .= '</p>';
       break;
 
-    case 'admin/reports/auditfiles/references':
-      $output = '<p>';
-      $output .= t('Listed here are file references embedded in node
-        bodies which do not have exact correspondences in the {file_managed} and
-        {file_usage} tables. If there is a file in the {file_managed} table with
-        a corresponding base name, it is listed. Scenarios are:
-        <ul><li><strong>No match at all in the {file_managed} table.</strong> Go
-        to <strong>Files not in database</strong> and make sure any files that
-        exist have been added to the database. If they have, you should either
-        find and upload the missing file and run this report again, or remove
-        the reference from the node.</li>
-        <li><strong>Multiple matches in the {file_managed} table.</strong> This
-        can happen when the same filename is in multiple directories in the
-        uploded file hierarchy. You can review the alternate files and delete
-        any that are true duplicates. When different files have the same
-        basename, you can select the one that goes with the given node and
-        choose <strong>Attach selected files</strong>. This will rewrite the
-        reference in the node to use the canonical relative URL to the file, and
-        if necessary, add the reference to the {file_usage} table.</li>
-        <li><strong>A single match in the {file_managed} table.</strong> You can
-        make the attachments between these nodes and the corresponding files
-        one-by-one by selecting them and choosing <strong>Attach selected
-        files</strong>, or automatically apply it to all single-match cases with
-        <strong>Attach all unique matches</strong>.</li></ul>');
-      $output .= '</p><p>';
-      $output .= t(
-        'Files in this list are relative to the files directory %path.',
-        array('%path' => file_default_scheme())
-      );
+    case 'admin/reports/auditfiles/usednotreferenced':
+      $output .= '<p>';
+      $output .= t('This report lists the files that are in the file_usage database table, but are not in any content.');
       $output .= '</p>';
       break;
 
-    case 'admin/reports/auditfiles/unreferenced':
-      $output = '<p>';
-      $output .= t('The files listed below are in the {file_managed}
-        table but no nodes are recorded as referencing them (i.e., there\'s no
-        entry in the {file_usage} table). This might mean the node has been
-        deleted without deleting the file, or that the files were uploaded by
-        some means other than the upload module (e.g., FTP) and the
-        relationships between files and nodes have not been made. If you have
-        used the <strong>Missing references</strong> report and accounted for
-        all files that should be referenced, and are sure that the files below
-        are not needed, you may delete them. Click on the basename to get a list
-        of all nodes referencing that base filename (the <strong>Missing
-        references</strong> report only identifies <strong>&lt;img&gt;</strong>
-        and <strong>window.open</strong> references, this may help you identify
-        if the file is referenced by another means).');
-      $output .= '</p><p>';
-      $output .= t(
-        'Files in this list are relative to the files directory %path.',
-        array('%path' => file_default_scheme())
-      );
+    case 'admin/reports/auditfiles/referencednotused':
+      $output .= '<p>';
+      $output .= t('This report lists the files that are referenced in content, but are not in the file_usage database table.');
       $output .= '</p>';
       break;
   }
@@ -200,69 +159,67 @@ function auditfiles_menu() {
   // The various reports.
   $items['admin/reports/auditfiles'] = array(
     'title' => 'Audit Files',
+    'description' => 'Allows for comparing and correcting files and file references in the "files" directory, in the database, and in content.',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('access audit files reports'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  $items['admin/reports/auditfiles/notindatabase'] = array(
+    'title' => 'Not in database',
+    'description' => 'Lists files that are in the "files" directory, but not in the database.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('auditfiles_not_in_database_form'),
     'access arguments' => array('access audit files reports'),
     'file' => 'auditfiles.notindatabase.inc',
-    'description' => 'Lists files that have inconsistent or incomplete implementations.',
-  );
-  $items['admin/reports/auditfiles/notindatabase'] = array(
-    'title' => 'Not in database',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -10,
-    'description' => 'Lists files that are on the server, but are not in the database.',
+    'weight' => 0,
   );
   $items['admin/reports/auditfiles/notonserver'] = array(
     'title' => 'Not on server',
+    'description' => 'Lists files that are in the database, but not in the "files" directory.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('auditfiles_not_on_server_form'),
     'access arguments' => array('access audit files reports'),
-    'type' => MENU_LOCAL_TASK,
     'file' => 'auditfiles.notonserver.inc',
-    'weight' => -5,
-    'description' => 'Lists files that are in the database, but are not on the server.',
+    'weight' => 1,
   );
 
   $items['admin/reports/auditfiles/managednotused'] = array(
     'title' => 'Managed not used',
+    'description' => 'Lists files that are in the file_managed table, but not in the file_usage table.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('auditfiles_managed_not_used_form'),
     'access arguments' => array('access audit files reports'),
-    'type' => MENU_LOCAL_TASK,
     'file' => 'auditfiles.managednotused.inc',
-    'weight' => -3,
-    'description' => 'Lists files that are in the file_manage table, but not in the file_usage table.',
+    'weight' => 2,
   );
   $items['admin/reports/auditfiles/usednotmanaged'] = array(
     'title' => 'Used not managed',
+    'description' => 'Lists files that are in the file_usage table, but not in the file_managed table.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('auditfiles_used_not_managed_form'),
     'access arguments' => array('access audit files reports'),
-    'type' => MENU_LOCAL_TASK,
     'file' => 'auditfiles.usednotmanaged.inc',
-    'weight' => -1,
-    'description' => 'Lists files that are in the file_usage table, but not in the file_manage table.',
+    'weight' => 3,
   );
 
   $items['admin/reports/auditfiles/usednotreferenced'] = array(
     'title' => 'Used not referenced',
+    'description' => 'List files that are in the file_usage table, but not referenced in content.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('auditfiles_used_not_referenced_form'),
     'access arguments' => array('access audit files reports'),
-    'type' => MENU_LOCAL_TASK,
     'file' => 'auditfiles.usednotreferenced.inc',
-    'weight' => 1,
-    'description' => 'List files that are in the database, but are not referenced by any node.',
+    'weight' => 4,
   );
   $items['admin/reports/auditfiles/referencednotused'] = array(
     'title' => 'Referenced not used',
+    'description' => 'List files referenced in content, but not in the file_usage table.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('auditfiles_referenced_not_used_form'),
     'access arguments' => array('access audit files reports'),
-    'type' => MENU_LOCAL_TASK,
     'file' => 'auditfiles.referencednotused.inc',
-    'weight' => 3,
-    'description' => 'List files referenced by nodes, but not properly linked or attached.',
+    'weight' => 5,
   );
 
   return $items;
@@ -362,7 +319,7 @@ function auditfiles_merge_files(array &$files, array $context) {
         ->fields(array('fid' => $keeper->fid))
         ->condition('fid', $file->fid)
         ->execute();
-      // Delete the unnecessary entries from the file_manage table.
+      // Delete the unnecessary entries from the file_managed table.
       db_delete('file_managed')
         ->condition('fid', $file->fid)
         ->execute();
