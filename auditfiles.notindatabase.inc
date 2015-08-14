@@ -255,7 +255,6 @@ function auditfiles_not_in_database_form_submit($form, &$form_state) {
       drupal_set_message(t('No items were selected to operate on.'));
     }
     elseif ($form_state['values']['op'] == 'Yes') {
-      // Process the files.
       if ($form_state['values']['operation'] == 'add') {
         // Prepare and set the batch.
         batch_set(_auditfiles_not_in_database_batch_add_create_batch($form_state['values']['changelist']));

@@ -245,7 +245,6 @@ function auditfiles_referenced_not_used_form_submit($form, &$form_state) {
       drupal_set_message(t('No items were selected to operate on.'));
     }
     elseif ($form_state['values']['op'] == 'Yes') {
-      // Process the files.
       if ($form_state['values']['operation'] == 'add') {
         // Prepare and set the batch.
         batch_set(_auditfiles_referenced_not_used_batch_add_create_batch($form_state['values']['changelist']));
@@ -590,7 +589,7 @@ function _auditfiles_referenced_not_used_batch_delete_process_batch($reference_i
 }
 
 /**
- * Deletes a specified file from the database.
+ * Deletes the specified file from the database.
  *
  * @param string $reference_id
  *   The ID for keeping track of the reference.
