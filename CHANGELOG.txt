@@ -1,3 +1,9 @@
+2 September 2015 (oadaeh)
+----------------
+* auditfiles.module
+  - Improved the code that does the actual merging, including checking for
+    missing entries and for duplicates that get created by the merge process.
+
 10 July 2015 (oadaeh)
 ------------
 * (all files)
