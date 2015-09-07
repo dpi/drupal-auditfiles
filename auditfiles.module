@@ -320,7 +320,7 @@ function auditfiles_merge_files(array &$files, array $context) {
       ->execute()
       ->fetchAll();
     if (empty($results)) {
-      $message = t('There was an error retrieving the data from the database for the file you choose to keep. Please check the files in one of the other reports. No changes were made.');
+      $message = t('There was no file usage data found for the file you choose to keep. No changes were made.');
       drupal_set_message($message, 'warning');
       return;
     }
@@ -336,7 +336,7 @@ function auditfiles_merge_files(array &$files, array $context) {
         ->fetchAll();
       if (empty($results)) {
         $message = t(
-          'There was an error retrieving the data from the database for file ID !fid. Please check the files in one of the other reports. No changes were made for this file.',
+          'There was an error retrieving the file usage data from the database for file ID !fid. Please check the files in one of the other reports. No changes were made for this file.',
           array('!fid' => $file->fid)
         );
         drupal_set_message($message, 'warning');
