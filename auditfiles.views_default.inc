@@ -131,7 +131,6 @@ function auditfiles_views_default_views() {
   $handler->display->display_options['fields']['counter']['label'] = '';
   $handler->display->display_options['fields']['counter']['element_label_colon'] = FALSE;
   $handler->display->display_options['fields']['counter']['counter_start'] = '1';
-  $handler->display->display_options['fields']['counter']['reverse'] = 0;
   /* Field: Bulk operations: File */
   $handler->display->display_options['fields']['views_bulk_operations']['id'] = 'views_bulk_operations';
   $handler->display->display_options['fields']['views_bulk_operations']['table'] = 'file_managed';
@@ -140,6 +139,7 @@ function auditfiles_views_default_views() {
   $handler->display->display_options['fields']['views_bulk_operations']['element_label_colon'] = FALSE;
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['display_type'] = '0';
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['enable_select_all_pages'] = 0;
+  $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['row_clickable'] = 1;
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['force_single'] = 0;
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['entity_load_capacity'] = '1';
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_operations'] = array(
@@ -150,65 +150,8 @@ function auditfiles_views_default_views() {
       'override_label' => 0,
       'label' => '',
     ),
-    'action::views_bulk_operations_delete_revision' => array(
-      'selected' => 1,
-      'postpone_processing' => 0,
-      'skip_confirmation' => 0,
-      'override_label' => 0,
-      'label' => '',
-    ),
-    'action::views_bulk_operations_script_action' => array(
-      'selected' => 0,
-      'postpone_processing' => 0,
-      'skip_confirmation' => 0,
-      'override_label' => 0,
-      'label' => '',
-    ),
     'action::auditfiles_merge_files' => array(
       'selected' => 1,
-      'skip_confirmation' => 0,
-      'override_label' => 0,
-      'label' => '',
-    ),
-    'action::views_bulk_operations_modify_action' => array(
-      'selected' => 0,
-      'postpone_processing' => 0,
-      'skip_confirmation' => 0,
-      'override_label' => 0,
-      'label' => '',
-      'settings' => array(
-        'show_all_tokens' => 1,
-        'display_values' => array(
-          '_all_' => '_all_',
-        ),
-      ),
-    ),
-    'action::views_bulk_operations_argument_selector_action' => array(
-      'selected' => 0,
-      'skip_confirmation' => 0,
-      'override_label' => 0,
-      'label' => '',
-      'settings' => array(
-        'url' => '',
-      ),
-    ),
-    'action::system_send_email_action' => array(
-      'selected' => 0,
-      'postpone_processing' => 0,
-      'skip_confirmation' => 0,
-      'override_label' => 0,
-      'label' => '',
-    ),
-    'action::auto_entitylabel_entity_update_action' => array(
-      'selected' => 1,
-      'postpone_processing' => 0,
-      'skip_confirmation' => 0,
-      'override_label' => 0,
-      'label' => '',
-    ),
-    'action::pathauto_file_update_action' => array(
-      'selected' => 1,
-      'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
@@ -239,11 +182,6 @@ function auditfiles_views_default_views() {
   $handler->display->display_options['fields']['timestamp']['id'] = 'timestamp';
   $handler->display->display_options['fields']['timestamp']['table'] = 'file_managed';
   $handler->display->display_options['fields']['timestamp']['field'] = 'timestamp';
-  /* Field: File: Usage link */
-  $handler->display->display_options['fields']['usage']['id'] = 'usage';
-  $handler->display->display_options['fields']['usage']['table'] = 'file_managed';
-  $handler->display->display_options['fields']['usage']['field'] = 'usage';
-  $handler->display->display_options['fields']['usage']['label'] = 'Usage';
   /* Filter criterion: File: File ID */
   $handler->display->display_options['filters']['fid']['id'] = 'fid';
   $handler->display->display_options['filters']['fid']['table'] = 'file_managed';
@@ -293,12 +231,6 @@ function auditfiles_views_default_views() {
     13 => 0,
     15 => 0,
   );
-  $handler->display->display_options['filters']['filename']['expose']['autocomplete_filter'] = 1;
-  $handler->display->display_options['filters']['filename']['expose']['autocomplete_items'] = '10';
-  $handler->display->display_options['filters']['filename']['expose']['autocomplete_field'] = 'filename';
-  $handler->display->display_options['filters']['filename']['expose']['autocomplete_raw_suggestion'] = 1;
-  $handler->display->display_options['filters']['filename']['expose']['autocomplete_raw_dropdown'] = 1;
-  $handler->display->display_options['filters']['filename']['expose']['autocomplete_dependent'] = 0;
   /* Filter criterion: File: Mime type */
   $handler->display->display_options['filters']['filemime']['id'] = 'filemime';
   $handler->display->display_options['filters']['filemime']['table'] = 'file_managed';
@@ -324,12 +256,6 @@ function auditfiles_views_default_views() {
     13 => 0,
     15 => 0,
   );
-  $handler->display->display_options['filters']['filemime']['expose']['autocomplete_filter'] = 1;
-  $handler->display->display_options['filters']['filemime']['expose']['autocomplete_items'] = '10';
-  $handler->display->display_options['filters']['filemime']['expose']['autocomplete_field'] = 'filemime';
-  $handler->display->display_options['filters']['filemime']['expose']['autocomplete_raw_suggestion'] = 1;
-  $handler->display->display_options['filters']['filemime']['expose']['autocomplete_raw_dropdown'] = 1;
-  $handler->display->display_options['filters']['filemime']['expose']['autocomplete_dependent'] = 0;
   /* Filter criterion: File: Size */
   $handler->display->display_options['filters']['filesize']['id'] = 'filesize';
   $handler->display->display_options['filters']['filesize']['table'] = 'file_managed';
