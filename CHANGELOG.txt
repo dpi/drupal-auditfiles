@@ -1,3 +1,12 @@
+9 September 2015 (oadaeh)
+----------------
+* auditfiles.notonserver.inc, auditfiles.managednotused.inc,
+  auditfiles.usednotmanaged.inc, auditfiles.usednotreferenced.inc,
+  auditfiles.referencednotused.inc
+  - Restore table sorting.
+* auditfiles.referencednotused.inc
+  - Fix operation confirmation dialog, so adding and deleting work correctly.
+
 2 September 2015 (oadaeh)
 ----------------
 * auditfiles.module

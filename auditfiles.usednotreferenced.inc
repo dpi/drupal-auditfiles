@@ -517,7 +517,18 @@ function _auditfiles_used_not_referenced_batch_delete_process_file($file_id) {
  */
 function _auditfiles_used_not_referenced_get_file_list() {
   // Get a list of files in the file_usage database table.
-  $query = "SELECT DISTINCT(fid) FROM {file_usage}";
+  $query = "SELECT DISTINCT(fid) FROM {file_usage} fu";
+
+  // Add any specified sorting.
+  $query_parameters = drupal_get_query_parameters();
+  if (!empty($query_parameters['sort']) && !empty($query_parameters['order'])) {
+    $headers = _auditfiles_used_not_referenced_get_header();
+    foreach ($headers as $header) {
+      if ($header['data'] == $query_parameters['order']) {
+        $query .= " ORDER BY " . $header['field'] . ' ' . $query_parameters['sort'];
+      }
+    }
+  }
 
   // If record limition has been configured, only use those records within that
   // specification.
@@ -574,7 +585,7 @@ function _auditfiles_used_not_referenced_get_file_list() {
  */
 function _auditfiles_used_not_referenced_get_file_data($file_id) {
   // Get the file's information from the file_managed table.
-  $file_managed = db_query("SELECT * FROM {file_managed} WHERE fid = $file_id")->fetchObject();
+  $file_managed = db_query("SELECT * FROM {file_managed} fm WHERE fid = $file_id")->fetchObject();
   if (empty($file_managed)) {
     // The file is not listed in the file_managed table. Display an error
     // message, instead of the file information.
@@ -666,11 +677,9 @@ function _auditfiles_used_not_referenced_get_header() {
     'fid' => array(
       'data' => t('File ID'),
       'field' => 'fu.fid',
-      'sort' => 'asc',
     ),
     'uri' => array(
       'data' => t('File URI'),
-      'field' => 'fm.module',
     ),
     'usage' => array(
       'data' => t('Usages'),

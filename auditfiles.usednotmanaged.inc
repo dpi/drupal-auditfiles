@@ -513,7 +513,18 @@ function _auditfiles_used_not_managed_batch_delete_process_file($file_id) {
 function _auditfiles_used_not_managed_get_file_list() {
   // Get all the file IDs in the file_usage table that are not in the
   // file_managed table.
-  $query = "SELECT DISTINCT(fid) FROM {file_usage} WHERE fid NOT IN (SELECT fid FROM {file_managed})";
+  $query = "SELECT DISTINCT(fid) FROM {file_usage} fu WHERE fid NOT IN (SELECT fid FROM {file_managed})";
+
+  // Add any specified sorting.
+  $query_parameters = drupal_get_query_parameters();
+  if (!empty($query_parameters['sort']) && !empty($query_parameters['order'])) {
+    $headers = _auditfiles_used_not_managed_get_header();
+    foreach ($headers as $header) {
+      if ($header['data'] == $query_parameters['order']) {
+        $query .= " ORDER BY " . $header['field'] . ' ' . $query_parameters['sort'];
+      }
+    }
+  }
 
   // If record limition has been configured, only use those records within that
   // specification.
@@ -603,7 +614,6 @@ function _auditfiles_used_not_managed_get_header() {
     'fid' => array(
       'data' => t('File ID'),
       'field' => 'fu.fid',
-      'sort' => 'asc',
     ),
     'module' => array(
       'data' => t('Used by'),

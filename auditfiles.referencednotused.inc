@@ -390,21 +390,18 @@ function _auditfiles_referenced_not_used_confirm_operation(array $form, array &$
     foreach ($values['files'] as $reference_id) {
       if (!empty($reference_id)) {
         $reference_id_parts = explode('.', $reference_id);
-        $file = file_load($reference_id_parts[4]);
-        if (!empty($file)) {
-          if ($values['op'] == 'Add selected items to the file_usage table') {
-            $message = t('will be added to the file_usage table.');
-          }
-          elseif ($values['op'] == 'Delete selected references') {
-            $message = t('will be deleted from the content.');
-          }
-          $form['changelist'][$reference_id] = array(
-            '#type' => 'hidden',
-            '#value' => $reference_id,
-            '#prefix' => '<li><strong>' . $file->filename . '</strong> ' . $message,
-            '#suffix' => "</li>\n",
-          );
+        if ($values['op'] == 'Add selected items to the file_usage table') {
+          $message = t('will be added to the file_usage table.');
         }
+        elseif ($values['op'] == 'Delete selected references') {
+          $message = t('will be deleted from the content.');
+        }
+        $form['changelist'][$reference_id] = array(
+          '#type' => 'hidden',
+          '#value' => $reference_id,
+          '#prefix' => '<li>' . t('File ID') . ' <strong>' . $reference_id_parts[4] . '</strong> ' . $message,
+          '#suffix' => "</li>\n",
+        );
       }
       else {
         // Unsetting the unprocessed files prevents confirm_submit from dealing
@@ -654,6 +651,18 @@ function _auditfiles_referenced_not_used_get_file_list() {
       // Get the records from the specified field table.
       $query = "SELECT entity_id, entity_type, $column FROM {$table}";
       $query .= " WHERE ${column} NOT IN (SELECT DISTINCT(fid) FROM {file_usage})";
+
+      // Add any specified sorting.
+      $query_parameters = drupal_get_query_parameters();
+      if (!empty($query_parameters['sort']) && !empty($query_parameters['order'])) {
+        $headers = _auditfiles_referenced_not_used_get_header();
+        foreach ($headers as $header) {
+          if ($header['data'] == $query_parameters['order']) {
+            $query .= " ORDER BY " . $header['field'] . ' ' . $query_parameters['sort'];
+          }
+        }
+      }
+
       if ($maximum_records > 0) {
         $query .= " LIMIT $maximum_records";
         // Set the offest.
@@ -1047,9 +1056,11 @@ function _auditfiles_referenced_not_used_get_header() {
     ),
     'entity_type' => array(
       'data' => t('Referencing entity type'),
+      'field' => 'entity_type',
     ),
     'entity_id_display' => array(
       'data' => t('Referencing entity ID'),
+      'field' => 'entity_id',
     ),
     'field' => array(
       'data' => t('Field referenced in'),

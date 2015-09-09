@@ -523,7 +523,18 @@ function _auditfiles_not_on_server_batch_delete_process_file($file_id) {
 function _auditfiles_not_on_server_get_file_list() {
   $file_ids = array();
   // Get all the file IDs in the file_managed table.
-  $query = "SELECT fid, uri FROM {file_managed}";
+  $query = "SELECT fid, uri FROM {file_managed} fm";
+
+  // Add any specified sorting.
+  $query_parameters = drupal_get_query_parameters();
+  if (!empty($query_parameters['sort']) && !empty($query_parameters['order'])) {
+    $headers = _auditfiles_not_on_server_get_header();
+    foreach ($headers as $header) {
+      if ($header['data'] == $query_parameters['order']) {
+        $query .= " ORDER BY " . $header['field'] . ' ' . $query_parameters['sort'];
+      }
+    }
+  }
 
   // If record limition has been configured, only use those records within that
   // specification.
@@ -626,7 +637,6 @@ function _auditfiles_not_on_server_get_header() {
     'fid' => array(
       'data' => t('File ID'),
       'field' => 'fm.fid',
-      'sort' => 'asc',
     ),
     'uid' => array(
       'data' => t('User ID'),
