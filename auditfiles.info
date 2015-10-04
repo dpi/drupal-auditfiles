@@ -2,4 +2,3 @@ name = Audit Files
 description = Allows for comparing and correcting files and file references in the "files" directory, in the database, and in content.
 core = 7.x
 configure = admin/config/system/auditfiles
-dependencies[] = views_bulk_operations

@@ -602,12 +602,12 @@ function _auditfiles_used_not_referenced_get_file_data($file_id) {
     $results = db_query("SELECT * FROM {file_usage} WHERE fid = $file_id");
     foreach ($results as $file_usage) {
       // Create the usages list.
-      $used_by = $file_usage->module . ' ' . t('module');
-      $used_in = l($file_usage->type . '/' . $file_usage->id, $file_usage->type . '/' . $file_usage->id);
+      $used_by = $file_usage->module;
+      $used_in = ($file_usage->type == 'node') ? l($file_usage->id, 'node/' . $file_usage->id) : $file_usage->id;
       $times_used = $file_usage->count;
       $usage .= '<li>'
         . t(
-          'Used by: %used_by; Used in: %used_in; Times used: %times_used',
+          'Used by module: %used_by; Used in content ID: %used_in; Times used: %times_used',
           array(
             '%used_by' => $used_by,
             '%used_in' => $used_in,

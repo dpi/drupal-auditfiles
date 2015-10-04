@@ -222,6 +222,16 @@ function auditfiles_menu() {
     'weight' => 5,
   );
 
+  $items['admin/reports/auditfiles/mergefilereferences'] = array(
+    'title' => 'Merge file references',
+    'description' => 'Lists potential duplicate files in the file_managed table, and allows for merging them into a single file.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('auditfiles_merge_file_references_form'),
+    'access arguments' => array('access audit files reports'),
+    'file' => 'auditfiles.mergefilereferences.inc',
+    'weight' => 6,
+  );
+
   return $items;
 }
 
