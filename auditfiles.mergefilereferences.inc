@@ -32,14 +32,9 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
   }
 
   $output_link = l('Managed not used', 'admin/reports/auditfiles/managednotused');
-  $output = '<p>' . t("The files listed below are in the file_managed database
-    table. Displayed are the files' names, any file IDs that are associated with
-    the listed filename (under 'File IDs using the filename'), and any times the
-    file IDs are listed in the file_usage database table (under 'Where that file
-    ID is used').") . '</p>';
-  $output .= '<p>' . t("Any file IDs (under 'File IDs using the filename') that
-    do not have any usages listed in 'Where that file ID is used' should be
-    dealt with on the !managed report.",
+  $output = '<p>' . t('Any file IDs (under "File IDs using the filename") that
+    do not have any usages listed in "Where that file ID is used" should be
+    dealt with on the !managed report.',
     array('!managed' => $output_link)) . '</p>';
   $form['introduction'] = array(
     '#markup' => $output,
@@ -109,35 +104,13 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
     $form_count = 'Found no files in the file_managed table with duplicate file names.';
   }
 
-//  drupal_add_css(drupal_get_path('module', 'auditfiles') . '/css/auditfiles.css');
   // Add filtering options.
-//  $form['filter'] = array(
-//    '#type' => 'fieldset',
-//    '#title' => t('Filtering options'),
-//    '#collapsible' => FALSE,
-//  );
-//  $form['filter']['single_file_names'] = array(
-//    '#type' => 'container',
-//  );
   $form['filter']['single_file_names']['show_single_file_names'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show files without duplicate names'),
     '#default_value' => variable_get('show_single_file_names', 0),
     '#description' => t('Sometimes, duplicate files do not have the same name. Check this box to show all files, whether or not there are duplicate name matches.'),
   );
-
-//  $form['filter']['file_mimes'] = array(
-//    '#type' => 'container',
-//  );
-//  $options_query = "SELECT DISTINCT filemime FROM file_managed";
-//  $options = db_query($options_query)->fetchCol();
-//dpm($options, '$options');
-//  $form['filter']['file_mimes']['unique_file_mimes'] = array(
-//    '#type' => 'select',
-//    '#title' => t('Unique file MIMEs'),
-////    '#default_value' => variable_get('show_single_file_names', 0),
-//    '#options' => $options,
-//  );
 
   // Add the button to batch process the list of results.
   if ($record_selection == 'limited') {
@@ -471,6 +444,26 @@ function _auditfiles_merge_file_references_batch_display_process_batch($file_nam
 function _auditfiles_merge_file_references_pre_confirm_operation(array $form, array &$form_state) {
   // Prepare the list of items to present to the user.
   if (!empty($form_state['values']['files'])) {
+    $header = array(
+      'filename' => array(
+        'data' => t('Filename'),
+      ),
+      'fileid' => array(
+        'data' => t('File ID'),
+      ),
+      'fileuri' => array(
+        'data' => t('URI'),
+      ),
+      'filesize' => array(
+        'data' => t('Size'),
+      ),
+      'timestamp' => array(
+        'data' => t('Time uploaded'),
+      ),
+    );
+
+    $date_format = variable_get('auditfiles_report_options_date_format', 'long');
+
     $files = array();
     foreach ($form_state['values']['files'] as $file_name) {
       if (!empty($file_name)) {
@@ -482,23 +475,19 @@ function _auditfiles_merge_file_references_pre_confirm_operation(array $form, ar
         if (!empty($results)) {
           foreach ($results as $result) {
             $file = file_load($result->fid);
-            $files[$result->fid] = t(
-              'File ID: !fileid; URI: !fileuri; Size: !filesize; Time uploaded: !formatted',
-              array(
-                '!fileid' => $result->fid,
-                '!fileuri' => $file->uri,
-                '!filesize' => $file->filesize,
-                '!formatted' => date('r', $file->timestamp),
-              )
-            );
+            if (!empty($file)) {
+              $files[$result->fid] = array(
+                'filename' => $file_name,
+                'fileid' => $result->fid,
+                'fileuri' => $file->uri,
+                'filesize' => number_format($file->filesize),
+                'timestamp' => format_date($file->timestamp, $date_format),
+              );
+            }
+            else {
+              drupal_set_message(t('A file object was not found for file ID @fid.', array('@fid' => $result->fid)));
+            }
           }
-
-          $form['files_being_merged'] = array(
-            '#type' => 'checkboxes',
-            '#title' => t('Select the files to merge'),
-            '#options' => $files,
-            '#description' => t('Select which files to merge together. On the next page, you will be given the opportunity to select which file to merge these into -- be sure to include that file in your selection here.'),
-          );
         }
       }
       else {
@@ -509,15 +498,22 @@ function _auditfiles_merge_file_references_pre_confirm_operation(array $form, ar
     }
   }
 
-  $form['actions'] = array(
-    '#type' => 'actions',
-    'submit' => array(
-      '#type' => 'submit',
-      '#value' => t('Next step'),
-    ),
+  $form['files_being_merged'] = array(
+    '#type' => 'tableselect',
+    '#header' => $header,
+    '#options' => $files,
+    '#empty' => t('No items found.'),
   );
 
-//  $form_state['storage']['confirm'] = TRUE;
+  if (!empty($files)) {
+    $form['actions'] = array(
+      '#type' => 'actions',
+      'submit' => array(
+        '#type' => 'submit',
+        '#value' => t('Next step'),
+      ),
+    );
+  }
 
   return $form;
 }
@@ -536,20 +532,42 @@ function _auditfiles_merge_file_references_pre_confirm_operation(array $form, ar
 function _auditfiles_merge_file_references_confirm_operation(array $form, array &$form_state) {
   // Prepare the list of items to present to the user.
   if (!empty($form_state['values']['files_being_merged'])) {
+    $header = array(
+      'origname' => array(
+        'data' => t('Filename'),
+      ),
+      'fileid' => array(
+        'data' => t('File ID'),
+      ),
+      'fileuri' => array(
+        'data' => t('URI'),
+      ),
+      'filesize' => array(
+        'data' => t('Size'),
+      ),
+      'timestamp' => array(
+        'data' => t('Time uploaded'),
+      ),
+    );
+
+    $date_format = variable_get('auditfiles_report_options_date_format', 'long');
+
     $files = array();
     foreach ($form_state['values']['files_being_merged'] as $file_id) {
       if (!empty($file_id)) {
         $file = file_load($file_id);
-        $files[$file_id] = t(
-          'File ID: !fileid; URI: !fileuri; Size: !filesize; Time uploaded: !timestamp (!formatted)',
-          array(
-            '!fileid' => $file->fid,
-            '!fileuri' => $file->uri,
-            '!filesize' => $file->filesize,
-            '!timestamp' => $file->timestamp,
-            '!formatted' => date('r', $file->timestamp),
-          )
-        );
+        if (!empty($file)) {
+          $files[$file_id] = array(
+            'origname' => $file->origname,
+            'fileid' => $file_id,
+            'fileuri' => $file->uri,
+            'filesize' => number_format($file->filesize),
+            'timestamp' => format_date($file->timestamp, $date_format),
+          );
+        }
+        else {
+          drupal_set_message(t('A file object was not found for file ID @fid.', array('@fid' => $file_id)));
+        }
       }
       else {
         // Remove files that were not selected.
@@ -557,12 +575,6 @@ function _auditfiles_merge_file_references_confirm_operation(array $form, array 
       }
     }
 
-    $form['file_being_kept'] = array(
-      '#type' => 'radios',
-      '#title' => t('Which file will be the one the others are merged into?'),
-      '#default_value' => key($files),
-      '#options' => $files,
-    );
     // Save the selected items for later use.
     $form_state['storage']['files_being_merged'] = $files;
   }
@@ -583,9 +595,18 @@ function _auditfiles_merge_file_references_confirm_operation(array $form, array 
     '#value' => 'admin/reports/auditfiles/mergefilereferences',
   );
 
+  $form['file_being_kept'] = array(
+    '#type' => 'tableselect',
+    '#header' => $header,
+    '#options' => $files,
+    '#default_value' => key($files),
+    '#empty' => t('No items found.'),
+    '#multiple' => FALSE,
+  );
+
   return confirm_form(
     $form,
-    t('Merge the items selected?'),
+    t('Which file will be the one the others are merged into?'),
     'admin/reports/auditfiles/mergefilereferences',
     '<div><strong>' . t('This action cannot be undone.') . '</strong></div>',
     t('Confirm'),
