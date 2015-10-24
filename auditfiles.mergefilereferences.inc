@@ -41,31 +41,20 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
   );
 
   // Get the records to display.
-  // Check to see if the data has been stored.
-  if (!empty($form_state['storage']['saved_rows'])) {
-    // The data is currently saved, so use that.
-    $rows = unserialize($form_state['storage']['saved_rows']);
-  }
-  else {
-    // Check to see if the batch operation was just run. If so, use that data.
-    $rows = variable_get('auditfiles_merge_file_references_files_to_display', array());
-    if (empty($rows)) {
-      // The data is not saved and the batch operation has not been run, so get
-      // the data using the default options.
-      $file_names = _auditfiles_merge_file_references_get_file_list();
-      if (!empty($file_names)) {
-        $date_format = variable_get('auditfiles_report_options_date_format', 'long');
-        foreach ($file_names as $file_name) {
-          $rows[$file_name] = _auditfiles_merge_file_references_get_file_data($file_name, $date_format);
-        }
+  $rows = variable_get('auditfiles_merge_file_references_files_to_display', array());
+  if (empty($rows)) {
+    // The data is not saved and the batch operation has not been run, so get
+    // the data using the default options.
+    $file_names = _auditfiles_merge_file_references_get_file_list();
+    if (!empty($file_names)) {
+      $date_format = variable_get('auditfiles_report_options_date_format', 'long');
+      foreach ($file_names as $file_name) {
+        $rows[$file_name] = _auditfiles_merge_file_references_get_file_data($file_name, $date_format);
       }
     }
   }
   // Save the data for later retrieval.
-  $form['saved_rows'] = array(
-    '#type' => 'hidden',
-    '#value' => serialize($rows),
-  );
+  variable_set('auditfiles_merge_file_references_files_to_display', $rows);
 
   // Set up the pager.
   if (!empty($rows)) {
@@ -85,10 +74,7 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
   // Define the form.
   // Setup the record count and related messages.
   if (!empty($rows)) {
-    if ($record_selection == 'batch_sets') {
-      $file_count_message = 'Found @count files in this batch set in the file_managed table with duplicate file names.';
-    }
-    elseif ($maximum_records > 0) {
+    if ($maximum_records > 0) {
       $file_count_message = 'Found at least @count files in the file_managed table with duplicate file names.';
     }
     else {
@@ -114,37 +100,16 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
 
   // Add the button to batch process the list of results.
   if ($record_selection == 'limited') {
-    $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
-    if ($batch_size > 0) {
-      $form['batch_process'] = array(
-        '#type' => 'submit',
-        '#value' => t('Load first batch set'),
-      );
-    }
-    else {
-      $form['batch_process'] = array(
-        '#type' => 'submit',
-        '#value' => t('Load all records'),
-      );
-    }
-  }
-  elseif ($record_selection == 'batch_sets') {
-    // Add the button to load the previous batch set.
-    $form['batch_process_prev'] = array(
+    $form['batch_process'] = array(
       '#type' => 'submit',
-      '#value' => t('Load previous batch set'),
-    );
-    // Add the button to load the next batch set.
-    $form['batch_process_next'] = array(
-      '#type' => 'submit',
-      '#value' => t('Load next batch set'),
+      '#value' => t('Load all files'),
     );
   }
   // Add the button to reset the record selection.
   if ($record_selection != 'normal') {
     $form['reset_records'] = array(
       '#type' => 'submit',
-      '#value' => t('Reset record selection'),
+      '#value' => t('Reset file list'),
     );
   }
 
@@ -227,48 +192,16 @@ function auditfiles_merge_file_references_form_submit($form, &$form_state) {
   // Check if an operation was performed.
   if (!empty($form_state['values']['op'])) {
     // Check which operation was performed and start the batch process.
-    if ($form_state['values']['op'] == 'Load all records' || $form_state['values']['op'] == 'Load first batch set') {
+    if ($form_state['values']['op'] == 'Load all files') {
       // Clear the variable, so subsequent pages will load the correct data.
       variable_del('auditfiles_merge_file_references_files_to_display');
-      $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
-      if ($batch_size > 0) {
-        // Set appropriate variables for this operation.
-        variable_set('auditfiles_merge_file_references_record_selection', 'batch_sets');
-      }
-      else {
-        // Set appropriate variables for this operation.
-        variable_set('auditfiles_merge_file_references_record_selection', 'batched');
-      }
       // Prepare and set the batch.
       batch_set(_auditfiles_merge_file_references_batch_display_create_batch());
     }
-    elseif ($form_state['values']['op'] == 'Load previous batch set') {
+    elseif ($form_state['values']['op'] == 'Reset file list') {
       // Clear the variable, so subsequent pages will load the correct data.
       variable_del('auditfiles_merge_file_references_files_to_display');
       // Set appropriate variables for this operation.
-      $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
-      $batch_offset = variable_get('auditfiles_merge_file_references_batch_offset', 0);
-      variable_set('auditfiles_merge_file_references_batch_offset', $batch_offset - $batch_size);
-      variable_set('auditfiles_merge_file_references_record_selection', 'batch_sets');
-      // Prepare and set the batch.
-      batch_set(_auditfiles_merge_file_references_batch_display_create_batch());
-    }
-    elseif ($form_state['values']['op'] == 'Load next batch set') {
-      // Clear the variable, so subsequent pages will load the correct data.
-      variable_del('auditfiles_merge_file_references_files_to_display');
-      // Set appropriate variables for this operation.
-      $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
-      $batch_offset = variable_get('auditfiles_merge_file_references_batch_offset', 0);
-      variable_set('auditfiles_merge_file_references_batch_offset', $batch_offset + $batch_size);
-      variable_set('auditfiles_merge_file_references_record_selection', 'batch_sets');
-      // Prepare and set the batch.
-      batch_set(_auditfiles_merge_file_references_batch_display_create_batch());
-    }
-    elseif ($form_state['values']['op'] == 'Reset record selection') {
-      // Clear the variable, so subsequent pages will load the correct data.
-      variable_del('auditfiles_merge_file_references_files_to_display');
-      // Set appropriate variables for this operation.
-      unset($form_state['values']['saved_rows']);
       variable_set('auditfiles_merge_file_references_record_selection', 'normal');
       variable_del('auditfiles_merge_file_references_batch_offset');
     }
@@ -316,10 +249,6 @@ function auditfiles_merge_file_references_form_submit($form, &$form_state) {
         unset($form_state['storage']['stage']);
       }
     }
-  }
-
-  if (!empty($form_state['values']['saved_rows'])) {
-    $form_state['storage']['saved_rows'] = $form_state['values']['saved_rows'];
   }
 }
 
@@ -391,39 +320,172 @@ function _auditfiles_merge_file_references_batch_display_create_batch() {
  *   The operations to execute.
  */
 function _auditfiles_merge_file_references_batch_display_get_operations() {
-  $date_format = variable_get('auditfiles_report_options_date_format', 'long');
-  $operations = array();
-  $file_names = _auditfiles_merge_file_references_get_file_list();
-
-  foreach ($file_names as $file_name) {
-    $operations[] = array(
-      '_auditfiles_merge_file_references_batch_display_process_batch',
-      array($file_name, $date_format),
-    );
+  // Add any specified sorting.
+  $sort_by = '';
+  $sort_direction = '';
+  $query_parameters = drupal_get_query_parameters();
+  if (!empty($query_parameters['sort']) && !empty($query_parameters['order'])) {
+    $headers = _auditfiles_managed_not_used_get_header();
+    foreach ($headers as $header) {
+      if ($header['data'] == $query_parameters['order']) {
+        $sort_by = $header['field'];
+        $sort_direction = $query_parameters['sort'];
+      }
+    }
   }
 
+  $operations = array();
+  $operations[] = array(
+    '_auditfiles_merge_file_references_batch_display_get_files',
+    array(
+      variable_get('show_single_file_names', 0),
+      $sort_by,
+      $sort_direction,
+    ),
+  );
+  $operations[] = array(
+    '_auditfiles_merge_file_references_batch_display_process_files',
+    array(
+      variable_get('auditfiles_report_options_date_format', 'long'),
+    ),
+  );
   return $operations;
 }
 
 /**
- * The batch process for displaying the files.
+ * The batch process operation for getting the files.
  *
- * @param int $file_name
- *   The name of the file being processed.
+ * @param boolean $show_single_file_names
+ *   TRUE if the list of files should include filenames that only have one file
+ *   ID associated with them.
+ * @param sting $sort_by
+ *   The field to sort the query contents by.
+ * @param sting $sort_direction
+ *   The direction (asc or desc) of the sorting.
+ * @param array $context
+ *   Used by the Batch API to keep track of and pass data from one operation to
+ *   the next.
+ */
+function _auditfiles_merge_file_references_batch_display_get_files($show_single_file_names, $sort_by, $sort_direction, array &$context) {
+  if (empty($context['sandbox'])) {
+    $context['sandbox'] = array();
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['current_file'] = '';
+    // Get the count of available records to operate on.
+    if ($show_single_file_names) {
+      $query = 'SELECT COUNT(DISTINCT filename) FROM {file_managed}';
+      $record_count = db_query($query)->fetchField();
+    }
+    else {
+      $query = 'SELECT COUNT(filename)
+        FROM (SELECT COUNT(fid) AS file_count, filename
+          FROM {file_managed}
+          GROUP BY filename
+          HAVING file_count > 1
+        ) AS filename_count';
+      $record_count = db_query($query)->fetchField();
+    }
+    // Set the number of records to operate on.
+    $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
+    if ($batch_size > 0 && $record_count > $batch_size) {
+      $context['sandbox']['max'] = $batch_size;
+    }
+    else {
+      $context['sandbox']['max'] = $record_count;
+    }
+  }
+  if (empty($context['results']['file_list'])) {
+    $context['results']['file_list'] = array();
+  }
+
+  if ($show_single_file_names) {
+    // Get the file data from the database.
+    $query = 'SELECT DISTINCT filename
+      FROM {file_managed}
+      WHERE filename > :filename';
+  }
+  else {
+    $query = '
+      SELECT COUNT(fid) AS file_count, filename
+      FROM file_managed
+      WHERE filename > :filename
+      GROUP BY filename
+      HAVING file_count > 1';
+  }
+  $query .= ' ORDER BY filename ASC';
+  $query .= ' LIMIT 20';
+
+  $files = db_query($query, array(':filename' => $context['sandbox']['current_file']))->fetchAll();
+
+  foreach ($files as $file) {
+    $context['results']['file_list'][$file->filename] = $file->filename;
+
+    // Update our progress information.
+    $context['sandbox']['progress']++;
+    $context['sandbox']['current_file'] = $file->filename;
+    $context['message'] = t(
+      'Getting the list of files. Processed file @num1 of @num2. Last file processed: !file_name.',
+      array(
+        '@num1' => $context['sandbox']['progress'],
+        '@num2' => $context['sandbox']['max'],
+        '!file_name' => $file->filename,
+      )
+    );
+  }
+
+  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+    $context['finished'] = ($context['sandbox']['progress'] >= $context['sandbox']['max']);
+  }
+}
+
+/**
+ * The batch process operation for formatting the files for display on the page.
+ *
  * @param string $date_format
  *   The format to display time/date values in.
  * @param array $context
  *   Used by the Batch API to keep track of and pass data from one operation to
  *   the next.
  */
-function _auditfiles_merge_file_references_batch_display_process_batch($file_name, $date_format, array &$context) {
-  // Process the current file.
-  $file = _auditfiles_merge_file_references_get_file_data($file_name, $date_format);
-  // The contents of 'results' are available as $results in the 'finished'
-  // function.
-  $context['results']['files_to_display'][$file_name] = $file;
-  // Set a progress message.
-  $context['message'] = t('Processed %filename.', array('%filename' => $file_name));
+function _auditfiles_merge_file_references_batch_display_process_files($date_format, array &$context) {
+  if (empty($context['sandbox'])) {
+    $context['sandbox'] = array();
+    if (empty($context['results']['file_list'])) {
+      $context['sandbox']['progress'] = 1;
+      $context['sandbox']['max'] = 1;
+    }
+    else {
+      $context['sandbox']['progress'] = 0;
+      $context['sandbox']['max'] = count($context['results']['file_list']);
+    }
+  }
+  if (empty($context['results']['files_to_display'])) {
+    $context['results']['files_to_display'] = array();
+  }
+
+  if (!empty($context['results']['file_list'])) {
+    $file_list = array_slice($context['results']['file_list'], 0, 20, TRUE);
+
+    foreach ($file_list as $file_name) {
+      $context['results']['files_to_display'][$file_name] = _auditfiles_merge_file_references_get_file_data($file_name, $date_format);
+      unset($context['results']['file_list'][$file_name]);
+
+      // Update the progress information.
+      $context['sandbox']['progress']++;
+      $context['message'] = t(
+        'Processing the file list. Processed file @num1 of @num2. Last file processed: !file_name.',
+        array(
+          '@num1' => $context['sandbox']['progress'],
+          '@num2' => $context['sandbox']['max'],
+          '!file_name' => $file_name,
+        )
+      );
+    }
+  }
+
+  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+    $context['finished'] = ($context['sandbox']['progress'] >= $context['sandbox']['max']);
+  }
 }
 
 /**
@@ -467,10 +529,10 @@ function _auditfiles_merge_file_references_pre_confirm_operation(array $form, ar
     $files = array();
     foreach ($form_state['values']['files'] as $file_name) {
       if (!empty($file_name)) {
-        $query = "SELECT fid
+        $query = 'SELECT fid
           FROM {file_managed}
           WHERE filename = :file_name
-          ORDER BY uri ASC";
+          ORDER BY uri ASC';
         $results = db_query($query, array(':file_name' => $file_name))->fetchAll();
         if (!empty($results)) {
           foreach ($results as $result) {
@@ -791,18 +853,18 @@ function _auditfiles_merge_file_references_get_file_list() {
   $result_set = array();
 
   // Get all the file IDs in the file_managed table.
-  $query = "SELECT fid, filename
+  $query = 'SELECT fid, filename
     FROM {file_managed}
-    ORDER BY filename ASC";
+    ORDER BY filename ASC';
 
   // If record limition has been configured, only use those records within that
   // specification.
   $record_limiters = _auditfiles_merge_file_references_get_record_limiters();
   $maximum_records = $record_limiters['maximum_records'];
   if ($maximum_records > 0) {
-    $query .= " LIMIT " . $maximum_records;
+    $query .= ' LIMIT ' . $maximum_records;
     // Set the offest.
-    $query .= " OFFSET " . variable_get('auditfiles_merge_file_references_batch_offset', 0);
+    $query .= ' OFFSET ' . variable_get('auditfiles_merge_file_references_batch_offset', 0);
   }
   else {
     variable_set('auditfiles_merge_file_references_batch_offset', 0);
@@ -819,10 +881,10 @@ function _auditfiles_merge_file_references_get_file_list() {
     else {
       // Only show files where there are duplicates of the filename.
       // Check to see if there are any duplicates.
-      $query2 = "SELECT COUNT(fid) count
+      $query2 = 'SELECT COUNT(fid) count
         FROM {file_managed}
         WHERE filename = :filename
-          AND fid != :fid";
+          AND fid != :fid';
       $results2 = db_query(
         $query2,
         array(
@@ -853,9 +915,9 @@ function _auditfiles_merge_file_references_get_file_list() {
  */
 function _auditfiles_merge_file_references_get_file_data($file_name, $date_format) {
   // Get all file IDs for those files whose names match the provided one.
-  $fid_query = "SELECT fid
+  $fid_query = 'SELECT fid
     FROM {file_managed}
-    WHERE filename = :filename";
+    WHERE filename = :filename';
   $fid_results = db_query($fid_query, array(':filename' => $file_name))->fetchAll();
 
   if (count($fid_results) > 0) {
@@ -864,7 +926,7 @@ function _auditfiles_merge_file_references_get_file_data($file_name, $date_forma
       t('URI'),
       t('Size (in bytes)'),
       t('Date'),
-      t('Where that file ID is used'),
+//      t('Where that file ID is used'),
     );
 
     $fid_rows = array();
@@ -872,17 +934,17 @@ function _auditfiles_merge_file_references_get_file_data($file_name, $date_forma
       // Get the file object.
       $file = file_load($fid_result->fid);
       // Get all the usages for this file ID.
-      $fu_query = "SELECT *
-        FROM {file_usage}
-        WHERE fid = :fid";
-      $fu_results = db_query($fu_query, array(':fid' => $file->fid))->fetchAll();
-
-      if (empty($fu_results)) {
-        $usages = '';
-      }
-      else {
-        $usages = _auditfiles_merge_file_references_get_file_usage_data($fu_results);
-      }
+//      $fu_query = 'SELECT *
+//        FROM {file_usage}
+//        WHERE fid = :fid';
+//      $fu_results = db_query($fu_query, array(':fid' => $file->fid))->fetchAll();
+//
+//      if (empty($fu_results)) {
+//        $usages = '';
+//      }
+//      else {
+//        $usages = _auditfiles_merge_file_references_get_file_usage_data($fu_results);
+//      }
 
       // Add the data to the collective.
       $fid_rows[] = array(
@@ -890,7 +952,7 @@ function _auditfiles_merge_file_references_get_file_data($file_name, $date_forma
         $file->uri,
         number_format($file->filesize),
         format_date($file->timestamp, $date_format),
-        $usages,
+//        $usages,
       );
     }
 
