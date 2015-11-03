@@ -143,20 +143,20 @@ function auditfiles_managed_not_used_form_submit($form, &$form_state) {
   // Check if an operation was performed.
   if (!empty($form_state['values']['op'])) {
     // Check which operation was performed and start the batch process.
-    if ($form_state['values']['op'] == 'Load all files') {
+    if ($form_state['values']['op'] == t('Load all files')) {
       // Clear the variable, so subsequent pages will load the correct data.
       variable_del('auditfiles_managed_not_used_files_to_display');
       // Prepare and set the batch.
       batch_set(_auditfiles_managed_not_used_batch_display_create_batch());
     }
-    elseif ($form_state['values']['op'] == 'Reset file list') {
+    elseif ($form_state['values']['op'] == t('Reset file list')) {
       // Clear the variable, so subsequent pages will load the correct data.
       variable_del('auditfiles_managed_not_used_files_to_display');
       // Set appropriate variables for this operation.
       variable_set('auditfiles_managed_not_used_record_selection', 'normal');
       variable_del('auditfiles_managed_not_used_batch_offset');
     }
-    elseif ($form_state['values']['op'] == 'Delete selected items from the file_managed table'
+    elseif ($form_state['values']['op'] == t('Delete selected items from the file_managed table')
       && !empty($form_state['values']['files'])) {
       foreach ($form_state['values']['files'] as $file_id) {
         if (!empty($file_id)) {
@@ -172,7 +172,7 @@ function auditfiles_managed_not_used_form_submit($form, &$form_state) {
 
       drupal_set_message(t('No items were selected to operate on.'));
     }
-    elseif ($form_state['values']['op'] == 'Yes') {
+    elseif ($form_state['values']['op'] == t('Yes')) {
       if ($form_state['values']['operation'] == 'delete') {
         // Prepare and set the batch.
         batch_set(_auditfiles_managed_not_used_batch_delete_create_batch($form_state['values']['changelist']));

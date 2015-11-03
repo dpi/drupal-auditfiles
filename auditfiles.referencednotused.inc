@@ -182,7 +182,7 @@ function auditfiles_referenced_not_used_form_submit($form, &$form_state) {
   // Check if an operation was performed.
   if (!empty($form_state['values']['op'])) {
     // Check which operation was performed and start the batch process.
-    if ($form_state['values']['op'] == 'Load all records' || $form_state['values']['op'] == 'Load first batch set') {
+    if ($form_state['values']['op'] == t('Load all records') || $form_state['values']['op'] == t('Load first batch set')) {
       // Clear the variable, so subsequent pages will load the correct data.
       variable_del('auditfiles_files_to_display');
       $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
@@ -197,7 +197,7 @@ function auditfiles_referenced_not_used_form_submit($form, &$form_state) {
       // Prepare and set the batch.
       batch_set(_auditfiles_referenced_not_used_batch_display_create_batch());
     }
-    elseif ($form_state['values']['op'] == 'Load previous batch set') {
+    elseif ($form_state['values']['op'] == t('Load previous batch set')) {
       // Clear the variable, so subsequent pages will load the correct data.
       variable_del('auditfiles_files_to_display');
       // Set appropriate variables for this operation.
@@ -208,7 +208,7 @@ function auditfiles_referenced_not_used_form_submit($form, &$form_state) {
       // Prepare and set the batch.
       batch_set(_auditfiles_referenced_not_used_batch_display_create_batch());
     }
-    elseif ($form_state['values']['op'] == 'Load next batch set') {
+    elseif ($form_state['values']['op'] == t('Load next batch set')) {
       // Clear the variable, so subsequent pages will load the correct data.
       variable_del('auditfiles_files_to_display');
       // Set appropriate variables for this operation.
@@ -219,7 +219,7 @@ function auditfiles_referenced_not_used_form_submit($form, &$form_state) {
       // Prepare and set the batch.
       batch_set(_auditfiles_referenced_not_used_batch_display_create_batch());
     }
-    elseif ($form_state['values']['op'] == 'Reset record selection') {
+    elseif ($form_state['values']['op'] == t('Reset record selection')) {
       // Clear the variable, so subsequent pages will load the correct data.
       variable_del('auditfiles_files_to_display');
       // Set appropriate variables for this operation.
@@ -227,8 +227,8 @@ function auditfiles_referenced_not_used_form_submit($form, &$form_state) {
       variable_set('auditfiles_referenced_not_used_record_selection', 'normal');
       variable_del('auditfiles_referenced_not_used_batch_offset');
     }
-    elseif (($form_state['values']['op'] == 'Add selected items to the file_usage table'
-      || $form_state['values']['op'] == 'Delete selected references')
+    elseif (($form_state['values']['op'] == t('Add selected items to the file_usage table')
+      || $form_state['values']['op'] == t('Delete selected references'))
       && !empty($form_state['values']['files'])) {
       foreach ($form_state['values']['files'] as $file_id) {
         if (!empty($file_id)) {
@@ -244,7 +244,7 @@ function auditfiles_referenced_not_used_form_submit($form, &$form_state) {
 
       drupal_set_message(t('No items were selected to operate on.'));
     }
-    elseif ($form_state['values']['op'] == 'Yes') {
+    elseif ($form_state['values']['op'] == t('Yes')) {
       if ($form_state['values']['operation'] == 'add') {
         // Prepare and set the batch.
         batch_set(_auditfiles_referenced_not_used_batch_add_create_batch($form_state['values']['changelist']));
@@ -390,10 +390,10 @@ function _auditfiles_referenced_not_used_confirm_operation(array $form, array &$
     foreach ($values['files'] as $reference_id) {
       if (!empty($reference_id)) {
         $reference_id_parts = explode('.', $reference_id);
-        if ($values['op'] == 'Add selected items to the file_usage table') {
+        if ($values['op'] == t('Add selected items to the file_usage table')) {
           $message = t('will be added to the file_usage table.');
         }
-        elseif ($values['op'] == 'Delete selected references') {
+        elseif ($values['op'] == t('Delete selected references')) {
           $message = t('will be deleted from the content.');
         }
         $form['changelist'][$reference_id] = array(
@@ -414,12 +414,12 @@ function _auditfiles_referenced_not_used_confirm_operation(array $form, array &$
   $form['operation'] = array(
     '#type' => 'hidden',
   );
-  if ($values['op'] == 'Add selected items to the file_usage table') {
+  if ($values['op'] == t('Add selected items to the file_usage table')) {
     $form['operation']['#value'] = 'add';
     $confirm_question = t('Add these files to the file_usage table?');
     $confirm_description = '';
   }
-  elseif ($values['op'] == 'Delete selected references') {
+  elseif ($values['op'] == t('Delete selected references')) {
     $form['operation']['#value'] = 'delete';
     $confirm_question = t('Delete these references from their content?');
     $confirm_description = '<strong>' . t('This action cannot be undone.') . '</strong>';

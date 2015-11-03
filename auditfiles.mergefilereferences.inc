@@ -148,7 +148,7 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
  */
 function auditfiles_merge_file_references_form_validate($form, &$form_state) {
   if (isset($form_state['values']['op'])) {
-    if ($form_state['values']['op'] == 'Merge selected items') {
+    if ($form_state['values']['op'] == t('Merge selected items')) {
       // Make sure at least one file was chosen before starting.
       $counter = 0;
       foreach ($form_state['values']['files'] as $file) {
@@ -163,7 +163,7 @@ function auditfiles_merge_file_references_form_validate($form, &$form_state) {
         );
       }
     }
-    elseif ($form_state['values']['op'] == 'Next step') {
+    elseif ($form_state['values']['op'] == t('Next step')) {
       // Make sure at least two files were chosen before continuing.
       $counter = 0;
       foreach ($form_state['values']['files_being_merged'] as $file) {
@@ -192,20 +192,20 @@ function auditfiles_merge_file_references_form_submit($form, &$form_state) {
   // Check if an operation was performed.
   if (!empty($form_state['values']['op'])) {
     // Check which operation was performed and start the batch process.
-    if ($form_state['values']['op'] == 'Load all files') {
+    if ($form_state['values']['op'] == t('Load all files')) {
       // Clear the variable, so subsequent pages will load the correct data.
       variable_del('auditfiles_merge_file_references_files_to_display');
       // Prepare and set the batch.
       batch_set(_auditfiles_merge_file_references_batch_display_create_batch());
     }
-    elseif ($form_state['values']['op'] == 'Reset file list') {
+    elseif ($form_state['values']['op'] == t('Reset file list')) {
       // Clear the variable, so subsequent pages will load the correct data.
       variable_del('auditfiles_merge_file_references_files_to_display');
       // Set appropriate variables for this operation.
       variable_set('auditfiles_merge_file_references_record_selection', 'normal');
       variable_del('auditfiles_merge_file_references_batch_offset');
     }
-    elseif ($form_state['values']['op'] == 'Merge selected items') {
+    elseif ($form_state['values']['op'] == t('Merge selected items')) {
       if (!empty($form_state['values']['files'])) {
         foreach ($form_state['values']['files'] as $file_name) {
           if (!empty($file_name)) {
@@ -220,7 +220,7 @@ function auditfiles_merge_file_references_form_submit($form, &$form_state) {
         }
       }
     }
-    elseif ($form_state['values']['op'] == 'Next step') {
+    elseif ($form_state['values']['op'] == t('Next step')) {
       if (!empty($form_state['values']['files_being_merged'])) {
         foreach ($form_state['values']['files_being_merged'] as $file_name) {
           if (!empty($file_name)) {
@@ -237,7 +237,7 @@ function auditfiles_merge_file_references_form_submit($form, &$form_state) {
         drupal_set_message(t('No items were selected to merge.'));
       }
     }
-    elseif ($form_state['values']['op'] == 'Confirm') {
+    elseif ($form_state['values']['op'] == t('Confirm')) {
       if ($form_state['values']['operation'] == 'merge') {
         // Prepare and set the batch.
         batch_set(
