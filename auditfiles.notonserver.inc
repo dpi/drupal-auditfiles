@@ -426,49 +426,6 @@ function _auditfiles_not_on_server_batch_display_process_files($date_format, arr
 }
 
 /**
- * Configures the operations for the batch process.
- *
- * @return array
- *   The operations to execute.
- */
-function _auditfiles_not_on_server_batch_display_get_operations_backup() {
-  $date_format = variable_get('auditfiles_report_options_date_format', 'long');
-  $operations = array();
-  $file_ids = _auditfiles_not_on_server_get_file_list();
-  // Set up the operations.
-  foreach ($file_ids as $file_id) {
-    $operations[] = array(
-      '_auditfiles_not_on_server_batch_display_process_batch',
-      array($file_id, $date_format),
-    );
-  }
-  return $operations;
-}
-
-/**
- * The batch process for displaying the files.
- *
- * @param int $file_id
- *   The ID for the file being processed.
- * @param string $date_format
- *   The format to display time/date values in.
- * @param array &$context
- *   Used by the Batch API to keep track of and pass data from one operation to
- *   the next.
- */
-function _auditfiles_not_on_server_batch_display_process_batch_backup($file_id, $date_format, array &$context) {
-  // Process the current file.
-  $file = _auditfiles_not_on_server_get_file_data($file_id, $date_format);
-  if (isset($file)) {
-    // The contents of 'results' are available as $results in the 'finished'
-    // function.
-    $context['results']['files_to_display'][$file_id] = $file;
-  }
-  // Set a progress message.
-  $context['message'] = t('Processed %filename.', array('%filename' => $file['filename']));
-}
-
-/**
  * The following are functions for the batch delete operation.
  */
 
