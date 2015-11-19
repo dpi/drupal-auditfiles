@@ -8,6 +8,30 @@
  * Creates page for configuring the administrative settings.
  */
 function auditfiles_admin_settings($form, &$form_state) {
+  $form['auditfiles_file_system_paths'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('File system paths'),
+    '#collapsible' => TRUE,
+  );
+  // Show the file system path select list.
+  $file_system_paths = file_get_stream_wrappers();
+  $options = array();
+  foreach ($file_system_paths as $file_system_path_id => $file_system_path) {
+    $options[$file_system_path_id] =$file_system_path['name'] . ': '
+      . variable_get('file_' . $file_system_path_id . '_path', conf_path() . '/files')
+      . ' (' . $file_system_path['description'] . ')';
+  }
+  $form['auditfiles_file_system_paths']['auditfiles_file_system_path'] = array(
+    '#type' => 'select',
+    '#title' => 'File system path',
+    '#default_value' => variable_get('auditfiles_file_system_path', 'public'),
+    '#options' => $options,
+    '#description' => t('Select the file system path to use when searching for
+      and comparing files.<br />
+      File system paths can be modified on the system !file_system settings
+      page.', array('!file_system' => l(t('File system'), 'admin/config/media/file-system'))),
+  );
+
   $form['auditfiles_exclusions'] = array(
     '#type' => 'fieldset',
     '#title' => t('Exclusions'),
@@ -32,9 +56,7 @@ function auditfiles_admin_settings($form, &$form_state) {
     '#title' => t('Exclude these paths'),
     '#default_value' => trim(variable_get('auditfiles_exclude_paths', 'color;css;ctools;js')),
     '#description' => t('Enter a list of paths to exclude, each separated by the
-      semi-colon character (;). Do not include the leading slash. Paths are
-      relative to %directorypath',
-      array('%directorypath' => file_default_scheme())),
+      semi-colon character (;). Do not include the leading slash.'),
   );
 
   $form['auditfiles_domains'] = array(

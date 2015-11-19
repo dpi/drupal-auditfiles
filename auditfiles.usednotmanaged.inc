@@ -32,13 +32,6 @@ function auditfiles_used_not_managed_form(array $form, array &$form_state) {
     somewhere. You should verify the file's existence in the server and in the
     content it is listed as being used in, and either delete the reference in
     the report below, or add it to the file_managed table.") . '</p>';
-  $output .= t('The files in this list are using the %scheme scheme and are
-    relative to the files directory path, located at %path.',
-    array(
-      '%scheme' => file_default_scheme(),
-      '%path' => variable_get('file_' . file_default_scheme() . '_path', conf_path() . '/files'),
-    )
-  ) . '</p>';
   $form['introduction'] = array(
     '#markup' => $output,
   );
@@ -282,9 +275,9 @@ function _auditfiles_used_not_managed_batch_display_get_operations() {
 /**
  * The batch process operation for getting the files.
  *
- * @param sting $sort_by
+ * @param string $sort_by
  *   The field to sort the query contents by.
- * @param sting $sort_direction
+ * @param string $sort_direction
  *   The direction (asc or desc) of the sorting.
  * @param array $context
  *   Used by the Batch API to keep track of and pass data from one operation to
@@ -325,7 +318,7 @@ function _auditfiles_used_not_managed_batch_display_get_files($sort_by, $sort_di
   foreach ($files as $file) {
     $context['results']['file_list'][$file->fid] = $file->fid;
 
-    // Update our progress information.
+    // Update the progress information.
     $context['sandbox']['progress']++;
     $context['sandbox']['current_file'] = $file->fid;
     $context['message'] = t(
@@ -564,7 +557,7 @@ function _auditfiles_used_not_managed_batch_delete_process_file($file_id) {
 function _auditfiles_used_not_managed_get_file_list() {
   // Get all the file IDs in the file_usage table that are not in the
   // file_managed table.
-  $query = 'SELECT DISTINCT(fid) FROM {file_usage} fu WHERE fid NOT IN (SELECT fid FROM {file_managed})';
+  $query = 'SELECT DISTINCT fid FROM {file_usage} fu WHERE fid NOT IN (SELECT fid FROM {file_managed})';
 
   // Add any specified sorting.
   $query_parameters = drupal_get_query_parameters();

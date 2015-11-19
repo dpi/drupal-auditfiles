@@ -34,46 +34,31 @@ function auditfiles_not_in_database_form(array $form, array &$form_state) {
   $output .= t(' You can also add files to the file_managed table - you
     might do that, if you have uploaded files outside of Drupal (e.g., via FTP)
     and will be attaching them to nodes through other tools.') . '</p>';
-  $output .= t('The files in this list are using the %scheme scheme and are
-    relative to the files directory path, located at %path.',
-    array(
-      '%scheme' => file_default_scheme(),
-      '%path' => variable_get('file_' . file_default_scheme() . '_path', conf_path() . '/files'),
-    )
-  ) . '</p>';
   $form['introduction'] = array(
     '#markup' => $output,
   );
 
   // Get the records to display.
-  // Check to see if the data has been stored.
-  if (!empty($form_state['storage']['saved_rows'])) {
-    // The data is currently saved, so use that.
-    $rows = unserialize($form_state['storage']['saved_rows']);
-  }
-  else {
-    // Check to see if the batch operation was just run. If so, use that data.
-    $rows = variable_get('auditfiles_not_in_database_files_to_display', array());
-    if (empty($rows)) {
-      // The data is not saved and the batch operation has not been run, so get
-      // the data using the default options.
-      $file_ids = _auditfiles_not_in_database_get_file_list(drupal_realpath(file_default_scheme() . '://'), TRUE);
-      if (!empty($file_ids)) {
-        $date_format = variable_get('auditfiles_report_options_date_format', 'long');
-        foreach ($file_ids as $file_id) {
-          $row = _auditfiles_not_in_database_get_file_data($file_id, $date_format);
-          if (isset($row)) {
-            $rows[$file_id] = $row;
-          }
+  // Check to see if the batch operation was just run. If so, use that data.
+  $rows = variable_get('auditfiles_not_in_database_files_to_display', array());
+  if (empty($rows)) {
+    // The data is not saved and the batch operation has not been run, so get
+    // the data using the default options.
+    $file_system_stream = variable_get('auditfiles_file_system_path', 'public');
+    $file_system_path = drupal_realpath($file_system_stream . '://');
+    $file_ids = _auditfiles_not_in_database_get_file_list($file_system_path, TRUE);
+    if (!empty($file_ids)) {
+      $date_format = variable_get('auditfiles_report_options_date_format', 'long');
+      foreach ($file_ids as $file_id) {
+        $row = _auditfiles_not_in_database_get_file_data($file_id, $date_format);
+        if (isset($row)) {
+          $rows[$file_id] = $row;
         }
       }
     }
   }
   // Save the data for later retrieval.
-  $form['saved_rows'] = array(
-    '#type' => 'hidden',
-    '#value' => serialize($rows),
-  );
+  variable_set('auditfiles_not_in_database_files_to_display', $rows);
 
   // Set up the pager.
   if (!empty($rows)) {
@@ -93,10 +78,7 @@ function auditfiles_not_in_database_form(array $form, array &$form_state) {
   // Define the form.
   // Setup the record count and related messages.
   if (!empty($rows)) {
-    if ($record_selection == 'batch_sets') {
-      $file_count_message = 'Found @count files in this batch set that are on the server but not in the database.';
-    }
-    elseif ($maximum_records > 0) {
+    if ($maximum_records > 0) {
       $file_count_message = 'Found at least @count files on the server that are not in the database.';
     }
     else {
@@ -114,30 +96,9 @@ function auditfiles_not_in_database_form(array $form, array &$form_state) {
 
   // Add the button to batch process the list of results.
   if ($record_selection == 'limited') {
-    $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
-    if ($batch_size > 0) {
-      $form['batch_process'] = array(
-        '#type' => 'submit',
-        '#value' => t('Load first batch set'),
-      );
-    }
-    else {
-      $form['batch_process'] = array(
-        '#type' => 'submit',
-        '#value' => t('Load all records'),
-      );
-    }
-  }
-  elseif ($record_selection == 'batch_sets') {
-    // Add the button to load the previous batch set.
-    $form['batch_process_prev'] = array(
+    $form['batch_process'] = array(
       '#type' => 'submit',
-      '#value' => t('Load previous batch set'),
-    );
-    // Add the button to load the next batch set.
-    $form['batch_process_next'] = array(
-      '#type' => 'submit',
-      '#value' => t('Load next batch set'),
+      '#value' => t('Load all records'),
     );
   }
   // Add the button to reset the record selection.
@@ -195,37 +156,6 @@ function auditfiles_not_in_database_form_submit($form, &$form_state) {
     if ($form_state['values']['op'] == t('Load all records') || $form_state['values']['op'] == t('Load first batch set')) {
       // Clear the variable, so subsequent pages will load the correct data.
       variable_del('auditfiles_not_in_database_files_to_display');
-      $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
-      if ($batch_size > 0) {
-        // Set appropriate variables for this operation.
-        variable_set('auditfiles_not_in_database_record_selection', 'batch_sets');
-      }
-      else {
-        // Set appropriate variables for this operation.
-        variable_set('auditfiles_not_in_database_record_selection', 'batched');
-      }
-      // Prepare and set the batch.
-      batch_set(_auditfiles_not_in_database_batch_display_create_batch());
-    }
-    elseif ($form_state['values']['op'] == t('Load previous batch set')) {
-      // Clear the variable, so subsequent pages will load the correct data.
-      variable_del('auditfiles_not_in_database_files_to_display');
-      // Set appropriate variables for this operation.
-      $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
-      $batch_offset = variable_get('auditfiles_not_in_database_batch_offset', 0);
-      variable_set('auditfiles_not_in_database_batch_offset', $batch_offset - $batch_size);
-      variable_set('auditfiles_not_in_database_record_selection', 'batch_sets');
-      // Prepare and set the batch.
-      batch_set(_auditfiles_not_in_database_batch_display_create_batch());
-    }
-    elseif ($form_state['values']['op'] == t('Load next batch set')) {
-      // Clear the variable, so subsequent pages will load the correct data.
-      variable_del('auditfiles_not_in_database_files_to_display');
-      // Set appropriate variables for this operation.
-      $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
-      $batch_offset = variable_get('auditfiles_not_in_database_batch_offset', 0);
-      variable_set('auditfiles_not_in_database_batch_offset', $batch_offset + $batch_size);
-      variable_set('auditfiles_not_in_database_record_selection', 'batch_sets');
       // Prepare and set the batch.
       batch_set(_auditfiles_not_in_database_batch_display_create_batch());
     }
@@ -233,7 +163,6 @@ function auditfiles_not_in_database_form_submit($form, &$form_state) {
       // Clear the variable, so subsequent pages will load the correct data.
       variable_del('auditfiles_not_in_database_files_to_display');
       // Set appropriate variables for this operation.
-      unset($form_state['values']['saved_rows']);
       variable_set('auditfiles_not_in_database_record_selection', 'normal');
       variable_del('auditfiles_not_in_database_batch_offset');
     }
@@ -264,10 +193,6 @@ function auditfiles_not_in_database_form_submit($form, &$form_state) {
         batch_set(_auditfiles_not_in_database_batch_delete_create_batch($form_state['values']['changelist']));
       }
     }
-  }
-
-  if (!empty($form_state['values']['saved_rows'])) {
-    $form_state['storage']['saved_rows'] = $form_state['values']['saved_rows'];
   }
 }
 
@@ -339,17 +264,192 @@ function _auditfiles_not_in_database_batch_display_create_batch() {
  *   The operations to execute.
  */
 function _auditfiles_not_in_database_batch_display_get_operations() {
-  $date_format = variable_get('auditfiles_report_options_date_format', 'long');
   $operations = array();
-  $file_ids = _auditfiles_not_in_database_get_file_list(drupal_realpath(file_default_scheme() . '://'), TRUE);
-  // Set up the operations.
-  foreach ($file_ids as $file_id) {
-    $operations[] = array(
-      '_auditfiles_not_in_database_batch_display_process_batch',
-      array($file_id, $date_format),
-    );
-  }
+  $operations[] = array(
+    '_auditfiles_not_in_database_batch_display_get_files',
+    array(),
+  );
+  $operations[] = array(
+    '_auditfiles_not_in_database_batch_display_process_files',
+    array(variable_get('auditfiles_report_options_date_format', 'long')),
+  );
   return $operations;
+}
+
+/**
+ * Recurse directories and add files to an array.
+ *
+ * @param array $context
+ *   Used by the Batch API to keep track of and pass data from one operation to
+ *   the next.
+ */
+function _auditfiles_not_in_database_batch_display_get_files(array &$context) {
+  $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
+  if (empty($context['sandbox'])) {
+    $context['sandbox'] = array();
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['current_file'] = 0;
+
+    $context['sandbox']['exclusions'] = _auditfiles_get_exclusions();
+
+    // Get the starter list of files from the root directory.
+    $file_system_stream = variable_get('auditfiles_file_system_path', 'public');
+    $context['sandbox']['path'] = drupal_realpath($file_system_stream . '://');
+    $files = array_diff(scandir($context['sandbox']['path']), array('.', '..'));
+    if (!empty($files)) {
+      foreach ($files as $file) {
+        $context['sandbox']['files'][$context['sandbox']['path'] . DIRECTORY_SEPARATOR . $file] = $context['sandbox']['path'] . DIRECTORY_SEPARATOR . $file;
+      }
+    }
+
+    $record_count = count($context['sandbox']['files']);
+    if ($batch_size > 0 && $record_count > $batch_size) {
+      $context['sandbox']['max'] = $batch_size;
+    }
+    else {
+      $context['sandbox']['max'] = $record_count;
+    }
+  }
+  if (empty($context['results']['file_list'])) {
+    $context['results']['file_list'] = array();
+  }
+
+  if (!empty($context['sandbox']['files'])) {
+    // Process 20 files at a time, so the batch process has an opportunity to
+    // reset itself.
+    $file_list = array_slice($context['sandbox']['files'], 0, 20, TRUE);
+    foreach ($file_list as $file) {
+      // Check to see if it excluded.
+      if (empty($context['sandbox']['exclusions']) || !preg_match('@' . $context['sandbox']['exclusions'] . '@', $file)) {
+        if (is_dir($file)) {
+          // Scan the directory and append the files to the files array.
+          $found_files = array_diff(scandir($file), array('.', '..'));
+          if (!empty($found_files)) {
+            // Add the newly found files to the end of the files array.
+            foreach ($found_files as $found_file) {
+              $context['sandbox']['files'][$file . DIRECTORY_SEPARATOR . $found_file] = $file . DIRECTORY_SEPARATOR . $found_file;
+            }
+
+            // Update the max file count.
+            $record_count = count($found_files);
+            if ($batch_size > 0 && $context['sandbox']['max'] + $record_count > $batch_size) {
+              $context['sandbox']['max'] = $batch_size;
+            }
+            else {
+              $context['sandbox']['max'] = $context['sandbox']['max'] + $record_count;
+            }
+          }
+        }
+        else {
+          // Add the file to the list.
+          $file = preg_replace('/\/\//', DIRECTORY_SEPARATOR, $file);
+          $array_item = preg_replace('/\\\\/', DIRECTORY_SEPARATOR, $file);
+          $context['results']['file_list'][$array_item] = $array_item;
+
+          // Check to see if the array has reached its limit.
+          if (count($context['results']['file_list']) == $context['sandbox']['max']) {
+            $context['sandbox']['progress'] = $context['sandbox']['max'];
+          }
+        }
+      }
+
+      unset($context['sandbox']['files'][$file]);
+
+      // Update the progress information.
+      $context['sandbox']['progress']++;
+      $context['sandbox']['current_file'] = $file;
+      $context['message'] = t(
+        'Getting the list of files. Processed file @num1 of @num2. Last file processed: !file_name.',
+        array(
+          '@num1' => $context['sandbox']['progress'],
+          '@num2' => $context['sandbox']['max'],
+          '!file_name' => $file,
+        )
+      );
+    }
+  }
+
+  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+    $context['finished'] = ($context['sandbox']['progress'] >= $context['sandbox']['max']);
+  }
+}
+
+/**
+ * Retrieves file data from the database and checks if it is on the server.
+ *
+ * @param string $date_format
+ *   The format to display time/date values in.
+ * @param array $context
+ *   Used by the Batch API to keep track of and pass data from one operation to
+ *   the next.
+ */
+function _auditfiles_not_in_database_batch_display_process_files($date_format, array &$context) {
+  if (empty($context['sandbox'])) {
+    $context['sandbox'] = array();
+    if (empty($context['results']['file_list'])) {
+      $context['sandbox']['progress'] = 1;
+      $context['sandbox']['max'] = 1;
+    }
+    else {
+      $context['sandbox']['progress'] = 0;
+      $context['sandbox']['max'] = count($context['results']['file_list']);
+    }
+
+    // Get the path of the currently used file scheme.
+    $file_system_stream = variable_get('auditfiles_file_system_path', 'public');
+    $context['sandbox']['files_path'] = variable_get('file_' . $file_system_stream . '_path', conf_path() . '/files');
+  }
+  if (empty($context['results']['files_to_display'])) {
+    $context['results']['files_to_display'] = array();
+  }
+
+  if (!empty($context['results']['file_list'])) {
+    $file_list = array_slice($context['results']['file_list'], 0, 20, TRUE);
+
+    foreach ($file_list as $file_id => $filepathname) {
+      // Remove the path to the files directory.
+      $matches = array();
+      preg_match_all('~(.*)(' . $context['sandbox']['files_path'] . ')(.*)~', $filepathname, $matches);
+      $match = end($matches);
+      $match = reset($match);
+      $file_uri = file_build_uri($match);
+
+      // See if the file is in the database.
+      $query = "SELECT fid FROM {file_managed} WHERE uri = :file_uri";
+      $stored_file = db_query($query, array(':file_uri' => $file_uri))->fetchField();
+
+      if (empty($stored_file)) {
+        // This file is not in the database.
+        // Get the filename from the filepathname.
+        $filename = substr($filepathname, strrpos($filepathname, '/') + 1);
+        // Save the file information.
+        $context['results']['files_to_display'][$filepathname] = array(
+          'filepathname' => $filepathname,
+          'filemime' => file_get_mimetype($filepathname),
+          'filesize' => number_format(filesize($filepathname)),
+          'filemodtime' => format_date(filemtime($filepathname), $date_format),
+          'filename' => $filename,
+        );
+      }
+
+      unset($context['results']['file_list'][$file_id]);
+
+      // Update the progress information.
+      $context['sandbox']['progress']++;
+      $context['message'] = t(
+        'Processing the file list. Processed file @num1 of @num2. Last file processed: !file_name.',
+        array(
+          '@num1' => $context['sandbox']['progress'],
+          '@num2' => $context['sandbox']['max'],
+          '!file_name' => $file_id,
+        )
+      );
+    }
+  }
+
+  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+    $context['finished'] = ($context['sandbox']['progress'] >= $context['sandbox']['max']);
+  }
 }
 
 /**
@@ -522,7 +622,8 @@ function _auditfiles_not_in_database_batch_add_process_file($filename) {
   // Get the path to the file relative to it's file storage location.
   $filename = preg_replace('@' . preg_quote(drupal_realpath('./')) . '.@', '', $filename);
   // Get the scheme's path.
-  $scheme_path = variable_get('file_' . file_default_scheme() . '_path', conf_path() . '/files');
+  $file_system_stream = variable_get('auditfiles_file_system_path', 'public');
+  $scheme_path = variable_get('file_' . $file_system_stream . '_path', conf_path() . '/files');
   $filename = preg_replace('@' . preg_quote($scheme_path) . '.@', '', $filename);
   $file->filename = trim(basename($filename));
   $file->uri = file_build_uri($filename);
@@ -689,7 +790,8 @@ function _auditfiles_not_in_database_get_file_data($filepathname, $date_format) 
   // Convert the path name to a Drupal URI scheme for comparison in the
   // database.
   // Get the path of the currently used file scheme.
-  $files_path = variable_get('file_' . file_default_scheme() . '_path', conf_path() . '/files');
+  $file_system_stream = variable_get('auditfiles_file_system_path', 'public');
+  $files_path = variable_get('file_' . $file_system_stream . '_path', conf_path() . '/files');
 
   // Remove the path to the files directory.
   if ($files_path != '') {

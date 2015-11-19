@@ -30,13 +30,6 @@ function auditfiles_managed_not_used_form(array $form, array &$form_state) {
     database table but not in the file_usage table. Usually, this is normal
     and acceptable. This report exists for completeness, so you may verify
     that what is listed here is correct.') . '</p>';
-  $output .= t('The files in this list are using the %scheme scheme and are
-    relative to the files directory path, located at %path.',
-    array(
-      '%scheme' => file_default_scheme(),
-      '%path' => variable_get('file_' . file_default_scheme() . '_path', conf_path() . '/files'),
-    )
-  ) . '</p>';
   $form['introduction'] = array(
     '#markup' => $output,
   );
@@ -283,9 +276,9 @@ function _auditfiles_managed_not_used_batch_display_get_operations() {
 /**
  * The batch process operation for getting the files.
  *
- * @param sting $sort_by
+ * @param string $sort_by
  *   The field to sort the query contents by.
- * @param sting $sort_direction
+ * @param string $sort_direction
  *   The direction (asc or desc) of the sorting.
  * @param array $context
  *   Used by the Batch API to keep track of and pass data from one operation to
@@ -326,7 +319,7 @@ function _auditfiles_managed_not_used_batch_display_get_files($sort_by, $sort_di
   foreach ($files as $file) {
     $context['results']['file_list'][$file->fid] = $file->fid;
 
-    // Update our progress information.
+    // Update the progress information.
     $context['sandbox']['progress']++;
     $context['sandbox']['current_file'] = $file->fid;
     $context['message'] = t(

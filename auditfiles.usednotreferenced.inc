@@ -37,13 +37,6 @@ function auditfiles_used_not_referenced_form(array $form, array &$form_state) {
     references</strong> report only identifies <strong>&lt;img&gt;</strong>
     and <strong>window.open</strong> references, this may help you identify
     if the file is referenced by another means).");
-  $output .= t('The files in this list are using the %scheme scheme and are
-    relative to the files directory path, located at %path.',
-    array(
-      '%scheme' => file_default_scheme(),
-      '%path' => variable_get('file_' . file_default_scheme() . '_path', conf_path() . '/files'),
-    )
-  ) . '</p>';
   $form['introduction'] = array(
     '#markup' => $output,
   );
@@ -314,9 +307,9 @@ function _auditfiles_used_not_referenced_batch_display_get_operations() {
 /**
  * The batch process operation for getting the files.
  *
- * @param sting $sort_by
+ * @param string $sort_by
  *   The field to sort the query contents by.
- * @param sting $sort_direction
+ * @param string $sort_direction
  *   The direction (asc or desc) of the sorting.
  * @param array $file_fields
  *   The relevant fields to look for file information in.
@@ -344,7 +337,7 @@ function _auditfiles_used_not_referenced_batch_display_get_files($sort_by, $sort
   }
 
   // Get the file data from the database.
-  $query = 'SELECT DISTINCT(fid)
+  $query = 'SELECT DISTINCT fid
     FROM {file_usage}
     WHERE fid > :fid';
   // Add any specified sorting.
@@ -600,7 +593,7 @@ function _auditfiles_used_not_referenced_batch_delete_process_file($file_id) {
  */
 function _auditfiles_used_not_referenced_get_file_list() {
   // Get a list of files in the file_usage database table.
-  $query = 'SELECT DISTINCT(fid) FROM {file_usage} fu';
+  $query = 'SELECT DISTINCT fid FROM {file_usage} fu';
 
   // Add any specified sorting.
   $query_parameters = drupal_get_query_parameters();

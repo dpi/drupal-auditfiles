@@ -358,9 +358,9 @@ function _auditfiles_merge_file_references_batch_display_get_operations() {
  * @param boolean $show_single_file_names
  *   TRUE if the list of files should include filenames that only have one file
  *   ID associated with them.
- * @param sting $sort_by
+ * @param string $sort_by
  *   The field to sort the query contents by.
- * @param sting $sort_direction
+ * @param string $sort_direction
  *   The direction (asc or desc) of the sorting.
  * @param array $context
  *   Used by the Batch API to keep track of and pass data from one operation to
@@ -420,7 +420,7 @@ function _auditfiles_merge_file_references_batch_display_get_files($show_single_
   foreach ($files as $file) {
     $context['results']['file_list'][$file->filename] = $file->filename;
 
-    // Update our progress information.
+    // Update the progress information.
     $context['sandbox']['progress']++;
     $context['sandbox']['current_file'] = $file->filename;
     $context['message'] = t(
