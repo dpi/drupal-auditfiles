@@ -11,6 +11,8 @@
 /**
  * Generates the report.
  *
+ * This cannot be sorted, because a result set that is too large will time out.
+ *
  * @param array $form
  *   The form definition.
  * @param array $form_state
@@ -26,14 +28,8 @@ function auditfiles_referenced_not_used_form(array $form, array &$form_state) {
     return _auditfiles_referenced_not_used_confirm_operation($form, $form_state);
   }
 
-  $output = '<p>' . t('Listed here are file references in content which do not
-    have references in the file_usage table.') . '</p>';
-  $form['introduction'] = array(
-    '#markup' => $output,
-  );
-
   // Get the records to display.
-  // Check to see if the data has been stored.
+  // Check to see if there is saved data, and if so, use that.
   $rows = variable_get('auditfiles_referenced_not_used_files_to_display', array());
   if (empty($rows)) {
     // The data is not saved and the batch operation has not been run, so get
@@ -44,8 +40,10 @@ function auditfiles_referenced_not_used_form(array $form, array &$form_state) {
         $rows[$reference_id] = _auditfiles_referenced_not_used_get_file_data($row_data);
       }
     }
+
+    // Save the data for persistant use.
+    variable_set('auditfiles_referenced_not_used_files_to_display', $rows);
   }
-  variable_set('auditfiles_referenced_not_used_files_to_display', $rows);
 
   // Set up the pager.
   if (!empty($rows)) {
@@ -57,13 +55,9 @@ function auditfiles_referenced_not_used_form(array $form, array &$form_state) {
     }
   }
 
-  // Get any specified record selection limiters.
-  $record_limiters = _auditfiles_referenced_not_used_get_record_limiters();
-  $record_selection = $record_limiters['record_selection'];
-  $maximum_records = $record_limiters['maximum_records'];
-
   // Define the form.
   // Setup the record count and related messages.
+  $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
   if (!empty($rows)) {
     if ($maximum_records > 0) {
       $file_count_message = 'Found at least @count files referenced in content that are not in the file_usage table.';
@@ -81,21 +75,22 @@ function auditfiles_referenced_not_used_form(array $form, array &$form_state) {
     $form_count = 'Found no files referenced in content that are not in the file_usage table.';
   }
 
+  // Add the button to reset the record selection.
+  $form['reset_records'] = array(
+    '#type' => 'submit',
+    '#value' => t('Reset file list'),
+    '#suffix' => '<div>' . t("Use this button to reset this report's variables and load the page anew.") . '</div>',
+  );
   // Add the button to batch process the list of results.
-  if ($record_selection == 'limited') {
+  if ($maximum_records > 0) {
     $form['batch_process'] = array(
       '#type' => 'submit',
-      '#value' => t('Load all records'),
-    );
-  }
-  // Add the button to reset the record selection.
-  if ($record_selection != 'normal') {
-    $form['reset_records'] = array(
-      '#type' => 'submit',
-      '#value' => t('Reset record selection'),
+      '#value' => t('Load all files'),
+      '#suffix' => '<div>' . t('Use this button to load the number of records specified with the "Batch size" administrative configuration setting.') . '</div>',
     );
   }
 
+  // Create the form table.
   $form['files'] = array(
     '#type' => 'tableselect',
     '#header' => _auditfiles_referenced_not_used_get_header(),
@@ -103,6 +98,7 @@ function auditfiles_referenced_not_used_form(array $form, array &$form_state) {
     '#prefix' => '<div><em>' . $form_count . '</em></div>',
   );
 
+  // Add the data.
   if (!empty($rows) && !empty($pages)) {
     $form['files']['#options'] = $pages[$current_page];
   }
@@ -113,6 +109,7 @@ function auditfiles_referenced_not_used_form(array $form, array &$form_state) {
     $form['files']['#options'] = array();
   }
 
+  // Add any action buttons.
   if (!empty($rows)) {
     $form['actions'] = array('#type' => 'actions');
     $form['actions']['add'] = array(
@@ -127,6 +124,7 @@ function auditfiles_referenced_not_used_form(array $form, array &$form_state) {
       '#value' => t('Delete selected references'),
     );
 
+    // Add the pager.
     $form['pager'] = array('#markup' => theme('pager'));
   }
 
@@ -140,18 +138,19 @@ function auditfiles_referenced_not_used_form_submit($form, &$form_state) {
   // Check if an operation was performed.
   if (!empty($form_state['values']['op'])) {
     // Check which operation was performed and start the batch process.
-    if ($form_state['values']['op'] == t('Load all records')) {
+    if ($form_state['values']['op'] == t('Load all files')) {
       // Clear the variable, so subsequent pages will load the correct data.
       variable_del('auditfiles_files_to_display');
       // Prepare and set the batch.
       batch_set(_auditfiles_referenced_not_used_batch_display_create_batch());
     }
-    elseif ($form_state['values']['op'] == t('Reset record selection')) {
-      // Clear the variable, so subsequent pages will load the correct data.
-      variable_del('auditfiles_files_to_display');
-      // Set appropriate variables for this operation.
-      variable_set('auditfiles_referenced_not_used_record_selection', 'normal');
-      variable_del('auditfiles_referenced_not_used_batch_offset');
+    elseif ($form_state['values']['op'] == t('Reset file list')) {
+      // Reset all the variables for this report, so subsequent pages loads will
+      // load and use the correct data.
+      db_delete('variable')
+        ->condition('name', 'auditfiles_referenced_not_used_%', 'LIKE')
+        ->execute();
+      cache_clear_all('variables', 'cache_bootstrap');
     }
     elseif (($form_state['values']['op'] == t('Add selected items to the file_usage table')
       || $form_state['values']['op'] == t('Delete selected references'))
@@ -251,20 +250,6 @@ function _auditfiles_referenced_not_used_batch_display_create_batch() {
  *   The operations to execute.
  */
 function _auditfiles_referenced_not_used_batch_display_get_operations() {
-  // Add any specified sorting.
-  $sort_by = '';
-  $sort_direction = '';
-  $query_parameters = drupal_get_query_parameters();
-  if (!empty($query_parameters['sort']) && !empty($query_parameters['order'])) {
-    $headers = _auditfiles_used_not_managed_get_header();
-    foreach ($headers as $header) {
-      if ($header['data'] == $query_parameters['order']) {
-        $sort_by = $header['field'];
-        $sort_direction = $query_parameters['sort'];
-      }
-    }
-  }
-
   // Get and save the field data, so this is only done once for the entire batch
   // process.
   $file_fields = array();
@@ -289,11 +274,7 @@ function _auditfiles_referenced_not_used_batch_display_get_operations() {
   $operations = array();
   $operations[] = array(
     '_auditfiles_referenced_not_used_batch_display_get_files',
-    array(
-      $sort_by,
-      $sort_direction,
-      $file_fields,
-    ),
+    array($file_fields),
   );
   $operations[] = array(
     '_auditfiles_referenced_not_used_batch_display_process_files',
@@ -310,15 +291,11 @@ function _auditfiles_referenced_not_used_batch_display_get_operations() {
  *
  * @param array $file_fields
  *   The list of file fields to search for files in.
- * @param string $sort_by
- *   The field to sort the query contents by.
- * @param string $sort_direction
- *   The direction (asc or desc) of the sorting.
  * @param array $context
  *   Used by the Batch API to keep track of and pass data from one operation to
  *   the next.
  */
-function _auditfiles_referenced_not_used_batch_display_get_files(array $file_fields, $sort_by, $sort_direction, array &$context) {
+function _auditfiles_referenced_not_used_batch_display_get_files(array $file_fields, array &$context) {
   if (empty($context['sandbox'])) {
     $context['sandbox'] = array();
     $context['sandbox']['progress'] = 0;
@@ -351,14 +328,13 @@ function _auditfiles_referenced_not_used_batch_display_get_files(array $file_fie
   }
 
   // Get the next set of records.
-  $query = 'SELECT entity_id, entity_type, ' . $context['sandbox']['column'] . ' FROM {' . $context['sandbox']['table'] . '}';
-  $query .= ' WHERE entity_id > ' . $context['sandbox']['current_id'];
-  $query .= ' AND ' . $context['sandbox']['column'] . ' NOT IN (SELECT DISTINCT fid FROM {file_usage})';
-  // Add any specified sorting.
-  if (!empty($sort_by) && !empty($sort_direction)) {
-    $query .= ' ORDER BY ' . $sort_by . ' ' . $sort_direction;
-  }
-  $query .= ' LIMIT 20';
+  // This cannot be sorted any other way here, or the results are not complete.
+  $query = 'SELECT entity_id, entity_type, ' . $context['sandbox']['column'] . '
+    FROM {' . $context['sandbox']['table'] . '}
+    WHERE entity_id > ' . $context['sandbox']['current_id'] .'
+      AND ' . $context['sandbox']['column'] . ' NOT IN (SELECT DISTINCT fid FROM {file_usage})
+    ORDER BY entity_id ASC
+    LIMIT 20';
   $results = db_query($query)->fetchAll();
 
   // Check the data to see what needs to be done next.
@@ -761,15 +737,10 @@ function _auditfiles_referenced_not_used_batch_delete_process_file($reference_id
 function _auditfiles_referenced_not_used_get_file_list() {
   $file_references = array();
   $files_referenced = array();
-  // If record limition has been configured, only use those records within that
-  // specification.
-  $record_limiters = _auditfiles_referenced_not_used_get_record_limiters();
-  $maximum_records = $record_limiters['maximum_records'];
 
   // Get a list of all files that are referenced in content.
   $fields = field_info_fields();
   foreach ($fields as $field) {
-
     // @todo
     // Add an setting to allow the administrator the ability for spcifying the
     // field types.
@@ -781,26 +752,13 @@ function _auditfiles_referenced_not_used_get_file_list() {
 
       // Get the records from the specified field table.
       $query = 'SELECT entity_id, entity_type, ' . $column . ' FROM {' . $table . '}';
-      $query .= ' WHERE ' . $column . ' NOT IN (SELECT DISTINCT fid FROM {' . file_usage . '})';
+      $query .= ' WHERE ' . $column . ' NOT IN (SELECT DISTINCT fid FROM {file_usage})';
 
-      // Add any specified sorting.
-      $query_parameters = drupal_get_query_parameters();
-      if (!empty($query_parameters['sort']) && !empty($query_parameters['order'])) {
-        $headers = _auditfiles_referenced_not_used_get_header();
-        foreach ($headers as $header) {
-          if ($header['data'] == $query_parameters['order']) {
-            $query .= ' ORDER BY ' . $header['field'] . ' ' . $query_parameters['sort'];
-          }
-        }
-      }
-
+      // If record limition has been configured, only use those records within
+      // that specification.
+      $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
       if ($maximum_records > 0) {
         $query .= ' LIMIT ' . $maximum_records;
-        // Set the offest.
-        $query .= ' OFFSET ' . variable_get('auditfiles_referenced_not_used_batch_offset', 0);
-      }
-      else {
-        variable_set('auditfiles_referenced_not_used_batch_offset', 0);
       }
       $file_references = db_query($query)->fetchAll();
 
@@ -1139,39 +1097,6 @@ function _auditfiles_referenced_not_used_get_file_data(array $row_data) {
  */
 
 /**
- * Returns any report limiting settings.
- *
- * Returns the information that is needed to modify the report and display based
- * on any report limiting options that may have been set on the administrative
- * configuration settings page.
- *
- * @return array
- *   An associative array with these two values:
- *   - record_selection: A string representing record selection type, on which
- *     maximum_records is based.
- *   - maximum_records: An integer representing the total number of records to
- *     display on a report. (A value of 0 means there is no limit.)
- */
-function _auditfiles_referenced_not_used_get_record_limiters() {
-  $record_selection = variable_get('auditfiles_referenced_not_used_record_selection', 'normal');
-  $maximum_records = 0;
-  if ($record_selection == 'batch_sets') {
-    $maximum_records = variable_get('auditfiles_report_options_batch_size', 0);
-  }
-  elseif ($record_selection != 'batched') {
-    $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
-    if ($maximum_records > 0) {
-      $record_selection = 'limited';
-      variable_set('auditfiles_referenced_not_used_record_selection', 'limited');
-    }
-  }
-  return array(
-    'record_selection' => $record_selection,
-    'maximum_records' => $maximum_records,
-  );
-}
-
-/**
  * Returns the header to use for the display table.
  *
  * @return array
@@ -1184,11 +1109,9 @@ function _auditfiles_referenced_not_used_get_header() {
     ),
     'entity_type' => array(
       'data' => t('Referencing entity type'),
-      'field' => 'entity_type',
     ),
     'entity_id_display' => array(
       'data' => t('Referencing entity ID'),
-      'field' => 'entity_id',
     ),
     'field' => array(
       'data' => t('Field referenced in'),

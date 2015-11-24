@@ -118,7 +118,7 @@ function auditfiles_admin_settings($form, &$form_state) {
     '#default_value' => variable_get('auditfiles_report_options_maximum_records', 0),
     '#size' => 10,
     '#description' => t('Enter an integer representing the maximum number of
-      records to return on each report.<br />
+      records to return for each report.<br />
       If any of the reports are timing out, set this to some positive integer to
       limit the number of records that are queried in the database. For reports
       where the limit is reached, a button to batch process the loading of the

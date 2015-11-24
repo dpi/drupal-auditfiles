@@ -77,20 +77,20 @@ function auditfiles_help($path, $arg) {
       break;
 
     case 'admin/reports/auditfiles/notindatabase':
-      $files_link = l(t('files'), 'admin/config/media/file-system');
+      $files_link = l(t('file system path'), 'admin/config/system/auditfiles');
       $output .= '<p>';
       $output .= t(
-        'This report lists the files that are in the "!files_link" directory, but are not in the file_managed database table.',
+        'This report lists the files that are in the admin specified !files_link directory, but are not in the file_managed database table.',
         array('!files_link' => $files_link)
       );
       $output .= '</p>';
       break;
 
     case 'admin/reports/auditfiles/notonserver':
-      $files_link = l(t('files'), 'admin/config/media/file-system');
+      $files_link = l(t('file system path'), 'admin/config/system/auditfiles');
       $output .= '<p>';
       $output .= t(
-        'This report lists the files that are in the file_managed database table, but are not in the "!files_link" directory.',
+        'This report lists the files that are in the file_managed database table, but are not in the admin specified !files_link directory.',
         array('!files_link' => $files_link)
       );
       $output .= '</p>';

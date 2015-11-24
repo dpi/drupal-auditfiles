@@ -11,6 +11,8 @@
 /**
  * Generates the report.
  *
+ * This cannot be sorted, because a result set that is too large will time out.
+ *
  * @param array $form
  *   The form definition.
  * @param array $form_state
@@ -31,16 +33,8 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
     }
   }
 
-  $output_link = l('Managed not used', 'admin/reports/auditfiles/managednotused');
-  $output = '<p>' . t('Any file IDs (under "File IDs using the filename") that
-    do not have any usages listed in "Where that file ID is used" should be
-    dealt with on the !managed report.',
-    array('!managed' => $output_link)) . '</p>';
-  $form['introduction'] = array(
-    '#markup' => $output,
-  );
-
   // Get the records to display.
+  // Check to see if there is saved data, and if so, use that.
   $rows = variable_get('auditfiles_merge_file_references_files_to_display', array());
   if (empty($rows)) {
     // The data is not saved and the batch operation has not been run, so get
@@ -52,9 +46,10 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
         $rows[$file_name] = _auditfiles_merge_file_references_get_file_data($file_name, $date_format);
       }
     }
+
+    // Save the data for persistent use.
+    variable_set('auditfiles_merge_file_references_files_to_display', $rows);
   }
-  // Save the data for later retrieval.
-  variable_set('auditfiles_merge_file_references_files_to_display', $rows);
 
   // Set up the pager.
   if (!empty($rows)) {
@@ -66,13 +61,9 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
     }
   }
 
-  // Get any specified record selection limiters.
-  $record_limiters = _auditfiles_merge_file_references_get_record_limiters();
-  $record_selection = $record_limiters['record_selection'];
-  $maximum_records = $record_limiters['maximum_records'];
-
   // Define the form.
   // Setup the record count and related messages.
+  $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
   if (!empty($rows)) {
     if ($maximum_records > 0) {
       $file_count_message = 'Found at least @count files in the file_managed table with duplicate file names.';
@@ -95,24 +86,25 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
     '#type' => 'checkbox',
     '#title' => t('Show files without duplicate names'),
     '#default_value' => variable_get('show_single_file_names', 0),
-    '#description' => t('Sometimes, duplicate files do not have the same name. Check this box to show all files, whether or not there are duplicate name matches.'),
+    '#suffix' => '<div>' . t("Use this button to reset this report's variables and load the page anew.") . '</div>',
   );
 
+  // Add the button to reset the record selection.
+  $form['reset_records'] = array(
+    '#type' => 'submit',
+    '#value' => t('Reset file list'),
+    '#suffix' => '<div>' . t("Use this button to reset this report's variables and load it anew. This is also useful, if you have loaded data via the Load all files button and want to clear it.") . '</div>',
+  );
   // Add the button to batch process the list of results.
-  if ($record_selection == 'limited') {
+  if ($maximum_records > 0) {
     $form['batch_process'] = array(
       '#type' => 'submit',
       '#value' => t('Load all files'),
-    );
-  }
-  // Add the button to reset the record selection.
-  if ($record_selection != 'normal') {
-    $form['reset_records'] = array(
-      '#type' => 'submit',
-      '#value' => t('Reset file list'),
+      '#suffix' => '<div>' . t('Use this button to load the number of records specified with the "Batch size" administrative configuration setting.') . '</div>',
     );
   }
 
+  // Create the form table.
   $form['files'] = array(
     '#type' => 'tableselect',
     '#header' => _auditfiles_merge_file_references_get_header(),
@@ -120,6 +112,7 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
     '#prefix' => '<div><em>' . $form_count . '</em></div>',
   );
 
+  // Add the data.
   if (!empty($rows) && !empty($pages)) {
     $form['files']['#options'] = $pages[$current_page];
   }
@@ -130,6 +123,7 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
     $form['files']['#options'] = array();
   }
 
+  // Add any action buttons.
   if (!empty($rows)) {
     $form['actions'] = array('#type' => 'actions');
     $form['actions']['submit'] = array(
@@ -137,6 +131,7 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
       '#value' => t('Merge selected items'),
     );
 
+    // Add the pager.
     $form['pager'] = array('#markup' => theme('pager'));
   }
 
@@ -199,11 +194,12 @@ function auditfiles_merge_file_references_form_submit($form, &$form_state) {
       batch_set(_auditfiles_merge_file_references_batch_display_create_batch());
     }
     elseif ($form_state['values']['op'] == t('Reset file list')) {
-      // Clear the variable, so subsequent pages will load the correct data.
-      variable_del('auditfiles_merge_file_references_files_to_display');
-      // Set appropriate variables for this operation.
-      variable_set('auditfiles_merge_file_references_record_selection', 'normal');
-      variable_del('auditfiles_merge_file_references_batch_offset');
+      // Reset all the variables for this report, so subsequent pages loads will
+      // load and use the correct data.
+      db_delete('variable')
+        ->condition('name', 'auditfiles_merge_file_references_%', 'LIKE')
+        ->execute();
+      cache_clear_all('variables', 'cache_bootstrap');
     }
     elseif ($form_state['values']['op'] == t('Merge selected items')) {
       if (!empty($form_state['values']['files'])) {
@@ -320,27 +316,11 @@ function _auditfiles_merge_file_references_batch_display_create_batch() {
  *   The operations to execute.
  */
 function _auditfiles_merge_file_references_batch_display_get_operations() {
-  // Add any specified sorting.
-  $sort_by = '';
-  $sort_direction = '';
-  $query_parameters = drupal_get_query_parameters();
-  if (!empty($query_parameters['sort']) && !empty($query_parameters['order'])) {
-    $headers = _auditfiles_managed_not_used_get_header();
-    foreach ($headers as $header) {
-      if ($header['data'] == $query_parameters['order']) {
-        $sort_by = $header['field'];
-        $sort_direction = $query_parameters['sort'];
-      }
-    }
-  }
-
   $operations = array();
   $operations[] = array(
     '_auditfiles_merge_file_references_batch_display_get_files',
     array(
       variable_get('show_single_file_names', 0),
-      $sort_by,
-      $sort_direction,
     ),
   );
   $operations[] = array(
@@ -358,15 +338,11 @@ function _auditfiles_merge_file_references_batch_display_get_operations() {
  * @param boolean $show_single_file_names
  *   TRUE if the list of files should include filenames that only have one file
  *   ID associated with them.
- * @param string $sort_by
- *   The field to sort the query contents by.
- * @param string $sort_direction
- *   The direction (asc or desc) of the sorting.
  * @param array $context
  *   Used by the Batch API to keep track of and pass data from one operation to
  *   the next.
  */
-function _auditfiles_merge_file_references_batch_display_get_files($show_single_file_names, $sort_by, $sort_direction, array &$context) {
+function _auditfiles_merge_file_references_batch_display_get_files($show_single_file_names, array &$context) {
   if (empty($context['sandbox'])) {
     $context['sandbox'] = array();
     $context['sandbox']['progress'] = 0;
@@ -412,6 +388,7 @@ function _auditfiles_merge_file_references_batch_display_get_files($show_single_
       GROUP BY filename
       HAVING file_count > 1';
   }
+  // This cannot be sorted any other way here, or the results are not complete.
   $query .= ' ORDER BY filename ASC';
   $query .= ' LIMIT 20';
 
@@ -859,15 +836,9 @@ function _auditfiles_merge_file_references_get_file_list() {
 
   // If record limition has been configured, only use those records within that
   // specification.
-  $record_limiters = _auditfiles_merge_file_references_get_record_limiters();
-  $maximum_records = $record_limiters['maximum_records'];
+  $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
   if ($maximum_records > 0) {
     $query .= ' LIMIT ' . $maximum_records;
-    // Set the offest.
-    $query .= ' OFFSET ' . variable_get('auditfiles_merge_file_references_batch_offset', 0);
-  }
-  else {
-    variable_set('auditfiles_merge_file_references_batch_offset', 0);
   }
 
   $files = db_query($query)->fetchAllKeyed();
@@ -1013,39 +984,6 @@ function _auditfiles_merge_file_references_get_file_usage_data($fu_results) {
 /**
  * The following are helper functions.
  */
-
-/**
- * Returns any report limiting settings.
- *
- * Returns the information that is needed to modify the report and display based
- * on any report limiting options that may have been set on the administrative
- * configuration settings page.
- *
- * @return array
- *   An associative array with these two values:
- *   - record_selection: A string representing record selection type, on which
- *     maximum_records is based.
- *   - maximum_records: An integer representing the total number of records to
- *     display on a report. (A value of 0 means there is no limit.)
- */
-function _auditfiles_merge_file_references_get_record_limiters() {
-  $record_selection = variable_get('auditfiles_merge_file_references_record_selection', 'normal');
-  $maximum_records = 0;
-  if ($record_selection == 'batch_sets') {
-    $maximum_records = variable_get('auditfiles_report_options_batch_size', 0);
-  }
-  elseif ($record_selection != 'batched') {
-    $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
-    if ($maximum_records > 0) {
-      $record_selection = 'limited';
-      variable_set('auditfiles_merge_file_references_record_selection', 'limited');
-    }
-  }
-  return array(
-    'record_selection' => $record_selection,
-    'maximum_records' => $maximum_records,
-  );
-}
 
 /**
  * Returns the header to use for the display table.
