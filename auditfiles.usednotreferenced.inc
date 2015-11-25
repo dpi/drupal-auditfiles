@@ -615,8 +615,8 @@ function _auditfiles_used_not_referenced_get_file_data($file_id) {
     // message, instead of the file information.
     $row = array(
       'fid' => t(
-        'This file is not listed in the file_managed table. See the ":usednotmanaged" report.',
-        array(':usednotmanaged' => l(t('Used not managed'), 'admin/reports/auditfiles/usednotmanaged'))),
+        'This file is not listed in the file_managed table. See the "!usednotmanaged" report.',
+        array('!usednotmanaged' => l(t('Used not managed'), 'admin/reports/auditfiles/usednotmanaged'))),
       'uri' => '',
       'usage' => '',
     );
@@ -627,18 +627,18 @@ function _auditfiles_used_not_referenced_get_file_data($file_id) {
     foreach ($results as $file_usage) {
       // Create the usages list.
       $used_by = $file_usage->module;
+      $type = $file_usage->type;
       $used_in = ($file_usage->type == 'node') ? l($file_usage->id, 'node/' . $file_usage->id) : $file_usage->id;
       $times_used = $file_usage->count;
-      $usage .= '<li>'
-        . t(
-          'Used by module: %used_by; Used in content ID: %used_in; Times used: %times_used',
-          array(
-            '%used_by' => $used_by,
-            '%used_in' => $used_in,
-            '%times_used' => $times_used,
-          )
+      $usage .= '<li>' . t(
+        'Used by module: %used_by, as object type: %type, in content ID: !used_in; Times used: %times_used',
+        array(
+          '%used_by' => $used_by,
+          '%type' => $type,
+          '!used_in' => $used_in,
+          '%times_used' => $times_used,
         )
-        . '</li>';
+      ) . '</li>';
     }
     $usage .= '</ul>';
 

@@ -548,7 +548,6 @@ function _auditfiles_managed_not_used_get_file_list() {
     $query .= ' LIMIT ' . $maximum_records;
   }
 
-watchdog('jasons $query test', '$query in _auditfiles_managed_not_used_get_file_list() = <pre>' . print_r($query, TRUE) . '</pre>');
   return db_query($query)->fetchCol();
 }
 

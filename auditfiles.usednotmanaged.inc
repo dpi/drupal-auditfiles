@@ -394,15 +394,12 @@ function _auditfiles_used_not_managed_confirm_operation(array $form, array &$for
   if (!empty($values['files'])) {
     foreach ($values['files'] as $file_id) {
       if (!empty($file_id)) {
-        $file = file_load($file_id);
-        if (!empty($file)) {
-          $form['changelist'][$file_id] = array(
-            '#type' => 'hidden',
-            '#value' => $file_id,
-            '#prefix' => '<li><strong>' . $file->filename . '</strong> ' . t('will be deleted from the file_usage table.'),
-            '#suffix' => "</li>\n",
-          );
-        }
+        $form['changelist'][$file_id] = array(
+          '#type' => 'hidden',
+          '#value' => $file_id,
+          '#prefix' => '<li>' . t('File ID') . ' <strong>' . $file_id . '</strong> ' . t('will be deleted from the file_usage table.'),
+          '#suffix' => "</li>\n",
+        );
       }
       else {
         // Unsetting the unprocessed files prevents confirm_submit from dealing

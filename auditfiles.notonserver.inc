@@ -560,7 +560,6 @@ function _auditfiles_not_on_server_get_file_list() {
     $query .= ' LIMIT ' . $maximum_records;
   }
 
-watchdog('jasons $query test', '$query in _auditfiles_not_on_server_get_file_list() = <pre>' . print_r($query, TRUE) . '</pre>');
   $results = db_query($query)->fetchAll();
 
   // Process the list of files.

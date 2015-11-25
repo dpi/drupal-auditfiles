@@ -613,33 +613,21 @@ function _auditfiles_referenced_not_used_batch_add_process_file($reference_id) {
   $reference_id_parts = explode('.', $reference_id);
   $data = array(
     'fid' => $reference_id_parts[4],
-
-    // @todo
-    // This is hard coded for now, but need to determine how to figure out which
-    // module needs to be here.
+    // @todo This is hard coded for now, but need to determine how to figure out
+    // which module needs to be here.
     'module' => 'file',
     'type' => $reference_id_parts[3],
     'id' => $reference_id_parts[2],
     'count' => 1,
   );
-  $results = db_insert('file_usage')
+  db_insert('file_usage')
     ->fields($data)
     ->execute();
-  if (empty($results)) {
-    drupal_set_message(
-      t(
-        'There was a problem adding the record with file ID %fid to the file_usage table. Check the logs for more information.',
-        array('%fid' => $reference_id_parts[4])
-      ),
-      'warning'
-    );
-  }
-  else {
-    // Remove the files from the list of files to display.
-    $rows = variable_get('auditfiles_referenced_not_used_files_to_display', array());
-    unset($rows[$reference_id]);
-    variable_set('auditfiles_referenced_not_used_files_to_display', $rows);
-  }
+
+  // Remove the files from the list of files to display.
+  $rows = variable_get('auditfiles_referenced_not_used_files_to_display', array());
+  unset($rows[$reference_id]);
+  variable_set('auditfiles_referenced_not_used_files_to_display', $rows);
 }
 
 /**
