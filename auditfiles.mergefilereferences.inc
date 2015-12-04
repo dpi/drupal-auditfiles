@@ -82,10 +82,10 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
   }
 
   // Add filtering options.
-  $form['filter']['single_file_names']['show_single_file_names'] = array(
+  $form['filter']['single_file_names']['auditfiles_merge_file_references_show_single_file_names'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show files without duplicate names'),
-    '#default_value' => variable_get('show_single_file_names', 0),
+    '#default_value' => variable_get('auditfiles_merge_file_references_show_single_file_names', 0),
     '#suffix' => '<div>' . t("Use this button to reset this report's variables and load the page anew.") . '</div>',
   );
 
@@ -180,8 +180,8 @@ function auditfiles_merge_file_references_form_validate($form, &$form_state) {
  * Submit handler for the auditfiles_merge_file_references_form form.
  */
 function auditfiles_merge_file_references_form_submit($form, &$form_state) {
-  if (isset($form_state['values']['show_single_file_names'])) {
-    variable_set('show_single_file_names', $form_state['values']['show_single_file_names']);
+  if (isset($form_state['values']['auditfiles_merge_file_references_show_single_file_names'])) {
+    variable_set('auditfiles_merge_file_references_show_single_file_names', $form_state['values']['auditfiles_merge_file_references_show_single_file_names']);
   }
 
   // Check if an operation was performed.
@@ -319,15 +319,11 @@ function _auditfiles_merge_file_references_batch_display_get_operations() {
   $operations = array();
   $operations[] = array(
     '_auditfiles_merge_file_references_batch_display_get_files',
-    array(
-      variable_get('show_single_file_names', 0),
-    ),
+    array(variable_get('auditfiles_merge_file_references_show_single_file_names', 0)),
   );
   $operations[] = array(
     '_auditfiles_merge_file_references_batch_display_process_files',
-    array(
-      variable_get('auditfiles_report_options_date_format', 'long'),
-    ),
+    array(variable_get('auditfiles_report_options_date_format', 'long')),
   );
   return $operations;
 }
@@ -335,7 +331,7 @@ function _auditfiles_merge_file_references_batch_display_get_operations() {
 /**
  * The batch process operation for getting the files.
  *
- * @param boolean $show_single_file_names
+ * @param bool $show_single_file_names
  *   TRUE if the list of files should include filenames that only have one file
  *   ID associated with them.
  * @param array $context
@@ -656,7 +652,7 @@ function _auditfiles_merge_file_references_confirm_operation(array $form, array 
 /**
  * Creates the batch for deleting files from the file_managed table.
  *
- * @param integer $file_being_kept
+ * @param int $file_being_kept
  *   The file ID of the file to merge the others into.
  * @param array $files_being_merged
  *   The list of file IDs to be processed.
@@ -694,7 +690,7 @@ function _auditfiles_merge_file_references_batch_merge_create_batch($file_being_
 /**
  * The batch process for deleting the file.
  *
- * @param integer $file_being_kept
+ * @param int $file_being_kept
  *   The file ID of the file to merge the other into.
  * @param int $file_being_merged
  *   The file ID of the file to merge.
@@ -721,7 +717,7 @@ function _auditfiles_merge_file_references_batch_merge_process_batch($file_being
 /**
  * Deletes the specified file from the file_managed table.
  *
- * @param integer $file_being_kept
+ * @param int $file_being_kept
  *   The file ID of the file to merge the other into.
  * @param int $file_being_merged
  *   The file ID of the file to merge.
@@ -843,7 +839,7 @@ function _auditfiles_merge_file_references_get_file_list() {
 
   $files = db_query($query)->fetchAllKeyed();
 
-  $show_single_file_names = variable_get('show_single_file_names', 0);
+  $show_single_file_names = variable_get('auditfiles_merge_file_references_show_single_file_names', 0);
   foreach ($files as $file_id => $file_name) {
     if ($show_single_file_names) {
       // Show all files, whether there are duplicates of the filename, or not.
@@ -897,25 +893,12 @@ function _auditfiles_merge_file_references_get_file_data($file_name, $date_forma
       t('URI'),
       t('Size (in bytes)'),
       t('Date'),
-//      t('Where that file ID is used'),
     );
 
     $fid_rows = array();
     foreach ($fid_results as $fid_result) {
       // Get the file object.
       $file = file_load($fid_result->fid);
-      // Get all the usages for this file ID.
-//      $fu_query = 'SELECT *
-//        FROM {file_usage}
-//        WHERE fid = :fid';
-//      $fu_results = db_query($fu_query, array(':fid' => $file->fid))->fetchAll();
-//
-//      if (empty($fu_results)) {
-//        $usages = '';
-//      }
-//      else {
-//        $usages = _auditfiles_merge_file_references_get_file_usage_data($fu_results);
-//      }
 
       // Add the data to the collective.
       $fid_rows[] = array(
@@ -923,7 +906,6 @@ function _auditfiles_merge_file_references_get_file_data($file_name, $date_forma
         $file->uri,
         number_format($file->filesize),
         format_date($file->timestamp, $date_format),
-//        $usages,
       );
     }
 
@@ -951,7 +933,7 @@ function _auditfiles_merge_file_references_get_file_data($file_name, $date_forma
  * @return array
  *   The table of file useages, themed for display.
  */
-function _auditfiles_merge_file_references_get_file_usage_data($fu_results) {
+function _auditfiles_merge_file_references_get_file_usage_data(array $fu_results) {
   // Add the file usages to the display record.
   $fu_header = array(
     t('Module'),

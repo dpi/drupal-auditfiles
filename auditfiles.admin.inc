@@ -17,7 +17,7 @@ function auditfiles_admin_settings($form, &$form_state) {
   $file_system_paths = file_get_stream_wrappers();
   $options = array();
   foreach ($file_system_paths as $file_system_path_id => $file_system_path) {
-    $options[$file_system_path_id] =$file_system_path['name'] . ': '
+    $options[$file_system_path_id] = $file_system_path['name'] . ': '
       . variable_get('file_' . $file_system_path_id . '_path', conf_path() . '/files')
       . ' (' . $file_system_path['description'] . ')';
   }

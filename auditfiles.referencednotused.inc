@@ -284,8 +284,6 @@ function _auditfiles_referenced_not_used_batch_display_get_operations() {
   return $operations;
 }
 
-
-
 /**
  * Retrieves the file IDs to operate on.
  *
@@ -314,7 +312,7 @@ function _auditfiles_referenced_not_used_batch_display_get_files(array $file_fie
     $context['sandbox']['column'] = '';
     if (!empty($file_fields)) {
       $context['sandbox']['file_fields'] = $file_fields;
-      $file_field = array_shift ($context['sandbox']['file_fields']);
+      $file_field = array_shift($context['sandbox']['file_fields']);
       if (!empty($file_field)) {
         // Get the database table name for the field.
         $context['sandbox']['table'] = key($file_field['storage']['details']['sql']['FIELD_LOAD_CURRENT']);
@@ -331,7 +329,7 @@ function _auditfiles_referenced_not_used_batch_display_get_files(array $file_fie
   // This cannot be sorted any other way here, or the results are not complete.
   $query = 'SELECT entity_id, entity_type, ' . $context['sandbox']['column'] . '
     FROM {' . $context['sandbox']['table'] . '}
-    WHERE entity_id > ' . $context['sandbox']['current_id'] .'
+    WHERE entity_id > ' . $context['sandbox']['current_id'] . '
       AND ' . $context['sandbox']['column'] . ' NOT IN (SELECT DISTINCT fid FROM {file_usage})
     ORDER BY entity_id ASC
     LIMIT 20';
@@ -345,7 +343,7 @@ function _auditfiles_referenced_not_used_batch_display_get_files(array $file_fie
       $context['sandbox']['progress'] = $context['sandbox']['max'];
     }
     else {
-      $file_field = array_shift ($context['sandbox']['file_fields']);
+      $file_field = array_shift($context['sandbox']['file_fields']);
       if (empty($file_field)) {
         // There are no more fields to process, so set the exit condition.
         $context['sandbox']['progress'] = $context['sandbox']['max'];
@@ -826,7 +824,7 @@ function _auditfiles_referenced_not_used_get_file_data(array $row_data) {
  ****************************************************************************/
 
 
-  // Start at 1; $files checkboxes shouldn't have a 0 key
+//  // Start at 1; $files checkboxes shouldn't have a 0 key
 //  $match_id = 1;
 //  $files = array();
 //  $single_match = 0;

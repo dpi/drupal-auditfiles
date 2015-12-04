@@ -46,7 +46,6 @@ function auditfiles_managed_not_used_form(array $form, array &$form_state) {
     variable_set('auditfiles_managed_not_used_files_to_display', $rows);
   }
 
-
   // Set up the pager.
   if (!empty($rows)) {
     $items_per_page = variable_get('auditfiles_report_options_items_per_page', 50);

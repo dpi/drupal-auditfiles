@@ -582,7 +582,7 @@ function _auditfiles_not_in_database_batch_add_process_batch($filename, array &$
 /**
  * Adds the specified file to the database.
  *
- * @param string $filename
+ * @param string $filepathname
  *   The full pathname to the file to add to the database.
  */
 function _auditfiles_not_in_database_batch_add_process_file($filepathname) {

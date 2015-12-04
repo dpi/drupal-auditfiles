@@ -356,7 +356,8 @@ function auditfiles_merge_files(array &$files, array $context) {
 
       // Compare it with the kept file.
       if ($kept_file_data->id == $compared_file_data->id) {
-        // If it matches, update the kept file and delete the one being compared.
+        // If it matches, update the kept file and delete the one being
+        // compared.
         $kept_file_data->count += $compared_file_data->count;
         // Delete the unnecessary entry from the file_usage table.
         db_delete('file_usage')
