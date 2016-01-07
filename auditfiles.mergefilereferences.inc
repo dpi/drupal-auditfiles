@@ -593,7 +593,7 @@ function _auditfiles_merge_file_references_confirm_operation(array $form, array 
         $file = file_load($file_id);
         if (!empty($file)) {
           $files[$file_id] = array(
-            'origname' => $file->origname,
+            'origname' => $file->filename,
             'fileid' => $file_id,
             'fileuri' => $file->uri,
             'filesize' => number_format($file->filesize),
