@@ -57,7 +57,7 @@ function auditfiles_referenced_not_used_form(array $form, array &$form_state) {
 
   // Define the form.
   // Setup the record count and related messages.
-  $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
+  $maximum_records = variable_get('auditfiles_report_options_maximum_records', 250);
   if (!empty($rows)) {
     if ($maximum_records > 0) {
       $file_count_message = 'Found at least @count files referenced in content that are not in the file_usage table.';
@@ -301,7 +301,7 @@ function _auditfiles_referenced_not_used_batch_display_get_files(array $file_fie
 
     // Set the number of records to operate on for this batch process.
     $context['sandbox']['max'] = 0;
-    $batch_size = variable_get('auditfiles_report_options_batch_size', 0);
+    $batch_size = variable_get('auditfiles_report_options_batch_size', 1000);
     if ($batch_size > 0) {
       $context['sandbox']['max'] = $batch_size;
     }
@@ -742,7 +742,7 @@ function _auditfiles_referenced_not_used_get_file_list() {
 
       // If record limition has been configured, only use those records within
       // that specification.
-      $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
+      $maximum_records = variable_get('auditfiles_report_options_maximum_records', 250);
       if ($maximum_records > 0) {
         $query .= ' LIMIT ' . $maximum_records;
       }

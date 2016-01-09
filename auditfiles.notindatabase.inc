@@ -63,7 +63,7 @@ function auditfiles_not_in_database_form(array $form, array &$form_state) {
 
   // Define the form.
   // Setup the record count and related messages.
-  $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
+  $maximum_records = variable_get('auditfiles_report_options_maximum_records', 250);
   if (!empty($rows)) {
     if ($maximum_records > 0) {
       $file_count_message = 'Found at least @count files on the server that are not in the database.';
@@ -293,7 +293,7 @@ function _auditfiles_not_in_database_batch_display_get_files(array &$context) {
       }
     }
 
-    $context['sandbox']['batch_size'] = variable_get('auditfiles_report_options_batch_size', 0);
+    $context['sandbox']['batch_size'] = variable_get('auditfiles_report_options_batch_size', 1000);
     if ($context['sandbox']['batch_size'] > 0) {
       $context['sandbox']['max'] = $context['sandbox']['batch_size'];
     }
@@ -706,7 +706,7 @@ function _auditfiles_not_in_database_get_file_list($directory, $recursive) {
   $exclusions = _auditfiles_get_exclusions();
   // If record limition has been configured, only use those records within that
   // specification.
-  $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
+  $maximum_records = variable_get('auditfiles_report_options_maximum_records', 250);
 
   if ($maximum_records == 0 || ($maximum_records > 0 && count($array_items) < $maximum_records)) {
     // Get the list of files in the specified directory.
@@ -810,10 +810,10 @@ function _auditfiles_not_in_database_get_record_limiters() {
   $record_selection = variable_get('auditfiles_not_in_database_record_selection', 'normal');
   $maximum_records = 0;
   if ($record_selection == 'batch_sets') {
-    $maximum_records = variable_get('auditfiles_report_options_batch_size', 0);
+    $maximum_records = variable_get('auditfiles_report_options_batch_size', 1000);
   }
   elseif ($record_selection != 'batched') {
-    $maximum_records = variable_get('auditfiles_report_options_maximum_records', 0);
+    $maximum_records = variable_get('auditfiles_report_options_maximum_records', 250);
     if ($maximum_records > 0) {
       $record_selection = 'limited';
       variable_set('auditfiles_not_in_database_record_selection', 'limited');

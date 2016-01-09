@@ -1,3 +1,13 @@
+9 January 2016 (oadaeh)
+--------------
+* auditfiles.admin.inc, auditfiles.managednotused.inc,
+  auditfiles.mergefilereferences.inc, auditfiles.notindatabase.inc,
+  auditfiles.notonserver.inc, auditfiles.referencednotused.inc,
+  auditfiles.usednotmanaged.inc, auditfiles.usednotreferenced.inc
+  - Changed the default of the auditfiles_report_options_maximum_records
+    variable from 0 to 250, and changed the default of the
+    auditfiles_report_options_batch_size variable from 0 to 1000.
+
 24 November 2015 (oadaeh)
 ----------------
 * auditfiles.notindatabase.inc, auditfiles.notonserver.inc,
