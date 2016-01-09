@@ -7,6 +7,12 @@
   - Changed the default of the auditfiles_report_options_maximum_records
     variable from 0 to 250, and changed the default of the
     auditfiles_report_options_batch_size variable from 0 to 1000.
+* INSTALL.txt, README.txt, auditfiles.managednotused.inc,
+  auditfiles.mergefilereferences.inc
+  - Apply patches supplied from Kristen Pol (https://www.drupal.org/user/8389)
+    to fix misc. typos, etc. in d.o issues https://www.drupal.org/node/2645752,
+    https://www.drupal.org/node/2645776, https://www.drupal.org/node/2645786,
+    and https://www.drupal.org/node/2645788.
 
 6 January 2016 (oadaeh)
 --------------
