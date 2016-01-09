@@ -78,7 +78,7 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
     );
   }
   else {
-    $form_count = 'Found no files in the file_managed table with duplicate file names.';
+    $form_count = t('Found no files in the file_managed table with duplicate file names.');
   }
 
   // Add filtering options.
@@ -93,7 +93,7 @@ function auditfiles_merge_file_references_form(array $form, array &$form_state) 
   $form['reset_records'] = array(
     '#type' => 'submit',
     '#value' => t('Reset file list'),
-    '#suffix' => '<div>' . t("Use this button to reset this report's variables and load it anew. This is also useful, if you have loaded data via the Load all files button and want to clear it.") . '</div>',
+    '#suffix' => '<div>' . t("Use this button to reset this report's variables and load it anew. This is also useful, if you have loaded data via the \"Load all files\" button and want to clear it.") . '</div>',
   );
   // Add the button to batch process the list of results.
   if ($maximum_records > 0) {
@@ -253,7 +253,7 @@ function auditfiles_merge_file_references_form_submit($form, &$form_state) {
  */
 
 /**
- * Adds vaules to a batch definition that are common to all batches in the file.
+ * Adds values to a batch definition that are common to all batches in the file.
  *
  * @return array
  *   The beginning of the batch definition.
@@ -466,7 +466,7 @@ function _auditfiles_merge_file_references_batch_display_process_files($date_for
  */
 
 /**
- * Presents a confimation form to verify the user wants to complete the action.
+ * Presents a confirmation form to verify the user wants to complete the action.
  *
  * @param array $form
  *   The form definition.
@@ -554,7 +554,7 @@ function _auditfiles_merge_file_references_pre_confirm_operation(array $form, ar
 }
 
 /**
- * Presents a confimation form to verify the user wants to complete the action.
+ * Presents a confirmation form to verify the user wants to complete the action.
  *
  * @param array $form
  *   The form definition.
@@ -830,7 +830,7 @@ function _auditfiles_merge_file_references_get_file_list() {
     FROM {file_managed}
     ORDER BY filename ASC';
 
-  // If record limition has been configured, only use those records within that
+  // If record limit has been configured, only use those records within that
   // specification.
   $maximum_records = variable_get('auditfiles_report_options_maximum_records', 250);
   if ($maximum_records > 0) {
@@ -931,7 +931,7 @@ function _auditfiles_merge_file_references_get_file_data($file_name, $date_forma
  *   An array of objects representing the file usages of a file.
  *
  * @return array
- *   The table of file useages, themed for display.
+ *   The table of file usages, themed for display.
  */
 function _auditfiles_merge_file_references_get_file_usage_data(array $fu_results) {
   // Add the file usages to the display record.
