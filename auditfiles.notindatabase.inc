@@ -601,7 +601,7 @@ function _auditfiles_not_in_database_batch_add_process_file($filepathname) {
     }
   }
   else {
-    drupal_set_message(t('The file %file is already in the database.', array('%file' => $filepathname)));
+    drupal_set_message(t('The file %file is already in the database.', array('%file' => $filepathname)), 'error');
   }
 }
 

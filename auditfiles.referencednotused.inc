@@ -652,7 +652,8 @@ function _auditfiles_referenced_not_used_batch_add_process_file($reference_id) {
           '@type' => $data['type'],
           '@id' => $data['id'],
         )
-      )
+      ),
+      'error'
     );
   }
 }

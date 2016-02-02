@@ -1,3 +1,19 @@
+2 February 2016 (oadaeh)
+---------------
+* auditfiles.mergefilereferences.inc
+  - Update file fields for files when merging files
+    (https://www.drupal.org/node/2651158).
+* auditfiles.notindatabase.inc
+  - Check for the file before inserting it into the database
+    (https://www.drupal.org/node/2652386).
+  - Work with symbolic links, as well as normal file paths
+    (https://www.drupal.org/node/2654610).
+* auditfiles.referencednotused.inc
+  - Check for the file before inserting it into the database
+    (https://www.drupal.org/node/2652426).
+  - Fix bugs that affect the number of records loaded
+    (https://www.drupal.org/node/2654604).
+
 9 January 2016 (oadaeh)
 --------------
 * auditfiles.admin.inc, auditfiles.managednotused.inc,
