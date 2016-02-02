@@ -618,14 +618,43 @@ function _auditfiles_referenced_not_used_batch_add_process_file($reference_id) {
     'id' => $reference_id_parts[2],
     'count' => 1,
   );
-  db_insert('file_usage')
-    ->fields($data)
-    ->execute();
 
-  // Remove the files from the list of files to display.
-  $rows = variable_get('auditfiles_referenced_not_used_files_to_display', array());
-  unset($rows[$reference_id]);
-  variable_set('auditfiles_referenced_not_used_files_to_display', $rows);
+  // Make sure the file is not already in the database.
+  $query = 'SELECT fid FROM file_usage
+    WHERE fid = :fid AND module = :module AND type = :type AND id = :id';
+  $existing_file = db_query(
+    $query,
+    array(
+      ':fid' => $data['fid'],
+      ':module' => $data['module'],
+      ':type' => $data['type'],
+      ':id' => $data['id'],
+    )
+  )->fetchAll();
+  if (empty($existing_file)) {
+    // The file is not already in the database, so add it.
+    db_insert('file_usage')
+      ->fields($data)
+      ->execute();
+
+    // Remove the files from the list of files to display.
+    $rows = variable_get('auditfiles_referenced_not_used_files_to_display', array());
+    unset($rows[$reference_id]);
+    variable_set('auditfiles_referenced_not_used_files_to_display', $rows);
+  }
+  else {
+    drupal_set_message(
+      t(
+        'The file is already in the file_usage table (file id: "@fid", module: "@module", type: "@type", entity id: "@id").',
+        array(
+          '@fid' => $data['fid'],
+          '@module' => $data['module'],
+          '@type' => $data['type'],
+          '@id' => $data['id'],
+        )
+      )
+    );
+  }
 }
 
 /**
