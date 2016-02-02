@@ -602,17 +602,26 @@ function _auditfiles_not_in_database_batch_add_process_file($filepathname) {
   $file->status = FILE_STATUS_PERMANENT;
   $file->timestamp = REQUEST_TIME;
 
-  $results = drupal_write_record('file_managed', $file);
+  // Make sure the file is not already in the database.
+  $query = 'SELECT fid FROM file_managed WHERE uri = :uri';
+  $existing_file = db_query($query, array(':uri' => $file->uri))->fetchAll();
+  if (empty($existing_file)) {
+    // The file is not already in the database, so add it.
+    $results = drupal_write_record('file_managed', $file);
 
-  if (empty($results)) {
-    drupal_set_message(t('Failed to add %file to the database.', array('%file' => $filepathname)));
+    if (empty($results)) {
+      drupal_set_message(t('Failed to add %file to the database.', array('%file' => $filepathname)));
+    }
+    else {
+      drupal_set_message(t('Sucessfully added %file to the database.', array('%file' => $filepathname)));
+      // Remove the file from the list of files to display.
+      $rows = variable_get('auditfiles_not_in_database_files_to_display', array());
+      unset($rows[$filepathname]);
+      variable_set('auditfiles_not_in_database_files_to_display', $rows);
+    }
   }
   else {
-    drupal_set_message(t('Sucessfully added %file to the database.', array('%file' => $filepathname)));
-    // Remove the file from the list of files to display.
-    $rows = variable_get('auditfiles_not_in_database_files_to_display', array());
-    unset($rows[$filepathname]);
-    variable_set('auditfiles_not_in_database_files_to_display', $rows);
+    drupal_set_message(t('The file %file is already in the database.', array('%file' => $filepathname)));
   }
 }
 
