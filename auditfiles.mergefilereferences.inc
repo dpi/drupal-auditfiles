@@ -650,7 +650,7 @@ function _auditfiles_merge_file_references_confirm_operation(array $form, array 
 }
 
 /**
- * Creates the batch for deleting files from the file_managed table.
+ * Creates the batch for merging files.
  *
  * @param int $file_being_kept
  *   The file ID of the file to merge the others into.
@@ -662,7 +662,7 @@ function _auditfiles_merge_file_references_confirm_operation(array $form, array 
  */
 function _auditfiles_merge_file_references_batch_merge_create_batch($file_being_kept, array $files_being_merged) {
   $batch = _auditfiles_merge_file_references_batch_set_common_values();
-  $batch['title'] = t('Deleting files from the file_managed table');
+  $batch['title'] = t('Merging files');
   $operations = array();
   // Remove all the empty values from the array.
   $file_ids = array();
@@ -794,6 +794,8 @@ function _auditfiles_merge_file_references_batch_merge_process_file($file_being_
       ->condition('type', $file_being_merged_data->type)
       ->condition('id', $file_being_merged_data->id)
       ->execute();
+    // Update any fields that might be pointing to the file being merged.
+    _auditfiles_merge_file_references_update_file_fields($file_being_kept, $file_being_merged);
   }
 
   // Delete the unnecessary entries from the file_managed table.
@@ -810,6 +812,63 @@ function _auditfiles_merge_file_references_batch_merge_process_file($file_being_
   $rows = variable_get('auditfiles_merge_file_references_files_to_display', array());
   unset($rows[$file_being_kept_name->filename]);
   variable_set('auditfiles_merge_file_references_files_to_display', $rows);
+}
+
+/**
+ * Updates any fields that might be pointing to the file being merged.
+ *
+ * @param int $file_being_kept
+ *   The file ID of the file to merge the other into.
+ * @param int $file_being_merged
+ *   The file ID of the file to merge.
+ */
+function _auditfiles_merge_file_references_update_file_fields($file_being_kept, $file_being_merged) {
+  // Get any fields that might be referencing this file being merged.
+  $file_being_merged_fields = file_get_file_references(file_load($file_being_merged));
+
+  // If the variable is empty, there are no fields that reference this file.
+  if (empty($file_being_merged_fields)) {
+    return;
+  }
+
+  // Copied from file.module and modified as necessary.
+  // Maybe something like this should be a separate function, so it can be
+  // called by other modules.
+  // Loop through all references of this file.
+  foreach ($file_being_merged_fields as $field_name => $field_references) {
+    foreach ($field_references as $entity_type => $type_references) {
+      foreach ($type_references as $id => $reference) {
+        // Try to load $entity and $field.
+        $entity = entity_load($entity_type, array($id));
+        $entity = reset($entity);
+        if ($entity) {
+          // Load all field items for that entity.
+          $field_items = field_get_items($entity_type, $entity, $field_name);
+          // Find the field item with the matching file ID.
+          foreach ($field_items as $item_id => $item) {
+            if ($item['fid'] == $file_being_merged) {
+              $file_object_being_kept = file_load($file_being_kept);
+
+              // The file data on the entity is stored as an array, like this:
+              // $entity->{$field_name}[LANGUAGE_NONE][$delta][$key] => $value;
+              foreach ($entity->{$field_name}[LANGUAGE_NONE][$item_id] as $key => $value) {
+                if (!empty($file_object_being_kept->{$key})
+                  && $entity->{$field_name}[LANGUAGE_NONE][$item_id][$key] != $file_object_being_kept->{$key}) {
+                  $entity->{$field_name}[LANGUAGE_NONE][$item_id][$key] = $file_object_being_kept->{$key};
+                }
+              }
+
+              field_attach_update($entity_type, $entity);
+              // This is being done outside of an entity save operation, so the
+              // cache needs to be cleared for the entity:
+              entity_get_controller($entity_type)->resetCache(array($id));
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 /**
