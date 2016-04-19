@@ -1049,12 +1049,27 @@ function _auditfiles_get_exclusions() {
   }
 
   // Create the list of requested path exclusions.
-  $paths = trim(variable_get('auditfiles_exclude_paths', 'color css ctools js'));
+  $paths = trim(variable_get('auditfiles_exclude_paths', 'color;css;ctools;js'));
   if ($paths) {
     $exclude_paths = explode(';', $paths);
     array_walk($exclude_paths, '_auditfiles_make_preg', TRUE);
     $exclusions_array = array_merge($exclusions_array, $exclude_paths);
   }
+
+  // Exclude other file streams that may be deinfed and in use.
+  $exclude_streams = array();
+  $auditfiles_file_system_path = variable_get('auditfiles_file_system_path', 'public');
+  $file_system_paths = file_get_stream_wrappers();
+  foreach ($file_system_paths as $file_system_path_id => $file_system_path) {
+    if ($file_system_path_id != $auditfiles_file_system_path) {
+      $uri = $file_system_path_id . '://';
+      if ($wrapper = file_stream_wrapper_get_instance_by_uri($uri)) {
+        $exclude_streams[] = $wrapper->realpath();
+      }
+    }
+  }
+  array_walk($exclude_streams, '_auditfiles_make_preg', FALSE);
+  $exclusions_array = array_merge($exclusions_array, $exclude_streams);
 
   // Create the list of requested extension exclusions. (This is a little more
   // complicated.)
