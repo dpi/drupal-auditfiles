@@ -1,3 +1,8 @@
+11 March 2016 (oadaeh)
+-------------
+* auditfiles.notindatabase.inc
+  - Select which schemes to show (https://www.drupal.org/node/2665250).
+
 2 February 2016 (oadaeh)
 ---------------
 * auditfiles.mergefilereferences.inc

@@ -1056,7 +1056,7 @@ function _auditfiles_get_exclusions() {
     $exclusions_array = array_merge($exclusions_array, $exclude_paths);
   }
 
-  // Exclude other file streams that may be deinfed and in use.
+  // Exclude other file streams that may be defined and in use.
   $exclude_streams = array();
   $auditfiles_file_system_path = variable_get('auditfiles_file_system_path', 'public');
   $file_system_paths = file_get_stream_wrappers();
