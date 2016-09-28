@@ -1084,6 +1084,8 @@ function _auditfiles_get_exclusions() {
     $exclusions_array[] = $extensions;
   }
 
+  // Filter out any empty exclusions.
+  $exclusions_array = array_filter($exclusions_array);
   // Implode exclusions array to a string.
   $exclusions = implode('|', $exclusions_array);
 
