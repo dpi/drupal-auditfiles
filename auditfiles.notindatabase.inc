@@ -1038,13 +1038,19 @@ function _auditfiles_not_in_database_get_header() {
  *   The excluions.
  */
 function _auditfiles_get_exclusions() {
+  // Get the static paths necessary for processing the files.
+  $file_system_stream = variable_get('auditfiles_file_system_path', 'public');
+  // The full file system path to the Drupal root directory.
+  $real_files_path = drupal_realpath($file_system_stream . '://');
+  $user_data['real_files_path'] = $real_files_path;
   $exclusions_array = array();
 
   // Create the list of requested file exclusions.
   $files = trim(variable_get('auditfiles_exclude_files', '.htaccess'));
   if ($files) {
     $exclude_files = explode(';', $files);
-    array_walk($exclude_files, '_auditfiles_make_preg', FALSE);
+    $user_data['make_file_path'] = FALSE;
+    array_walk($exclude_files, '_auditfiles_make_preg', $user_data);
     $exclusions_array = array_merge($exclusions_array, $exclude_files);
   }
 
@@ -1052,7 +1058,8 @@ function _auditfiles_get_exclusions() {
   $paths = trim(variable_get('auditfiles_exclude_paths', 'color;css;ctools;js'));
   if ($paths) {
     $exclude_paths = explode(';', $paths);
-    array_walk($exclude_paths, '_auditfiles_make_preg', TRUE);
+    $user_data['make_file_path'] = TRUE;
+    array_walk($exclude_paths, '_auditfiles_make_preg', $user_data);
     $exclusions_array = array_merge($exclusions_array, $exclude_paths);
   }
 
@@ -1068,7 +1075,8 @@ function _auditfiles_get_exclusions() {
       }
     }
   }
-  array_walk($exclude_streams, '_auditfiles_make_preg', FALSE);
+  $user_data['make_file_path'] = FALSE;
+  array_walk($exclude_streams, '_auditfiles_make_preg', $user_data);
   $exclusions_array = array_merge($exclusions_array, $exclude_streams);
 
   // Create the list of requested extension exclusions. (This is a little more
@@ -1076,7 +1084,8 @@ function _auditfiles_get_exclusions() {
   $extensions = trim(variable_get('auditfiles_exclude_extensions', ''));
   if ($extensions) {
     $exclude_extensions = explode(';', $extensions);
-    array_walk($exclude_extensions, '_auditfiles_make_preg', FALSE);
+    $user_data['make_file_path'] = FALSE;
+    array_walk($exclude_extensions, '_auditfiles_make_preg', $user_data);
 
     $extensions = implode('|', $exclude_extensions);
     // Add grouping around string & end marker and append to exlusions_array.
@@ -1100,12 +1109,17 @@ function _auditfiles_get_exclusions() {
  *   The string to escape.
  * @param mixed $key
  *   The key or index for the array item passed into $element.
- * @param bool $makefilepath
- *   Set to TRUE to change elements to file paths at the same time.
+ * @param array $user_data
+ *   Data to operate on the specified file name with. Currently, this array
+ *   consists of two elements:
+ *   - real_files_path: A string with the path to the file, as specified in the
+ *     "File system path" setting on the administrative configuration page.
+ *   - make_file_path: A boolean value, indeicating whether to change elements
+ *     to file paths.
  */
-function _auditfiles_make_preg(&$element, $key, $makefilepath = FALSE) {
-  if ($makefilepath) {
-    $realpath = drupal_realpath(file_build_uri($element));
+function _auditfiles_make_preg(&$element, $key, array $user_data) {
+  if ($user_data['make_file_path']) {
+    $realpath = $user_data['real_files_path'] . '/' . $element;
     if ($realpath) {
       $element = $realpath;
     }
