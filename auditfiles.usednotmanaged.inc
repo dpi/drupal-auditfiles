@@ -72,7 +72,7 @@ function auditfiles_used_not_managed_form(array $form, array &$form_state) {
     );
   }
   else {
-    $form_count = 'Found no files in the file_usage table that are not in the file_managed table.';
+    $form_count = t('Found no files in the file_usage table that are not in the file_managed table.');
   }
 
   // Add the button to reset the record selection.

@@ -76,7 +76,7 @@ function auditfiles_not_on_server_form(array $form, array &$form_state) {
     );
   }
   else {
-    $form_count = 'Found no files in the database that are not on the server.';
+    $form_count = t('Found no files in the database that are not on the server.');
   }
 
   // Add the button to reset the record selection.

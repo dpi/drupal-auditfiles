@@ -72,7 +72,7 @@ function auditfiles_referenced_not_used_form(array $form, array &$form_state) {
     );
   }
   else {
-    $form_count = 'Found no files referenced in content that are not in the file_usage table.';
+    $form_count = t('Found no files referenced in content that are not in the file_usage table.');
   }
 
   // Add the button to reset the record selection.
