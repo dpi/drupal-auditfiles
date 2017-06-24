@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Generates a report showing files on the server, but not in the database.
@@ -686,11 +687,6 @@ function _auditfiles_not_in_database_batch_delete_process_file($filename) {
 /**
  * Recurse directories and add files to an array.
  *
- * @param string $directory
- *   The directory in which to look for files.
- * @param bool $recursive
- *   Whether or not to recurse into subdirectories.
- *
  * @return array
  *   The list of file names to display.
  */
@@ -735,6 +731,14 @@ function _auditfiles_not_in_database_get_reports_files() {
   return $reported_files;
 }
 
+/**
+ * Updates a list of files with files found in the specified path.
+ *
+ * @param string $path
+ *   The filepath to read the files from.
+ * @param array $report_files
+ *   The list of files to update.
+ */
 function _auditfiles_not_in_database_get_files_for_report($path, array &$report_files) {
   // Get the static paths necessary for processing the files.
   $file_system_stream = variable_get('auditfiles_file_system_path', 'public');
@@ -840,7 +844,7 @@ function _auditfiles_not_in_database_get_files($path) {
  *   The list of files and directories that are not to be included in the list
  *   of files to check.
  *
- * @return boolean
+ * @return bool
  *   Returns TRUE, if the path or file is being included, or FALSE, if the path
  *   or file has been excluded.
  *
@@ -877,7 +881,7 @@ function _auditfiles_not_in_database_include_file($path, $file, $exclusions) {
  * @return array
  *   The merged file arrays.
  */
-function _auditfiles_not_in_database_report_processing_merge_file_lists($dest_files, $source_files, $real_path, $new_files_path, $exclusions) {
+function _auditfiles_not_in_database_report_processing_merge_file_lists(array $dest_files, array $source_files, $real_path, $new_files_path, $exclusions) {
   foreach ($source_files as $source_file) {
     $include = _auditfiles_not_in_database_include_file(
       $real_path,
@@ -943,7 +947,7 @@ function _auditfiles_not_in_database_is_file_in_database($filepathname) {
  * @return array
  *   The file data, formatted for adding to a table row.
  */
-function _auditfiles_not_in_database_format_row_data($file, $real_path, $date_format) {
+function _auditfiles_not_in_database_format_row_data(array $file, $real_path, $date_format) {
   $filename = $file['file_name'];
   $filepath = $file['path_from_files_root'];
   if (empty($filepath)) {

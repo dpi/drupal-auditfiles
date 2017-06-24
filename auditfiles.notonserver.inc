@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Generates a report showing files in the database, but not on the server.

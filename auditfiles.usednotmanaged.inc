@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Generates a report showing files in file_usage, but not in file_managed.

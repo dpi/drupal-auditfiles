@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * This is where the administrative settings configuration is.

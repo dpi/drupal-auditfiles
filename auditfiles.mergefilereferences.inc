@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Generates a report showing & allowing for merging potential duplicate files.
