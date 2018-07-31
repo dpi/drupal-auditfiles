@@ -98,7 +98,6 @@ class AuditFilesConfig extends ConfigFormBase {
     ];
 
     $date_types = DateFormat::loadMultiple();
-    $date_formatter = \Drupal::service('date.formatter');
     foreach ($date_types as $machine_name => $format) {
       $date_formats[$machine_name] = $machine_name;
     }

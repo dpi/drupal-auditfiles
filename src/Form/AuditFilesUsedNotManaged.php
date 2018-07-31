@@ -5,13 +5,12 @@ namespace Drupal\auditfiles\Form;
 use Drupal\Core\Form\ConfirmFormInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
-use Drupal\Core\Link;
 
-
+/**
+* Class for file used but not managed.
+*/
 class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface {
 
   /**
@@ -69,7 +68,7 @@ class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface 
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = \Drupal::config('auditfiles_config.settings');
     $storage = &$form_state->getStorage();
-    if(isset($storage['confirm'])) {
+    if (isset($storage['confirm'])) {
       $values = $form_state->getValue('files');
       $form['changelist'] = [
         '#prefix' => '<ul>',
@@ -101,7 +100,7 @@ class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface 
         '#type' => 'submit',
         '#value' => $this->getConfirmText(),
         '#button_type' => 'primary',
-        '#submit' => ['::confirmSubmissionHandlerDeleteFile']
+        '#submit' => ['::confirmSubmissionHandlerDeleteFile'],
       ];
       $form['actions']['cancel'] = ConfirmFormHelper::buildCancelLink($this, $this->getRequest());
       if (!isset($form['#theme'])) {
@@ -185,14 +184,14 @@ class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface 
         if (!empty($file_id)) {
           $storage = [
             'files' => $form_state->getValue('files'),
-            'confirm' => TRUE
+            'confirm' => TRUE,
           ];
-          $form_state->setStorage($storage);      
+          $form_state->setStorage($storage);
           $form_state->setRebuild();
         }
-      } 
-      if(!isset($storage)) {
-        drupal_set_message($this->t('No items were selected to operate on.'), 'error');  
+      }
+      if (!isset($storage)) {
+        drupal_set_message($this->t('No items were selected to operate on.'), 'error');
       }
     }
   }
