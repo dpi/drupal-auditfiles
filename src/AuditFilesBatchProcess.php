@@ -1,13 +1,16 @@
 <?php
+
 /**
  * @file providing the service that used in not in 
- * database batch processing functionality.
  */
-namespace  Drupal\auditfiles;
 
-use Drupal\Core\Database\Database;
+namespace Drupal\auditfiles;
+
 use Drupal\Component\Utility\Html;
 
+/**
+ * Process batch files.
+ */
 class AuditFilesBatchProcess {
 
   /**
@@ -15,16 +18,16 @@ class AuditFilesBatchProcess {
    */
   public static function auditfiles_not_in_database_batch_finish_batch($success, $results, $operations) {
     if ($success) {
-      //success action.
+      // success action.
     }
     else {
       $error_operation = reset($operations);
       drupal_set_message(
-      t('An error occurred while processing @operation with arguments : @args',
-        [
-          '@operation' => $error_operation[0],
-          '@args' => print_r($error_operation[0], TRUE),
-         ]
+        t('An error occurred while processing @operation with arguments : @args',
+          [
+            '@operation' => $error_operation[0],
+            '@args' => print_r($error_operation[0], TRUE),
+          ]
         ),
         'error'
       );
@@ -33,9 +36,10 @@ class AuditFilesBatchProcess {
 
   /**
    * The batch process for adding the file.
+   *
    * @param array $context
-   *   Used by the Batch API to keep track of data and pass it from one operation
-   *   to the next.
+   * Used by the Batch API to keep track of data and pass it from one operation
+   * to the next.
    */
   public static function auditfiles_not_in_database_batch_add_process_batch($filename, array &$context) {
     \Drupal::service('auditfiles.not_in_database')->auditfiles_not_in_database_batch_add_process_file($filename);
@@ -45,9 +49,10 @@ class AuditFilesBatchProcess {
 
   /**
    * The batch process for deleting the file.
+   *
    * @param array $context
-   *   Used by the Batch API to keep track of data and pass it from one operation
-   *   to the next.
+   * Used by the Batch API to keep track of data and pass it from one operation
+   * to the next.
    */
   public static function auditfiles_not_in_database_batch_delete_process_batch($filename, array &$context) {
     \Drupal::service('auditfiles.not_in_database')->_auditfiles_not_in_database_batch_delete_process_file($filename);
@@ -65,7 +70,7 @@ class AuditFilesBatchProcess {
    * @param bool $makefilepath
    *   Set to TRUE to change elements to file paths at the same time.
    */
-  public static function _auditfiles_make_preg(&$element, $key='', $makefilepath = FALSE) {
+  public static function _auditfiles_make_preg(&$element, $key = '', $makefilepath = FALSE) {
     if ($makefilepath) {
       $realpath = drupal_realpath(file_build_uri($element));
       if ($realpath) {
@@ -80,7 +85,7 @@ class AuditFilesBatchProcess {
    */
   public static function _auditfiles_not_on_server_batch_finish_batch($success, $results, $operations) {
     if ($success) {
-    // Do tasks
+      // Do tasks.
     }
     else {
       $error_operation = reset($operations);
@@ -99,8 +104,8 @@ class AuditFilesBatchProcess {
   /**
    * The batch process for deleting the file.
    *
-   *   Used by the Batch API to keep track of and pass data from one operation to
-   *   the next.
+   * Used by the Batch API to keep track of and pass data from one operation to
+   * the next.
    */
   public static function _auditfiles_not_on_server_batch_delete_process_batch($file_id, array &$context) {
     \Drupal::service('auditfiles.not_on_server')->_auditfiles_not_on_server_batch_delete_process_file($file_id);
@@ -111,8 +116,8 @@ class AuditFilesBatchProcess {
   /**
    * The batch process for deleting the file of Managed not used functionality.
    *
-   *   Used by the Batch API to keep track of and pass data from one operation to
-   *   the next.
+   * Used by the Batch API to keep track of and pass data from one operation to
+   * the next.
    */
   public static function _auditfiles_managed_not_used_batch_delete_process_batch($file_id, array &$context) {
     \Drupal::service('auditfiles.managed_not_used')->_auditfiles_managed_not_used_batch_delete_process_file($file_id);
@@ -140,7 +145,6 @@ class AuditFilesBatchProcess {
 
   /**
    * The batch process for deleting the file feature 'used not managed'.
-   *
    */
   public static function _auditfiles_used_not_managed_batch_delete_process_batch($file_id, array &$context) {
     \Drupal::service('auditfiles.used_not_managed')->_auditfiles_used_not_managed_batch_delete_process_file($file_id);
@@ -168,7 +172,6 @@ class AuditFilesBatchProcess {
 
   /**
    * The batch process for deleting the file.
-   *
    */
   public static function _auditfiles_used_not_referenced_batch_delete_process_batch($file_id, array &$context) {
     \Drupal::service('auditfiles.used_not_referenced')->_auditfiles_used_not_referenced_batch_delete_process_file($file_id);
@@ -214,8 +217,8 @@ class AuditFilesBatchProcess {
 
   /**
    * The batch process for adding the file.
-   *   Used by the Batch API to keep track of and pass data from one operation to
-   *   the next.
+   *   Used by the Batch API to keep track of and pass data from one operation
+   *   to the next.
    */
   public static function _auditfiles_referenced_not_used_batch_add_process_batch($reference_id, array &$context) {
     \Drupal::service('auditfiles.referenced_not_used')->_auditfiles_referenced_not_used_batch_add_process_file($reference_id);
@@ -225,8 +228,8 @@ class AuditFilesBatchProcess {
 
   /**
    * The batch process for deleting the file.
-   *   Used by the Batch API to keep track of and pass data from one operation to
-   *   the next.
+   * Used by the Batch API to keep track of and pass data from one operation to
+   * the next.
    */
   public static function _auditfiles_referenced_not_used_batch_delete_process_batch($reference_id, array &$context) {
     \Drupal::service('auditfiles.referenced_not_used')->_auditfiles_referenced_not_used_batch_delete_process_file($reference_id);
@@ -234,22 +237,21 @@ class AuditFilesBatchProcess {
     $context['message'] = t('Processed reference ID %file_id.', ['%file_id' => $reference_id]);
   }
 
-
   /**
    * The function that is called when the batch is complete.
    */
   public static function _auditfiles_merge_file_references_batch_finish_batch($success, $results, $operations) {
-  if (!$success) {
-    $error_operation = reset($operations);
-    drupal_set_message(
-      t('An error occurred while processing @operation with arguments : @args',
-        [
-          '@operation' => $error_operation[0],
-          '@args' => print_r($error_operation[0], TRUE),
-        ]
-      ),
+    if (!$success) {
+      $error_operation = reset($operations);
+      drupal_set_message(
+        t('An error occurred while processing @operation with arguments : @args',
+          [
+            '@operation' => $error_operation[0],
+            '@args' => print_r($error_operation[0], TRUE),
+          ]
+        ),
         'error'
-    );
+      );
     }
   }
 
@@ -261,8 +263,8 @@ class AuditFilesBatchProcess {
    * @param int $file_being_merged
    *   The file ID of the file to merge.
    * @param array $context
-   *   Used by the Batch API to keep track of and pass data from one operation to
-   *   the next.
+   *   Used by the Batch API to keep track of and pass data from one operation
+   *   to the next.
    */
   public static function _auditfiles_merge_file_references_batch_merge_process_batch($file_being_kept, $file_being_merged, array &$context) {
     \Drupal::service('auditfiles.merge_file_references')->_auditfiles_merge_file_references_batch_merge_process_file($file_being_kept, $file_being_merged);
