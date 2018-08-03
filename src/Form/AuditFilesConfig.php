@@ -4,7 +4,6 @@ namespace Drupal\auditfiles\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Component\Utility\String;
 use Drupal\Core\Datetime\Entity\DateFormat;
 
 /**
