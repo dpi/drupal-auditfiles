@@ -43,22 +43,24 @@ class ServiceAuditFilesReferencedNotUsed {
         $table = $value['table'];
         $column = $value['column'];
         $entity_type = $value['entity_type'];
-        $query = 'SELECT entity_id, ' . $column . ' FROM {' . $table . '}';
-        $query .= ' WHERE ' . $column . ' NOT IN (SELECT DISTINCT fid FROM {file_usage})';
-        $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
-        if ($maximum_records > 0) {
-          $query .= ' LIMIT ' . $maximum_records;
-        }
-        $file_references = $connection->query($query)->fetchAll();
-        foreach ($file_references as $file_reference) {
-          $reference_id = $table . '.' . $column . '.' . $file_reference->entity_id . '.' . $entity_type . '.' . $file_reference->{$column};
-          $files_referenced[$reference_id] = [
-            'table' => $table,
-            'column' => $column,
-            'entity_id' => $file_reference->entity_id,
-            'file_id' => $file_reference->{$column},
-            'entity_type' => $entity_type,
-          ];
+        if (Database::getConnection()->schema()->tableExists($table)) {       
+          $query = 'SELECT entity_id, ' . $column . ' FROM {' . $table . '}';
+          $query .= ' WHERE ' . $column . ' NOT IN (SELECT DISTINCT fid FROM {file_usage})';
+          $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
+          if ($maximum_records > 0) {
+            $query .= ' LIMIT ' . $maximum_records;
+          }
+          $file_references = $connection->query($query)->fetchAll();
+          foreach ($file_references as $file_reference) {
+            $reference_id = $table . '.' . $column . '.' . $file_reference->entity_id . '.' . $entity_type . '.' . $file_reference->{$column};
+            $files_referenced[$reference_id] = [
+              'table' => $table,
+              'column' => $column,
+              'entity_id' => $file_reference->entity_id,
+              'file_id' => $file_reference->{$column},
+              'entity_type' => $entity_type,
+            ];
+          }
         }
       }
     }

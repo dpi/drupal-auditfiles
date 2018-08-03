@@ -44,11 +44,13 @@ class ServiceAuditFilesUsedNotReferenced {
     foreach ($field_data as $key => $value) {
       $table = $value['table'];
       $column = $value['column'];
-      $query = "SELECT t.$column FROM {$table} AS t INNER JOIN {file_usage} AS f ON f.fid = t.$column";
-      $result = $connection->query($query);
-      foreach ($result as $fid) {
-        if (in_array($fid->{$column}, $files_in_file_usage)) {
-          $files_in_fields[] = $fid->{$column};
+      if (Database::getConnection()->schema()->tableExists($table)) {
+        $query = "SELECT t.$column FROM {$table} AS t INNER JOIN {file_usage} AS f ON f.fid = t.$column";
+        $result = $connection->query($query);
+        foreach ($result as $fid) {
+          if (in_array($fid->{$column}, $files_in_file_usage)) {
+            $files_in_fields[] = $fid->{$column};
+          }
         }
       }
     }
