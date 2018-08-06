@@ -5,14 +5,14 @@ namespace Drupal\auditfiles\Form;
 use Drupal\Core\Form\ConfirmFormInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
-use Drupal\Core\Link;
 
-
+/**
+ * Form for Files referenced not used functionality.
+ */
 class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterface {
+
   /**
    * Widget Id.
    */
@@ -68,7 +68,7 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = \Drupal::config('auditfiles_config.settings');
     $storage = &$form_state->getStorage();
-    if(isset($storage['confirm'])) {
+    if (isset($storage['confirm'])) {
       $values = $form_state->getValue('files');
       $form['changelist'] = [
         '#prefix' => '<ul>',
@@ -100,7 +100,7 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
       if ($storage['op'] == 'add') {
         $form['#title'] = $this->t('Add these files to the database?');
       }
-      else if ($storage['op'] == 'delete') {
+      elseif ($storage['op'] == 'delete') {
         $form['#title'] = $this->t('Delete these files from the server?');
       }
       $form['actions'] = [
@@ -110,7 +110,7 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
         '#type' => 'submit',
         '#value' => $this->getConfirmText(),
         '#button_type' => 'primary',
-        '#submit' => ['::confirmSubmissionHandler']
+        '#submit' => ['::confirmSubmissionHandler'],
       ];
       $form['actions']['cancel'] = ConfirmFormHelper::buildCancelLink($this, $this->getRequest());
       if (!isset($form['#theme'])) {
@@ -168,8 +168,9 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
         '#value' => $this->t('Add selected items to the file_usage table'),
         '#submit' => ['::submissionHandlerAddToFile'],
       ];
+      $text = $this->t('or');
       $form['actions']['markup'] = [
-        '#markup' => '&nbsp;' . $this->t('or') . '&nbsp;',
+        '#markup' => '&nbsp;' . $text . '&nbsp;',
       ];
       $form['actions']['delete'] = [
         '#type' => 'submit',
@@ -197,14 +198,14 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
           $storage = [
             'files' => $form_state->getValue('files'),
             'confirm' => TRUE,
-            'op' => 'add'
+            'op' => 'add',
           ];
-          $form_state->setStorage($storage);      
+          $form_state->setStorage($storage);
           $form_state->setRebuild();
         }
-      } 
-      if(!isset($storage)) {
-        drupal_set_message($this->t('No items were selected to operate on.'), 'error');  
+      }
+      if (!isset($storage)) {
+        drupal_set_message($this->t('No items were selected to operate on.'), 'error');
       }
     }
   }
@@ -219,14 +220,14 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
           $storage = [
             'files' => $form_state->getValue('files'),
             'confirm' => TRUE,
-            'op' => 'delete'
+            'op' => 'delete',
           ];
-          $form_state->setStorage($storage);      
+          $form_state->setStorage($storage);
           $form_state->setRebuild();
         }
-      } 
-      if(!isset($storage)) {
-        drupal_set_message($this->t('No items were selected to operate on.'), 'error');  
+      }
+      if (!isset($storage)) {
+        drupal_set_message($this->t('No items were selected to operate on.'), 'error');
       }
     }
   }
@@ -236,7 +237,7 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
    */
   public function confirmSubmissionHandler(array &$form, FormStateInterface $form_state) {
     $storage = &$form_state->getStorage();
-    if ($storage['op'] == 'add') { 
+    if ($storage['op'] == 'add') {
       batch_set(\Drupal::service('auditfiles.referenced_not_used')->_auditfiles_referenced_not_used_batch_add_create_batch($form_state->getValue('changelist')));
     }
     else {

@@ -9,8 +9,8 @@ use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
 
 /**
-* Class for file used but not managed.
-*/
+ * Class for file used but not managed.
+ */
 class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface {
 
   /**
