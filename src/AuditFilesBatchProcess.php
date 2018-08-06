@@ -42,7 +42,7 @@ class AuditFilesBatchProcess {
    * to the next.
    */
   public static function auditfiles_not_in_database_batch_add_process_batch($filename, array &$context) {
-    \Drupal::service('auditfiles.not_in_database')->auditfiles_not_in_database_batch_add_process_file($filename);
+    \Drupal::service('auditfiles.not_in_database')->auditfilesNotInDatabaseBatchAddProcessFile($filename);
     $context['results'][] = $filename;
     $context['message'] = t('Processed %filename.', ['%filename' => $filename]);
   }
@@ -55,7 +55,7 @@ class AuditFilesBatchProcess {
    * to the next.
    */
   public static function auditfiles_not_in_database_batch_delete_process_batch($filename, array &$context) {
-    \Drupal::service('auditfiles.not_in_database')->_auditfiles_not_in_database_batch_delete_process_file($filename);
+    \Drupal::service('auditfiles.not_in_database')->auditfilesNotInDatabaseBatchDeleteProcessFile($filename);
     $context['results'][] = Html::escape($filename);
     $context['message'] = t('Processed %filename.', ['%filename' => $filename]);
   }

@@ -1,30 +1,32 @@
 <?php
-/**
-* @file providing the service that used in not in database functionality.
-*
-*/
-namespace  Drupal\auditfiles;
+
+namespace Drupal\auditfiles;
 
 use Drupal\Core\Database\Database;
 use Drupal\Component\Utility\Html;
+use Drupal\user\Entity\User;
+use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 
+/**
+ * define all methods that are used on Files not in database functionality.
+ */
 class ServiceAuditFilesNotInDatabase {
 
   /**
    * Get the files that are not in database.
    */
-  function _auditfiles_not_in_database_get_reports_files() {
+  function auditfilesNotInDatabaseGetReportsFiles() {
     $config = \Drupal::config('auditfiles_config.settings');
     $report_files = [];
     $reported_files = [];
-    $this->_auditfiles_not_in_database_get_files_for_report('', $report_files);
+    $this->auditfilesNotInDatabaseGetFilesForReport('', $report_files);
     if (!empty($report_files)) {
       // Get the static paths necessary for processing the files.
-      $file_system_stream = $config->get('auditfiles_file_system_path')?$config->get('auditfiles_file_system_path'):'public';
+      $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
       // The full file system path to the Drupal root directory.
       $real_files_path = drupal_realpath($file_system_stream . '://');
       // Get the chosen date format for displaying the file dates with.
-      $date_format = $config->get('auditfiles_report_options_date_format')?$config->get('auditfiles_report_options_date_format'):'long';
+      $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
       foreach ($report_files as $report_file) {
         // Check to see if the file is in the database.
         if (empty($report_file['path_from_files_root'])) {
@@ -33,28 +35,28 @@ class ServiceAuditFilesNotInDatabase {
         else {
           $file_to_check = $report_file['path_from_files_root'] . DIRECTORY_SEPARATOR . $report_file['file_name'];
         }
-        $file_in_database = $this->_auditfiles_not_in_database_is_file_in_database($file_to_check);
-        // If the file is not in the database, add it to the list for displaying.
+        $file_in_database = $this->auditfilesNotInDatabaseIsFileInDatabase($file_to_check);
+        // If the file is not in the database, add to the list for displaying.
         if (!$file_in_database) {
-          // Gets the file's information (size, date, etc.) and assempbles the
-          //array for the table.
-          $reported_files += $this->_auditfiles_not_in_database_format_row_data($report_file,$real_files_path,$date_format);
+          // Gets the file's information (size, date, etc.) and assempbles the.
+          // array for the table.
+          $reported_files += $this->auditfilesNotInDatabaseFormatRowData($report_file, $real_files_path, $date_format);
         }
       }
     }
-  return $reported_files;
+    return $reported_files;
   }
 
   /**
    * Get files for report.
    */
-  function _auditfiles_not_in_database_get_files_for_report($path, array &$report_files) {
+  public function auditfilesNotInDatabaseGetFilesForReport($path, array &$report_files) {
     $config = \Drupal::config('auditfiles_config.settings');
-    $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public'; 
+    $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
     $real_files_path = drupal_realpath($file_system_stream . '://');
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
     if ($maximum_records > 0 && count($report_files) < $maximum_records) {
-      $new_files = $this->_auditfiles_not_in_database_get_files($path);
+      $new_files = $this->auditfilesNotInDatabaseGetFiles($path);
       if (!empty($new_files)) {
         foreach ($new_files as $file) {
           // Check if the current item is a directory or a file.
@@ -72,11 +74,11 @@ class ServiceAuditFilesNotInDatabase {
             else {
               $file_path = $path . DIRECTORY_SEPARATOR . $file['file_name'];
             }
-            $this->_auditfiles_not_in_database_get_files_for_report($file_path, $report_files);
+            $this->auditfilesNotInDatabaseGetFilesForReport($file_path, $report_files);
           }
           else {
-            //The item is a file, so add it to the list.
-            $file['path_from_files_root'] = $this->_auditfiles_not_in_database_fix_path_separators($file['path_from_files_root']);
+            // The item is a file, so add it to the list.
+            $file['path_from_files_root'] = $this->auditfilesNotInDatabaseFixPathSeparators($file['path_from_files_root']);
             $report_files[] = $file;
           }
         }
@@ -93,8 +95,8 @@ class ServiceAuditFilesNotInDatabase {
    * @return bool
    *   Returns TRUE if the file was found in the database, or FALSE, if not.
    */
-  function _auditfiles_not_in_database_is_file_in_database($filepathname) {
-    $file_uri = file_build_uri($filepathname); 
+  public function auditfilesNotInDatabaseIsFileInDatabase($filepathname) {
+    $file_uri = file_build_uri($filepathname);
     $connection = Database::getConnection();
     $query = $connection->select('file_managed', 'fm');
     $query->condition('fm.uri', $file_uri);
@@ -106,7 +108,7 @@ class ServiceAuditFilesNotInDatabase {
   /**
    * Add files to record to display in reports.
    */
-  function _auditfiles_not_in_database_format_row_data($file, $real_path, $date_format) {
+  public function auditfilesNotInDatabaseFormatRowData($file, $real_path, $date_format) {
     $filename = $file['file_name'];
     $filepath = $file['path_from_files_root'];
     if (empty($filepath)) {
@@ -141,11 +143,11 @@ class ServiceAuditFilesNotInDatabase {
    * @return array
    *   The list of files and diretories found in the given path.
    */
-  function _auditfiles_not_in_database_get_files($path) {
+  public function auditfilesNotInDatabaseGetFiles($path) {
     $config = \Drupal::config('auditfiles_config.settings');
     $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
     $real_files_path = drupal_realpath($file_system_stream . '://');
-    $exclusions = $this->_auditfiles_get_exclusions();
+    $exclusions = $this->auditfilesGetExclusions();
     // The variable to store the data being returned.
     $file_list = [];
     if (empty($path)) {
@@ -159,7 +161,7 @@ class ServiceAuditFilesNotInDatabase {
     foreach ($files as $file) {
       if ($file != '.' && $file != '..') {
         // Check to see if this file should be included.
-        $include_file = $this->_auditfiles_not_in_database_include_file(
+        $include_file = $this->auditfilesNotInDatabaseIncludeFile(
           $real_files_path . DIRECTORY_SEPARATOR . $path,
             $file,
             $exclusions
@@ -179,8 +181,8 @@ class ServiceAuditFilesNotInDatabase {
   /**
    * Corrects the separators of a file system's file path.
    *
-   * Changes the separators of a file path, so they are match the ones being used
-   * on the operating system the site is running on.
+   * Changes the separators of a file path, so they are match the ones
+   * being used on the operating system the site is running on.
    *
    * @param string $path
    *   The path to correct.
@@ -188,7 +190,7 @@ class ServiceAuditFilesNotInDatabase {
    * @return string
    *   The corrected path.
    */
-  function _auditfiles_not_in_database_fix_path_separators($path) {
+  function auditfilesNotInDatabaseFixPathSeparators($path) {
     $path = preg_replace('@\/\/@', DIRECTORY_SEPARATOR, $path);
     $path = preg_replace('@\\\\@', DIRECTORY_SEPARATOR, $path);
     return $path;
@@ -203,16 +205,16 @@ class ServiceAuditFilesNotInDatabase {
    * @return string
    *   The excluions.
    */
-  function _auditfiles_get_exclusions() {
+  public function auditfilesGetExclusions() {
     $config = \Drupal::config('auditfiles_config.settings');
     $exclusions_array = [];
-    $files = trim($config->get('auditfiles_exclude_files')?$config->get('auditfiles_exclude_files'):'.htaccess');
+    $files = trim($config->get('auditfiles_exclude_files') ? $config->get('auditfiles_exclude_files') : '.htaccess');
     if ($files) {
       $exclude_files = explode(';', $files);
       array_walk($exclude_files, '\\Drupal\\auditfiles\\AuditFilesBatchProcess::_auditfiles_make_preg', FALSE);
       $exclusions_array = array_merge($exclusions_array, $exclude_files);
     }
-    $paths = trim($config->get('auditfiles_exclude_paths')?$config->get('auditfiles_exclude_paths'):'color;css;ctools;js');
+    $paths = trim($config->get('auditfiles_exclude_paths') ? $config->get('auditfiles_exclude_paths') : 'color;css;ctools;js');
     if ($paths) {
       $exclude_paths = explode(';', $paths);
       array_walk($exclude_paths, '\\Drupal\\auditfiles\\AuditFilesBatchProcess::_auditfiles_make_preg', TRUE);
@@ -220,8 +222,8 @@ class ServiceAuditFilesNotInDatabase {
     }
     // Exclude other file streams that may be deinfed and in use.
     $exclude_streams = [];
-    $auditfiles_file_system_path = $config->get('auditfiles_file_system_path')?$config->get('auditfiles_file_system_path'):'public';
-    $file_system_paths = \Drupal::service("stream_wrapper_manager")->getWrappers(\Drupal\Core\StreamWrapper\StreamWrapperInterface::LOCAL);
+    $auditfiles_file_system_path = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
+    $file_system_paths = \Drupal::service("stream_wrapper_manager")->getWrappers(StreamWrapperInterface::LOCAL);
     foreach ($file_system_paths as $file_system_path_id => $file_system_path) {
       if ($file_system_path_id != $auditfiles_file_system_path) {
         $uri = $file_system_path_id . '://';
@@ -234,7 +236,7 @@ class ServiceAuditFilesNotInDatabase {
     $exclusions_array = array_merge($exclusions_array, $exclude_streams);
     // Create the list of requested extension exclusions. (This is a little more
     // complicated.)
-    $extensions = trim($config->get('auditfiles_exclude_extensions') ? $config->get('auditfiles_exclude_extensions'):'');
+    $extensions = trim($config->get('auditfiles_exclude_extensions') ? $config->get('auditfiles_exclude_extensions') : '');
     if ($extensions) {
       $exclude_extensions = explode(';', $extensions);
       array_walk($exclude_extensions, '\\Drupal\\auditfiles\\AuditFilesBatchProcess::_auditfiles_make_preg', FALSE);
@@ -256,17 +258,17 @@ class ServiceAuditFilesNotInDatabase {
    * @param string $file
    *   The name of the file being checked.
    * @param string $exclusions
-   *   The list of files and directories that are not to be included in the list
-   *   of files to check.
+   *   The list of files and directories that are not to be included in the 
+   *   list of files to check.
    *
-   * @return boolean
-   *   Returns TRUE, if the path or file is being included, or FALSE, if the path
-   *   or file has been excluded.
+   * @return bool
+   *   Returns TRUE, if the path or file is being included, or FALSE,
+   *   if the path or file has been excluded.
    *
    * @todo Possibly add other file streams that are on the system but not the one
    *   being checked to the exclusions check.
    */
-  function _auditfiles_not_in_database_include_file($path, $file, $exclusions) {
+  public function auditfilesNotInDatabaseIncludeFile($path, $file, $exclusions) {
     if (empty($exclusions)) {
       return TRUE;
     }
@@ -283,7 +285,7 @@ class ServiceAuditFilesNotInDatabase {
    * @return array
    *   The header to use.
    */
-  function _auditfiles_not_in_database_get_header() {
+  public function auditfilesNotInDatabaseGetHeader() {
     return [
       'filepathname' => [
         'data' => t('File pathname'),
@@ -309,7 +311,7 @@ class ServiceAuditFilesNotInDatabase {
    * @return array
    *   The definition of the batch.
    */
-  function _auditfiles_not_in_database_batch_add_create_batch(array $fileids) {
+  public function auditfilesNotInDatabaseBatchAddCreateBatch(array $fileids) {
     $batch['title'] = t('Adding files to Drupal file management');
     $batch['error_message'] = t('One or more errors were encountered processing the files.');
     $batch['finished'] = "\Drupal\auditfiles\AuditFilesBatchProcess::auditfiles_not_in_database_batch_finish_batch";
@@ -337,9 +339,9 @@ class ServiceAuditFilesNotInDatabase {
    * @param string $filepathname
    *   The full pathname to the file to add to the database.
    */
-  function auditfiles_not_in_database_batch_add_process_file($filepathname) {
-    $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
-    $file =  new \StdClass();
+  public function auditfilesNotInDatabaseBatchAddProcessFile($filepathname) {
+    $user = User::load(\Drupal::currentUser()->id());
+    $file = new \StdClass();
     $file->uid = $user->get('uid')->value;
     $file->filename = trim(basename($filepathname));
     $file->uri = file_build_uri($filepathname);
@@ -350,7 +352,7 @@ class ServiceAuditFilesNotInDatabase {
     $file->timestamp = REQUEST_TIME;
     $uuid_service = \Drupal::service('uuid');
     $uuid = $uuid_service->generate();
-    
+
     $connection = Database::getConnection();
     $query = $connection->select('file_managed', 'fm');
     $query->condition('fm.uri', $file->uri);
@@ -358,20 +360,20 @@ class ServiceAuditFilesNotInDatabase {
     $existing_file = $query->execute()->fetchField();
     if (empty($existing_file)) {
       $results = \Drupal::database()->merge('file_managed')
-      ->key(['fid' => NULL])
-      ->fields([
-        'fid' => NULL,
-        'uuid' => $uuid,
-        'langcode' => 'en',
-        'uid' => $file->uid,
-        'filename' => $file->filename,
-        'uri' => $file->uri,
-        'filemime' => $file->filemime,
-        'filesize' => $file->filesize,
-        'status' => $file->status,
-        'created' => $file->timestamp,
-        'changed' => $file->timestamp,
-      ])->execute();
+        ->key(['fid' => NULL])
+        ->fields([
+          'fid' => NULL,
+          'uuid' => $uuid,
+          'langcode' => 'en',
+          'uid' => $file->uid,
+          'filename' => $file->filename,
+          'uri' => $file->uri,
+          'filemime' => $file->filemime,
+          'filesize' => $file->filesize,
+          'status' => $file->status,
+          'created' => $file->timestamp,
+          'changed' => $file->timestamp,
+        ])->execute();
       if (empty($results)) {
         drupal_set_message(t('Failed to add %file to the database.', ['%file' => $filepathname]));
       }
@@ -384,7 +386,6 @@ class ServiceAuditFilesNotInDatabase {
     }
   }
 
-
   /**
    * Creates the batch for deleting files from the server.
    *
@@ -394,7 +395,7 @@ class ServiceAuditFilesNotInDatabase {
    * @return array
    *   The definition of the batch.
    */
-  function _auditfiles_not_in_database_batch_delete_create_batch(array $file_names) {
+  public function auditfilesNotInDatabaseBatchDeleteCreateBatch(array $file_names) {
     $batch['title'] = t('Adding files to Drupal file management');
     $batch['error_message'] = t('One or more errors were encountered processing the files.');
     $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfiles_not_in_database_batch_finish_batch';
@@ -423,9 +424,9 @@ class ServiceAuditFilesNotInDatabase {
    * @param string $filename
    *   The full pathname of the file to delete from the server.
    */
-  function _auditfiles_not_in_database_batch_delete_process_file($filename) {
+  public function auditfilesNotInDatabaseBatchDeleteProcessFile($filename) {
     $config = \Drupal::config('auditfiles_config.settings');
-    $file_system_stream = $config->get('auditfiles_file_system_path')?$config->get('auditfiles_file_system_path'):'public';
+    $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
     $real_files_path = drupal_realpath($file_system_stream . '://');
     if (file_unmanaged_delete($real_files_path . DIRECTORY_SEPARATOR . $filename)) {
       drupal_set_message(t('Sucessfully deleted %file from the server.', ['%file' => $filename]));

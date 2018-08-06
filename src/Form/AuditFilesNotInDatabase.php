@@ -122,7 +122,7 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
     $config = \Drupal::config('auditfiles_config.settings');
     // Get the records to display.
     // Check to see if there is saved data, and if so, use that.
-    $rows = \Drupal::service('auditfiles.not_in_database')->_auditfiles_not_in_database_get_reports_files();
+    $rows = \Drupal::service('auditfiles.not_in_database')->auditfilesNotInDatabaseGetReportsFiles();
     if (!empty($rows)) {
       // Set up the pager.
       $items_per_page = $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
@@ -151,7 +151,7 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
     // Create the form table.
     $form['files'] = [
       '#type' => 'tableselect',
-      '#header' => \Drupal::service('auditfiles.not_in_database')->_auditfiles_not_in_database_get_header(),
+      '#header' => \Drupal::service('auditfiles.not_in_database')->auditfilesNotInDatabaseGetHeader(),
       '#empty' => $this->t('No items found.'),
       '#prefix' => '<div><em>' . $form_count . '</em></div>',
     ];
@@ -245,10 +245,10 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
   public function confirmSubmissionHandler(array &$form, FormStateInterface $form_state) {
     $storage = &$form_state->getStorage();
     if ($storage['op'] == 'add') {
-      batch_set(\Drupal::service('auditfiles.not_in_database')->_auditfiles_not_in_database_batch_add_create_batch($form_state->getValue('changelist')));
+      batch_set(\Drupal::service('auditfiles.not_in_database')->auditfilesNotInDatabaseBatchAddCreateBatch($form_state->getValue('changelist')));
     }
     else {
-      batch_set(\Drupal::service('auditfiles.not_in_database')->_auditfiles_not_in_database_batch_delete_create_batch($form_state->getValue('changelist')));
+      batch_set(\Drupal::service('auditfiles.not_in_database')->auditfilesNotInDatabaseBatchDeleteCreateBatch($form_state->getValue('changelist')));
     }
   }
 
