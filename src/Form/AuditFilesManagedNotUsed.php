@@ -5,13 +5,13 @@ namespace Drupal\auditfiles\Form;
 use Drupal\Core\Form\ConfirmFormInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
-use Drupal\Core\Link;
 use Drupal\file\Entity\File;
 
+/**
+ * Form for Managed not used functionality.
+ */
 class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface {
 
   /**
@@ -103,7 +103,7 @@ class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface 
         '#type' => 'submit',
         '#value' => $this->getConfirmText(),
         '#button_type' => 'primary',
-        '#submit' => ['::confirmSubmissionHandlerFileDelete']
+        '#submit' => ['::confirmSubmissionHandlerFileDelete'],
       ];
       $form['actions']['cancel'] = ConfirmFormHelper::buildCancelLink($this, $this->getRequest());
       if (!isset($form['#theme'])) {
@@ -134,19 +134,19 @@ class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface 
       }
       else {
         $file_count_message = $this->t('Found @count files in the file_managed table that are not in the file_usage table.');
-      } 
+      }
       $form_count = $this->formatPlural(count($rows), $this->t('Found 1 file in the file_managed table that is not in the file_usage table.'), $file_count_message);
     }
     else {
       $form_count = $this->t('Found no files in the file_managed table that are not in the file_usage table.');
     }
     // Create the form table.
-    $form['files'] = array(
+    $form['files'] = [
       '#type' => 'tableselect',
       '#header' => \Drupal::service('auditfiles.managed_not_used')->auditfilesManagedNotUsedGetHeader(),
       '#empty' => $this->t('No items found.'),
       '#prefix' => '<div><em>' . $form_count . '</em></div>',
-    );
+    ];
     // Add the data.
     if (!empty($rows) && !empty($pages)) {
       $form['files']['#options'] = $pages[$current_page];
@@ -186,14 +186,14 @@ class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface 
           $storage = [
             'files' => $form_state->getValue('files'),
             'op' => 'del',
-            'confirm' => TRUE
+            'confirm' => TRUE,
           ];
-          $form_state->setStorage($storage);      
+          $form_state->setStorage($storage);
           $form_state->setRebuild();
         }
       }
       if (!isset($storage)) {
-        drupal_set_message($this->t('No items were selected to operate on.'), 'error');  
+        drupal_set_message($this->t('No items were selected to operate on.'), 'error');
       }
     }
   }
