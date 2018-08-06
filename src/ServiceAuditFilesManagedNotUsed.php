@@ -1,16 +1,10 @@
 <?php
 
-/**
- * @File providing the service that used in 'managed not used' functionality.
- * This will list all methods that used in managed not used functionality.
- */
-
 namespace Drupal\auditfiles;
 
 use Drupal\Core\Database\Database;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-
 
 /**
  * Service managed not used functions.
@@ -18,11 +12,13 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 class ServiceAuditFilesManagedNotUsed {
 
   use StringTranslationTrait;
-  
+
+  /**
+   * Define constructor for string translation.
+   */
   public function __construct(TranslationInterface $translation) {
     $this->stringTranslation = $translation;
   }
-
 
   /**
    * Retrieves the file IDs to operate on.
@@ -44,8 +40,10 @@ class ServiceAuditFilesManagedNotUsed {
   /**
    * Retrieves information about an individual file from the database.
    *
-   * @param int $file_id The ID of the file to prepare for display.
-   * @param int $date_format The Format of the date to prepare for display.
+   * @param int $file_id 
+   * The ID of the file to prepare for display.
+   * @param int $date_format 
+   *   The Format of the date to prepare for display.
    *
    * @return array
    *   The row for the table on the report, with the file's
@@ -63,7 +61,7 @@ class ServiceAuditFilesManagedNotUsed {
       'filemime',
       'filesize',
       'created',
-      'status'
+      'status',
     ]);
     $results = $query->execute()->fetchAll();
     $file = $results[0];
