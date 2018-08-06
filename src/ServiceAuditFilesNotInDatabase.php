@@ -3,14 +3,13 @@
 namespace Drupal\auditfiles;
 
 use Drupal\Core\Database\Database;
-use Drupal\Component\Utility\Html;
 use Drupal\user\Entity\User;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
- * define all methods that are used on Files not in database functionality.
+ * Define all methods that are used on Files not in database functionality.
  */
 class ServiceAuditFilesNotInDatabase {
 
@@ -269,7 +268,7 @@ class ServiceAuditFilesNotInDatabase {
    * @param string $file
    *   The name of the file being checked.
    * @param string $exclusions
-   *   The list of files and directories that are not to be included in the 
+   *   The list of files and directories that are not to be included in the
    *   list of files to check.
    *
    * @return bool
