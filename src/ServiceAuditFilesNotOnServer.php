@@ -1,28 +1,40 @@
 <?php
-/**
- * @file providing the service that used in not in database functionality.
- *
- */
-namespace  Drupal\auditfiles;
+
+namespace Drupal\auditfiles;
 
 use Drupal\Core\Database\Database;
 use Drupal\Component\Utility\Html;
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
+/**
+ * Providing the service that used in not in database functionality.
+ */
 class ServiceAuditFilesNotOnServer {
+
+  use StringTranslationTrait;
+
+  /**
+   * Define constructor for string translation.
+   */
+  public function __construct(TranslationInterface $translation) {
+    $this->stringTranslation = $translation;
+  }
+
   /**
    * Retrieves the file IDs to operate on.
    *
    * @return array
    *   The file IDs.
    */
-  function _auditfiles_not_on_server_get_file_list() {
+  public function auditfilesNotOnServerGetFileList() {
     $config = \Drupal::config('auditfiles_config.settings');
     $file_ids = [];
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
     $connection = Database::getConnection();
     $query = $connection->select('file_managed', 'fm');
     $query->range(0, $maximum_records);
-    $query->fields('fm', ['fid','uri']);
+    $query->fields('fm', ['fid', 'uri']);
     $results = $query->execute()->fetchAll();
     foreach ($results as $result) {
       $target = drupal_realpath($result->uri);
@@ -38,16 +50,27 @@ class ServiceAuditFilesNotOnServer {
    *
    * @param int $file_id
    *   The ID of the file to prepare for display.
+   * @param string $date_format
+   *   The Date format to prepair for display.
    *
    * @return array
-   *   The row for the table on the report, with the file's information formatted
-   *   for display.
+   *   The row for the table on the report, with the file's
+   *   information formatted for display.
    */
-  function _auditfiles_not_on_server_get_file_data($file_id, $date_format) {
+  public function auditfilesNotOnServerGetFileData($file_id, $date_format) {
     $connection = Database::getConnection();
     $query = $connection->select('file_managed', 'fm');
     $query->condition('fm.fid', $file_id);
-    $query->fields('fm', ['fid','uid','filename','uri','filemime','filesize','created','status']);
+    $query->fields('fm', [
+      'fid',
+      'uid',
+      'filename',
+      'uri',
+      'filemime',
+      'filesize',
+      'created',
+      'status',
+    ]);
     $results = $query->execute()->fetchAll();
     $file = $results[0];
     return [
@@ -69,34 +92,34 @@ class ServiceAuditFilesNotOnServer {
    * @return array
    *   The header to use.
    */
-  function _auditfiles_not_on_server_get_header() {
+  function auditfilesNotOnServerGetHeader() {
     return [
       'fid' => [
-        'data' => t('File ID'),
+        'data' => $this->t('File ID'),
       ],
       'uid' => [
-        'data' => t('User ID'),
+        'data' => $this->t('User ID'),
       ],
       'filename' => [
-        'data' => t('Name'),
+        'data' => $this->t('Name'),
       ],
       'uri' => [
-        'data' => t('URI'),
+        'data' => $this->t('URI'),
       ],
       'path' => [
-        'data' => t('Path'),
+        'data' => $this->t('Path'),
       ],
       'filemime' => [
-        'data' => t('MIME'),
+        'data' => $this->t('MIME'),
       ],
       'filesize' => [
-        'data' => t('Size'),
+        'data' => $this->t('Size'),
       ],
       'datetime' => [
-        'data' => t('When added'),
+        'data' => $this->t('When added'),
       ],
       'status' => [
-        'data' => t('Status'),
+        'data' => $this->t('Status'),
       ],
     ];
   }
@@ -110,11 +133,11 @@ class ServiceAuditFilesNotOnServer {
    * @return array
    *   The definition of the batch.
    */
-  function _auditfiles_not_on_server_batch_delete_create_batch(array $fileids) {
-    $batch['error_message'] = t('One or more errors were encountered processing the files.');
+  public function auditfilesNotOnServerBatchDeleteCeateBatch(array $fileids) {
+    $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
     $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::_auditfiles_not_on_server_batch_finish_batch';
-    $batch['progress_message'] = t('Completed @current of @total operations.');
-    $batch['title'] = t('Deleting files from the database');
+    $batch['progress_message'] = $this->t('Completed @current of @total operations.');
+    $batch['title'] = $this->t('Deleting files from the database');
     $operations = $file_ids = [];
     foreach ($fileids as $file_id) {
       if ($file_id != 0) {
@@ -137,22 +160,23 @@ class ServiceAuditFilesNotOnServer {
    * @param int $file_id
    *   The ID of the file to delete from the database.
    */
-  function _auditfiles_not_on_server_batch_delete_process_file($file_id) {
+  public function auditfilesNotOnServerBatchDeleteProcessFile($file_id) {
     $connection = Database::getConnection();
     $num_rows = $connection->delete('file_managed')
       ->condition('fid', $file_id)
       ->execute();
     if (empty($num_rows)) {
       drupal_set_message(
-        t(
+        $this->t(
           'There was a problem deleting the record with file ID %fid from the file_managed table. Check the logs for more information.',
           ['%fid' => $file_id]
         ),
         'warning'
       );
-    } else {
+    }
+    else {
       drupal_set_message(
-        t(  
+        $this->t(
           'Sucessfully deleted File ID : %fid from the file_managed table.',
           ['%fid' => $file_id]
         )

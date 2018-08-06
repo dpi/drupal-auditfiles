@@ -108,7 +108,7 @@ class AuditFilesBatchProcess {
    * the next.
    */
   public static function _auditfiles_not_on_server_batch_delete_process_batch($file_id, array &$context) {
-    \Drupal::service('auditfiles.not_on_server')->_auditfiles_not_on_server_batch_delete_process_file($file_id);
+    \Drupal::service('auditfiles.not_on_server')->auditfilesNotOnServerBatchDeleteProcessFile($file_id);
     $context['results'][] = $file_id;
     $context['message'] = t('Processed file ID %file_id.', ['%file_id' => $file_id]);
   }

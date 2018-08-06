@@ -29,7 +29,7 @@ class ServiceAuditFilesMergeFileReferences {
    * @return array
    *   The file IDs.
    */
-  function auditfilesMergeFileReferencesGetFileList() {
+  public function auditfilesMergeFileReferencesGetFileList() {
     $config = \Drupal::config('auditfiles_config.settings');
     $connection = Database::getConnection();
     $result_set = [];
@@ -67,7 +67,7 @@ class ServiceAuditFilesMergeFileReferences {
    * @param int $file_name
    *   The ID of the file to prepare for display.
    * @param string $date_format
-   *  The date format to prepair for display
+   *   The date format to prepair for display.
    *
    * @return array
    *   The row for the table on the report, with the file's
