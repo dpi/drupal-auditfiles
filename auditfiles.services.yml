@@ -7,6 +7,7 @@ services:
 
   auditfiles.managed_not_used:
     class: Drupal\auditfiles\ServiceAuditFilesManagedNotUsed
+    arguments: ['@string_translation']
 
   auditfiles.used_not_managed:
     class: Drupal\auditfiles\ServiceAuditFilesUsedNotManaged

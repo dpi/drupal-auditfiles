@@ -8,11 +8,21 @@
 namespace Drupal\auditfiles;
 
 use Drupal\Core\Database\Database;
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
+
 
 /**
  * Service managed not used functions.
  */
 class ServiceAuditFilesManagedNotUsed {
+
+  use StringTranslationTrait;
+  
+  public function __construct(TranslationInterface $translation) {
+    $this->stringTranslation = $translation;
+  }
+
 
   /**
    * Retrieves the file IDs to operate on.
@@ -79,31 +89,31 @@ class ServiceAuditFilesManagedNotUsed {
   public function auditfilesManagedNotUsedGetHeader() {
     return [
       'fid' => [
-        'data' => t('File ID'),
+        'data' => $this->t('File ID'),
       ],
       'uid' => [
-        'data' => t('User ID'),
+        'data' => $this->t('User ID'),
       ],
       'filename' => [
-        'data' => t('Name'),
+        'data' => $this->t('Name'),
       ],
       'uri' => [
-        'data' => t('URI'),
+        'data' => $this->t('URI'),
       ],
       'path' => [
-        'data' => t('Path'),
+        'data' => $this->t('Path'),
       ],
       'filemime' => [
-        'data' => t('MIME'),
+        'data' => $this->t('MIME'),
       ],
       'filesize' => [
-        'data' => t('Size'),
+        'data' => $this->t('Size'),
       ],
       'datetime' => [
-        'data' => t('When added'),
+        'data' => $this->t('When added'),
       ],
       'status' => [
-        'data' => t('Status'),
+        'data' => $this->t('Status'),
       ],
     ];
   }
@@ -112,10 +122,10 @@ class ServiceAuditFilesManagedNotUsed {
    * Batch process.
    */
   public function auditfilesManagedNotUsedBatchDeleteCreateBatch(array $fileids) {
-    $batch['error_message'] = t('One or more errors were encountered processing the files.');
+    $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
     $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::_auditfiles_managed_not_used_batch_finish_batch';
-    $batch['progress_message'] = t('Completed @current of @total operations.');
-    $batch['title'] = t('Deleting files from the file_managed table');
+    $batch['progress_message'] = $this->t('Completed @current of @total operations.');
+    $batch['title'] = $this->t('Deleting files from the file_managed table');
     $operations = $file_ids = [];
     foreach ($fileids as $file_id) {
       if ($file_id != 0) {
@@ -145,7 +155,7 @@ class ServiceAuditFilesManagedNotUsed {
       ->execute();
     if (empty($num_rows)) {
       drupal_set_message(
-        t(
+        $this->t(
           'There was a problem deleting the record with file ID %fid from the file_managed table. Check the logs for more information.',
           ['%fid' => $file_id]
         ),
@@ -154,7 +164,7 @@ class ServiceAuditFilesManagedNotUsed {
     }
     else {
       drupal_set_message(
-        t(
+        $this->t(
           'Sucessfully deleted File ID : %fid from the file_managed table.',
           ['%fid' => $file_id]
         )
