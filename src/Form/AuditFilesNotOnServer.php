@@ -5,14 +5,15 @@ namespace Drupal\auditfiles\Form;
 use Drupal\Core\Form\ConfirmFormInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
-use Drupal\Core\Link;
 use Drupal\file\Entity\File;
 
+/**
+ * Form for File not on server functionality.
+ */
 class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
+
   /**
    * Widget Id.
    */
@@ -68,12 +69,12 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = \Drupal::config('auditfiles_config.settings');
     $storage = &$form_state->getStorage();
-    if(isset($storage['confirm'])) {
+    if (isset($storage['confirm'])) {
       $values = $form_state->getValue('files');
       $form['changelist'] = [
-       '#prefix' => '<ul>',
-       '#suffix' => '</ul>',
-       '#tree' => TRUE,
+        '#prefix' => '<ul>',
+        '#suffix' => '</ul>',
+        '#tree' => TRUE,
       ];
       // Prepare the list of items to present to the user.
       if (!empty($values)) {
@@ -84,12 +85,12 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
               $form['changelist'][$file_id] = [
                 '#type' => 'hidden',
                 '#value' => $file_id,
-                '#prefix' => '<li><strong>' . $file->getFilename(). '</strong> ' . t('and all usages will be deleted from the database.'),
+                '#prefix' => '<li><strong>' . $file->getFilename() . '</strong> ' . $this->t('and all usages will be deleted from the database.'),
                 '#suffix' => "</li>\n",
               ];
             }
           }
-          else {          
+          else {
             unset($form_state->getValue('files')[$file_id]);
           }
         }
@@ -100,12 +101,12 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
       $form['actions'] = [
         '#type' => 'actions',
       ];
-    
+
       $form['actions']['submit'] = [
         '#type' => 'submit',
         '#value' => $this->getConfirmText(),
         '#button_type' => 'primary',
-        '#submit' => ['::confirmSubmissionHandlerDelete']
+        '#submit' => ['::confirmSubmissionHandlerDelete'],
       ];
 
       $form['actions']['cancel'] = ConfirmFormHelper::buildCancelLink($this, $this->getRequest());
@@ -117,17 +118,17 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
     }
     $file_ids = \Drupal::service('auditfiles.not_on_server')->_auditfiles_not_on_server_get_file_list();
     if (!empty($file_ids)) {
-      $date_format = $config->get('auditfiles_report_options_date_format')?$config->get('auditfiles_report_options_date_format'):'long';
+      $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
       foreach ($file_ids as $file_id) {
         $row = \Drupal::service('auditfiles.not_on_server')->_auditfiles_not_on_server_get_file_data($file_id, $date_format);
         if (isset($row)) {
           $rows[$file_id] = $row;
         }
       }
-    } 
+    }
     // Set up the pager.
     if (!empty($rows)) {
-      $items_per_page =  $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
+      $items_per_page = $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
       if (!empty($items_per_page)) {
         $current_page = pager_default_initialize(count($rows), $items_per_page);
         // Break the total data set into page sized chunks.
@@ -173,7 +174,7 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
         '#type' => 'submit',
         '#value' => t('Delete selected items from the database'),
         '#submit' => ['::submissionHandlerDeleteFromDb'],
-      ];  
+      ];
       $form['pager'] = ['#type' => 'pager'];
     }
     return $form;
@@ -183,7 +184,7 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
    * Submit form.
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-  
+
   }
 
   /**
@@ -196,14 +197,14 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
           $storage = [
             'files' => $form_state->getValue('files'),
             'op' => 'del',
-            'confirm' => TRUE
+            'confirm' => TRUE,
           ];
-          $form_state->setStorage($storage);      
+          $form_state->setStorage($storage);
           $form_state->setRebuild();
         }
-      } 
-      if(!isset($storage)) {
-        drupal_set_message($this->t('No items were selected to operate on.'), 'error');  
+      }
+      if (!isset($storage)) {
+        drupal_set_message($this->t('No items were selected to operate on.'), 'error');
       }
     }
   }
@@ -211,7 +212,7 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
   /**
    * Delete record from database confirm.
    */
-  public function  confirmSubmissionHandlerDelete(array &$form, FormStateInterface $form_state) {
+  public function confirmSubmissionHandlerDelete(array &$form, FormStateInterface $form_state) {
     batch_set(\Drupal::service('auditfiles.not_on_server')->_auditfiles_not_on_server_batch_delete_create_batch($form_state->getValue('changelist')));
   }
 
