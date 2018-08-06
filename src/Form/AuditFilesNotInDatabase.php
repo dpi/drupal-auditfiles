@@ -5,14 +5,14 @@ namespace Drupal\auditfiles\Form;
 use Drupal\Core\Form\ConfirmFormInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
-use Drupal\Core\Link;
 
+/**
+ * Form for Not in database functionality.
+ */
 class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
-  
+
   /**
    * Widget Id.
    */
@@ -47,6 +47,7 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
   public function getFormName() {
     return 'notInDatabase';
   }
+
   /**
    * {@inheritdoc}
    */
@@ -66,7 +67,7 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $storage = &$form_state->getStorage();
-    if(isset($storage['confirm'])) {
+    if (isset($storage['confirm'])) {
       $values = $form_state->getValue('files');
       $form['changelist'] = [
         '#prefix' => '<ul>',
@@ -109,18 +110,18 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
         '#type' => 'submit',
         '#value' => $this->getConfirmText(),
         '#button_type' => 'primary',
-        '#submit' => ['::confirmSubmissionHandler']
+        '#submit' => ['::confirmSubmissionHandler'],
       ];
       $form['actions']['cancel'] = ConfirmFormHelper::buildCancelLink($this, $this->getRequest());
       // By default, render the form using theme_confirm_form().
       if (!isset($form['#theme'])) {
         $form['#theme'] = 'confirm_form';
       }
-    return $form;
+      return $form;
     }
     $config = \Drupal::config('auditfiles_config.settings');
-    //Get the records to display.
-    //Check to see if there is saved data, and if so, use that.
+    // Get the records to display.
+    // Check to see if there is saved data, and if so, use that.
     $rows = \Drupal::service('auditfiles.not_in_database')->_auditfiles_not_in_database_get_reports_files();
     if (!empty($rows)) {
       // Set up the pager.
@@ -133,8 +134,8 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
     }
     // Define the form.
     // Setup the record count and related messages.
-    $maximum_records =  $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
-   // $form_count = '';
+    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
+    $form_count = '';
     if (!empty($rows)) {
       if ($maximum_records > 0) {
         $file_count_message = $this->t('Found at least @count files on the server that are not in the database.');
@@ -173,8 +174,9 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
         '#value' => $this->t('Add selected items to the database'),
         '#submit' => ['::submissionHandlerAddRecord'],
       ];
+      $text = $this->t('or');
       $form['actions']['markup'] = [
-        '#markup' => '&nbsp;' . $this->t('or') . '&nbsp;',
+        '#markup' => '&nbsp;' . $text . '&nbsp;',
       ];
       $form['actions']['delete'] = [
         '#type' => 'submit',
@@ -183,7 +185,7 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
       ];
       $form['pager'] = ['#type' => 'pager'];
     }
-  return $form;
+    return $form;
   }
 
   /**
@@ -203,14 +205,14 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
           $storage = [
             'files' => $form_state->getValue('files'),
             'op' => 'add',
-            'confirm' => TRUE
+            'confirm' => TRUE,
           ];
-          $form_state->setStorage($storage);      
+          $form_state->setStorage($storage);
           $form_state->setRebuild();
         }
-      } 
-      if(!isset($storage)) {
-        drupal_set_message($this->t('No items were selected to operate Add.'),'error');  
+      }
+      if (!isset($storage)) {
+        drupal_set_message($this->t('No items were selected to operate Add.'), 'error');
       }
     }
   }
@@ -225,14 +227,14 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
           $storage = [
             'files' => $form_state->getValue('files'),
             'op' => 'delete',
-            'confirm' => TRUE
+            'confirm' => TRUE,
           ];
-          $form_state->setStorage($storage);      
+          $form_state->setStorage($storage);
           $form_state->setRebuild();
         }
       }
       if (!isset($storage)) {
-        drupal_set_message($this->t('No items were selected to operate Delete.'), 'error');  
+        drupal_set_message($this->t('No items were selected to operate Delete.'), 'error');
       }
     }
   }
@@ -242,7 +244,7 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
    */
   public function confirmSubmissionHandler(array &$form, FormStateInterface $form_state) {
     $storage = &$form_state->getStorage();
-    if ($storage['op'] == 'add') {   
+    if ($storage['op'] == 'add') {
       batch_set(\Drupal::service('auditfiles.not_in_database')->_auditfiles_not_in_database_batch_add_create_batch($form_state->getValue('changelist')));
     }
     else {
