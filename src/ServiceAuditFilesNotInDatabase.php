@@ -6,16 +6,27 @@ use Drupal\Core\Database\Database;
 use Drupal\Component\Utility\Html;
 use Drupal\user\Entity\User;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * define all methods that are used on Files not in database functionality.
  */
 class ServiceAuditFilesNotInDatabase {
 
+  use StringTranslationTrait;
+
+  /**
+   * Define constructor for string translation.
+   */
+  public function __construct(TranslationInterface $translation) {
+    $this->stringTranslation = $translation;
+  }
+
   /**
    * Get the files that are not in database.
    */
-  function auditfilesNotInDatabaseGetReportsFiles() {
+  public function auditfilesNotInDatabaseGetReportsFiles() {
     $config = \Drupal::config('auditfiles_config.settings');
     $report_files = [];
     $reported_files = [];
@@ -190,7 +201,7 @@ class ServiceAuditFilesNotInDatabase {
    * @return string
    *   The corrected path.
    */
-  function auditfilesNotInDatabaseFixPathSeparators($path) {
+  public function auditfilesNotInDatabaseFixPathSeparators($path) {
     $path = preg_replace('@\/\/@', DIRECTORY_SEPARATOR, $path);
     $path = preg_replace('@\\\\@', DIRECTORY_SEPARATOR, $path);
     return $path;
@@ -288,16 +299,16 @@ class ServiceAuditFilesNotInDatabase {
   public function auditfilesNotInDatabaseGetHeader() {
     return [
       'filepathname' => [
-        'data' => t('File pathname'),
+        'data' => $this->t('File pathname'),
       ],
       'filemime' => [
-        'data' => t('MIME'),
+        'data' => $this->t('MIME'),
       ],
       'filesize' => [
-        'data' => t('Size (in bytes)'),
+        'data' => $this->t('Size (in bytes)'),
       ],
       'filemodtime' => [
-        'data' => t('Last modified'),
+        'data' => $this->t('Last modified'),
       ],
     ];
   }
@@ -312,10 +323,10 @@ class ServiceAuditFilesNotInDatabase {
    *   The definition of the batch.
    */
   public function auditfilesNotInDatabaseBatchAddCreateBatch(array $fileids) {
-    $batch['title'] = t('Adding files to Drupal file management');
-    $batch['error_message'] = t('One or more errors were encountered processing the files.');
+    $batch['title'] = $this->t('Adding files to Drupal file management');
+    $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
     $batch['finished'] = "\Drupal\auditfiles\AuditFilesBatchProcess::auditfiles_not_in_database_batch_finish_batch";
-    $batch['progress_message'] = t('Completed @current of @total operations.');
+    $batch['progress_message'] = $this->t('Completed @current of @total operations.');
     $operations = [];
     $file_ids = [];
     foreach ($fileids as $file_id) {
@@ -396,11 +407,11 @@ class ServiceAuditFilesNotInDatabase {
    *   The definition of the batch.
    */
   public function auditfilesNotInDatabaseBatchDeleteCreateBatch(array $file_names) {
-    $batch['title'] = t('Adding files to Drupal file management');
-    $batch['error_message'] = t('One or more errors were encountered processing the files.');
+    $batch['title'] = $this->t('Adding files to Drupal file management');
+    $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
     $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfiles_not_in_database_batch_finish_batch';
-    $batch['progress_message'] = t('Completed @current of @total operations.');
-    $batch['title'] = t('Deleting files from the server');
+    $batch['progress_message'] = $this->t('Completed @current of @total operations.');
+    $batch['title'] = $this->t('Deleting files from the server');
     $operations = [];
     $filenames = [];
     foreach ($file_names as $file_name) {
