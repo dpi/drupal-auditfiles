@@ -1,6 +1,7 @@
 services:
   auditfiles.not_in_database:
     class: Drupal\auditfiles\ServiceAuditFilesNotInDatabase
+    arguments: ['@string_translation']
 
   auditfiles.not_on_server:
     class: Drupal\auditfiles\ServiceAuditFilesNotOnServer
