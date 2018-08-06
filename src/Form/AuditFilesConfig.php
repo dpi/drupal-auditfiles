@@ -5,6 +5,7 @@ namespace Drupal\auditfiles\Form;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Datetime\Entity\DateFormat;
+use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 
 /**
  * Use this class to create configuration form for module.
@@ -36,7 +37,7 @@ class AuditFilesConfig extends ConfigFormBase {
       '#collapsible' => TRUE,
     ];
     // Show the file system path select list.
-    $file_system_paths = \Drupal::service("stream_wrapper_manager")->getWrappers(\Drupal\Core\StreamWrapper\StreamWrapperInterface::LOCAL);
+    $file_system_paths = \Drupal::service("stream_wrapper_manager")->getWrappers(StreamWrapperInterface::LOCAL);
     $options = [];
     foreach ($file_system_paths as $file_system_path_id => $file_system_path) {
       $options[$file_system_path_id] = $file_system_path_id . ' : file_' . $file_system_path_id . '_path';
