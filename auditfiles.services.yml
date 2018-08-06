@@ -4,6 +4,7 @@ services:
 
   auditfiles.not_on_server:
     class: Drupal\auditfiles\ServiceAuditFilesNotOnServer
+    arguments: ['@string_translation']
 
   auditfiles.managed_not_used:
     class: Drupal\auditfiles\ServiceAuditFilesManagedNotUsed
@@ -20,3 +21,4 @@ services:
 
   auditfiles.merge_file_references:
     class: Drupal\auditfiles\ServiceAuditFilesMergeFileReferences
+    arguments: ['@string_translation']
