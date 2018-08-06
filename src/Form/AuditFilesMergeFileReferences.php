@@ -5,13 +5,13 @@ namespace Drupal\auditfiles\Form;
 use Drupal\Core\Form\ConfirmFormInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
-use Drupal\Core\Link;
 use Drupal\Core\Database\Database;
 
+/**
+ * Form for merge file references.
+ */
 class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInterface {
 
   /**
@@ -71,7 +71,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
     $connection = Database::getConnection();
     $storage = $form_state->getStorage();
     $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
-    if(isset($storage['confirm'])) {
+    if (isset($storage['confirm'])) {
       if ($storage['stage'] == 'confirm') {
         $header = [
           'origname' => [
@@ -92,11 +92,20 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
         ];
         $files = [];
         $values = $form_state->getValue('files_being_merged');
-        foreach ( $values as $file_id) {
+        foreach( $values as $file_id) {
           if (!empty($file_id)) {
             $query = $connection->select('file_managed', 'fm');
             $query->condition('fm.fid', $file_id);
-            $query->fields('fm', ['fid','uid','filename','uri','filemime','filesize','created','status']);
+            $query->fields('fm', [
+              'fid',
+              'uid',
+              'filename',
+              'uri',
+              'filemime',
+              'filesize',
+              'created',
+              'status',
+            ]);
             $results = $query->execute()->fetchAll();
             $file = $results[0];
             if (!empty($file)) {
@@ -136,7 +145,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
           '#type' => 'submit',
           '#value' => $this->getConfirmText(),
           '#button_type' => 'primary',
-          '#submit' => ['::confirmSubmissionHandlerFileMerge']
+          '#submit' => ['::confirmSubmissionHandlerFileMerge'],
         ];
         $form['actions']['cancel'] = ConfirmFormHelper::buildCancelLink($this, $this->getRequest());
         if (!isset($form['#theme'])) {
@@ -144,7 +153,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
         }
         return $form;
       }
-      else if ($storage['stage'] == 'preconfirm') {
+      elseif ($storage['stage'] == 'preconfirm') {
         $header = [
           'filename' => [
             'data' => $this->t('Filename'),
@@ -172,7 +181,16 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
               foreach ($results as $result) {
                 $query = $connection->select('file_managed', 'fm');
                 $query->condition('fm.fid', $result->fid);
-                $query->fields('fm', ['fid','uid','filename','uri','filemime','filesize','created','status']);
+                $query->fields('fm', [
+                  'fid',
+                  'uid',
+                  'filename',
+                  'uri',
+                  'filemime',
+                  'filesize',
+                  'created',
+                  'status',
+                ]);
                 $results = $query->execute()->fetchAll();
                 $file = $results[0];
                 if (!empty($file)) {
@@ -222,7 +240,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
     }
     // Set up the pager.
     if (!empty($rows)) {
-      $items_per_page =  $config->get('auditfiles_report_options_items_per_page')?$config->get('auditfiles_report_options_items_per_page'):50;
+      $items_per_page =  $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
       if (!empty($items_per_page)) {
         $current_page = pager_default_initialize(count($rows), $items_per_page);
         // Break the total data set into page sized chunks.
@@ -230,7 +248,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
       }
     }
     // Setup the record count and related messages.
-    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records'):250;
+    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
     if (!empty($rows)) {
       if ($maximum_records > 0) {
         $file_count_message = 'Found at least @count files in the file_managed table with duplicate file names.';
@@ -246,7 +264,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
     $form['filter']['single_file_names']['auditfiles_merge_file_references_show_single_file_names'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Show files without duplicate names'),
-      '#default_value' => $config->get('auditfiles_merge_file_references_show_single_file_names')?$config->get('auditfiles_merge_file_references_show_single_file_names'):0,
+      '#default_value' => $config->get('auditfiles_merge_file_references_show_single_file_names') ? $config->get('auditfiles_merge_file_references_show_single_file_names') : 0,
       '#suffix' => '<div>' . $this->t("Use this button to reset this report's variables and load the page anew.") . '</div>',
     ];
     $form['files'] = [
@@ -279,9 +297,9 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
   /**
    * Form validation.
    */
-  public function validateForm (array &$form, FormStateInterface $form_state) {
+  public function validateForm(array &$form, FormStateInterface $form_state) {
     $storage = $form_state->getStorage();
-    if(isset($storage['confirm'])) {
+    if (isset($storage['confirm'])) {
       if ($storage['stage'] == 'preconfirm') {
         $counter = 0;
         foreach ($form_state->getValue('files_being_merged') as $file) {
@@ -316,12 +334,12 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
             'confirm' => TRUE,
             'stage' => 'preconfirm',
           ];
-          $form_state->setStorage($storage);      
+          $form_state->setStorage($storage);
           $form_state->setRebuild();
         }
       }
-      if(!isset($storage)) {
-        drupal_set_message($this->t('At least one file name must be selected in order to merge the file IDs. No changes were made.'),'error');  
+      if (!isset($storage)) {
+        drupal_set_message($this->t('At least one file name must be selected in order to merge the file IDs. No changes were made.'), 'error');
       }
     }
   }
@@ -338,7 +356,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
             'confirm' => TRUE,
             'stage' => 'confirm',
           ];
-          $form_state->setStorage($storage);      
+          $form_state->setStorage($storage);
           $form_state->setRebuild();
         }
       }
@@ -350,7 +368,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
    */
   public function confirmSubmissionHandlerFileMerge(array &$form, FormStateInterface $form_state) {
     $storage = $form_state->getStorage();
-    batch_set(\Drupal::service('auditfiles.merge_file_references')->_auditfiles_merge_file_references_batch_merge_create_batch($form_state->getValue('file_being_kept'),$storage['files_being_merged']));
+    batch_set(\Drupal::service('auditfiles.merge_file_references')->_auditfiles_merge_file_references_batch_merge_create_batch($form_state->getValue('file_being_kept'), $storage['files_being_merged']));
     unset($storage['stage']);
   }
 
