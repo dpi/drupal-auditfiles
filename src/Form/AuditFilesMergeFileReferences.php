@@ -92,7 +92,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
         ];
         $files = [];
         $values = $form_state->getValue('files_being_merged');
-        foreach( $values as $file_id) {
+        foreach ($values as $file_id) {
           if (!empty($file_id)) {
             $query = $connection->select('file_managed', 'fm');
             $query->condition('fm.fid', $file_id);
@@ -240,7 +240,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
     }
     // Set up the pager.
     if (!empty($rows)) {
-      $items_per_page =  $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
+      $items_per_page = $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
       if (!empty($items_per_page)) {
         $current_page = pager_default_initialize(count($rows), $items_per_page);
         // Break the total data set into page sized chunks.
