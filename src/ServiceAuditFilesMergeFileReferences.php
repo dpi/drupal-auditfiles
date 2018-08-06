@@ -1,24 +1,35 @@
 <?php
-  /**
-   * @file providing the service that used in 'managed not used' functionality.
-   *
-   */
-namespace  Drupal\auditfiles;
+
+namespace Drupal\auditfiles;
 
 use Drupal\Core\Database\Database;
-use Drupal\Component\Utility\Html;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\file\Entity\File;
 use Drupal\Component\Render\FormattableMarkup;
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
+/**
+ * Define all methods that used in merge file references functionality.
+ */
 class ServiceAuditFilesMergeFileReferences {
+
+  use StringTranslationTrait;
+
+  /**
+   * Define constructor for string translation.
+   */
+  public function __construct(TranslationInterface $translation) {
+    $this->stringTranslation = $translation;
+  }
+
   /**
    * Retrieves the file IDs to operate on.
    *
    * @return array
    *   The file IDs.
    */
-  function _auditfiles_merge_file_references_get_file_list() {
+  function auditfilesMergeFileReferencesGetFileList() {
     $config = \Drupal::config('auditfiles_config.settings');
     $connection = Database::getConnection();
     $result_set = [];
@@ -28,7 +39,7 @@ class ServiceAuditFilesMergeFileReferences {
       $query .= ' LIMIT ' . $maximum_records;
     }
     $files = $connection->query($query)->fetchAllKeyed();
-    $show_single_file_names = $config->get('auditfiles_merge_file_references_show_single_file_names') ? $config->get('auditfiles_merge_file_references_show_single_file_names'): 0;
+    $show_single_file_names = $config->get('auditfiles_merge_file_references_show_single_file_names') ? $config->get('auditfiles_merge_file_references_show_single_file_names') : 0;
     foreach ($files as $file_id => $file_name) {
       if ($show_single_file_names) {
         $result_set[] = $file_name;
@@ -55,32 +66,43 @@ class ServiceAuditFilesMergeFileReferences {
    *
    * @param int $file_name
    *   The ID of the file to prepare for display.
+   * @param string $date_format
+   *  The date format to prepair for display
    *
    * @return array
-   *   The row for the table on the report, with the file's information formatted
-   *   for display.
+   *   The row for the table on the report, with the file's
+   *   information formatted for display.
    */
-  function _auditfiles_merge_file_references_get_file_data($file_name, $date_format) {
+  public function auditfilesMergeFileReferencesGetFileData($file_name, $date_format) {
     $config = \Drupal::config('auditfiles_config.settings');
     $connection = Database::getConnection();
     $fid_query = 'SELECT fid FROM {file_managed} WHERE filename = :filename';
     $fid_results = $connection->query($fid_query, [':filename' => $file_name])->fetchAll();
     if (count($fid_results) > 0) {
       $fid_header = [
-        t('File ID'),
-        t('URI'),
-        t('Size (in bytes)'),
-        t('Date'),
+        $this->t('File ID'),
+        $this->t('URI'),
+        $this->t('Size (in bytes)'),
+        $this->t('Date'),
       ];
       $fid_rows = [];
       $references = '<ul>';
-      foreach ($fid_results as $fid_result) {     
+      foreach ($fid_results as $fid_result) {
         $query = $connection->select('file_managed', 'fm');
         $query->condition('fm.fid', $fid_result->fid);
-        $query->fields('fm', ['fid','uid','filename','uri','filemime','filesize','created','status']);
+        $query->fields('fm', [
+          'fid',
+          'uid',
+          'filename',
+          'uri',
+          'filemime',
+          'filesize',
+          'created',
+          'status',
+        ]);
         $results = $query->execute()->fetchAll();
-        $file = $results[0];  
-        $references .= '<li>' . t('<strong>Fid: </strong> %id , <strong>Name : </strong> %file , <strong>File URI: </strong> %uri , <strong>Date: </strong> %date',
+        $file = $results[0];
+        $references .= '<li>' . $this->t('<strong>Fid: </strong> %id , <strong>Name : </strong> %file , <strong>File URI: </strong> %uri , <strong>Date: </strong> %date',
           [
             '%id' => $file->fid,
             '%file' => $file->filename,
@@ -90,7 +112,7 @@ class ServiceAuditFilesMergeFileReferences {
         ) . '</li>';
       }
       $references .= '</ul>';
-      $usage = new FormattableMarkup($references,[]);
+      $usage = new FormattableMarkup($references, []);
       return [
         'filename' => $file_name,
         'references' => $usage,
@@ -104,13 +126,13 @@ class ServiceAuditFilesMergeFileReferences {
    * @return array
    *   The header to use.
    */
-  function _auditfiles_merge_file_references_get_header() {
+  public function auditfilesMergeFileReferencesGetHeader() {
     return [
       'filename' => [
-        'data' => t('Name'),
+        'data' => $this->t('Name'),
       ],
       'references' => [
-        'data' => t('File IDs using the filename'),
+        'data' => $this->t('File IDs using the filename'),
       ],
     ];
   }
@@ -126,11 +148,11 @@ class ServiceAuditFilesMergeFileReferences {
    * @return array
    *   The definition of the batch.
    */
-  function _auditfiles_merge_file_references_batch_merge_create_batch($file_being_kept, array $files_being_merged) {
-    $batch['error_message'] = t('One or more errors were encountered processing the files.');
+  public function auditfilesMergeFileReferencesBatchMergeCreateBatch($file_being_kept, array $files_being_merged) {
+    $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
     $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::_auditfiles_merge_file_references_batch_finish_batch';
-    $batch['progress_message'] = t('Completed @current of @total operations.');
-    $batch['title'] = t('Merging files');
+    $batch['progress_message'] = $this->t('Completed @current of @total operations.');
+    $batch['title'] = $this->t('Merging files');
     $operations = $file_ids = [];
     foreach ($files_being_merged as $file_id => $file_info) {
       if ($file_id != 0) {
@@ -160,7 +182,7 @@ class ServiceAuditFilesMergeFileReferences {
    * @param int $file_being_merged
    *   The file ID of the file to merge.
    */
-  function _auditfiles_merge_file_references_batch_merge_process_file($file_being_kept, $file_being_merged) {
+  public function auditfilesMergeFileReferencesBatchMergeProcessFile($file_being_kept, $file_being_merged) {
     $connection = Database::getConnection();
     $file_being_kept_results = $connection->select('file_usage', 'fu')
       ->fields('fu', ['module', 'type', 'id', 'count'])
@@ -168,7 +190,7 @@ class ServiceAuditFilesMergeFileReferences {
       ->execute()
       ->fetchAll();
     if (empty($file_being_kept_results)) {
-      $message = t('There was no file usage data found for the file you choose to keep. No changes were made.');
+      $message = $this->t('There was no file usage data found for the file you choose to keep. No changes were made.');
       drupal_set_message($message, 'warning');
       return;
     }
@@ -180,12 +202,12 @@ class ServiceAuditFilesMergeFileReferences {
       ->fetchAll();
     $file_being_kept_name = reset($file_being_kept_name_results);
     $file_being_merged_results = $connection->select('file_usage', 'fu')
-    ->fields('fu', ['module', 'type', 'id', 'count'])
-    ->condition('fid', $file_being_merged)
-    ->execute()
-    ->fetchAll();
+      ->fields('fu', ['module', 'type', 'id', 'count'])
+      ->condition('fid', $file_being_merged)
+      ->execute()
+      ->fetchAll();
     if (empty($file_being_merged_results)) {
-      $message = t(
+      $message = $this->t(
         'There was an error retrieving the file usage data from the database for file ID %fid. Please check the files in one of the other reports. No changes were made for this file.',
         ['%fid' => $file_being_merged]
       );
@@ -194,17 +216,17 @@ class ServiceAuditFilesMergeFileReferences {
     }
     $file_being_merged_data = reset($file_being_merged_results);
     $file_being_merged_uri_results = $connection->select('file_managed', 'fm')
-    ->fields('fm', ['uri'])
-    ->condition('fid', $file_being_merged)
-    ->execute()
-    ->fetchAll();
+      ->fields('fm', ['uri'])
+      ->condition('fid', $file_being_merged)
+      ->execute()
+      ->fetchAll();
     $file_being_merged_uri = reset($file_being_merged_uri_results);
     if ($file_being_kept_data->id == $file_being_merged_data->id) {
       $file_being_kept_data->count += $file_being_merged_data->count;
       // Delete the unnecessary entry from the file_usage table.
       $connection->delete('file_usage')
         ->condition('fid', $file_being_merged)
-      ->execute();
+        ->execute();
       // Update the entry for the file being kept.
       $connection->update('file_usage')
         ->fields(['count' => $file_being_kept_data->count])
@@ -212,7 +234,7 @@ class ServiceAuditFilesMergeFileReferences {
         ->condition('module', $file_being_kept_data->module)
         ->condition('type', $file_being_kept_data->type)
         ->condition('id', $file_being_kept_data->id)
-      ->execute();
+        ->execute();
     }
     else {
       $connection->update('file_usage')
@@ -221,14 +243,14 @@ class ServiceAuditFilesMergeFileReferences {
         ->condition('module', $file_being_merged_data->module)
         ->condition('type', $file_being_merged_data->type)
         ->condition('id', $file_being_merged_data->id)
-      ->execute();
+        ->execute();
       // Update any fields that might be pointing to the file being merged.
-      $this->_auditfiles_merge_file_references_update_file_fields($file_being_kept, $file_being_merged);
+      $this->auditfilesMergeFileReferencesUpdateFileFields($file_being_kept, $file_being_merged);
     }
     // Delete the unnecessary entries from the file_managed table.
     $connection->delete('file_managed')
       ->condition('fid', $file_being_merged)
-    ->execute();
+      ->execute();
     // Delete the duplicate file.
     if (!empty($file_being_merged_uri->uri)) {
       file_unmanaged_delete($file_being_merged_uri->uri);
@@ -243,7 +265,7 @@ class ServiceAuditFilesMergeFileReferences {
    * @param int $file_being_merged
    *   The file ID of the file to merge.
    */
-  function _auditfiles_merge_file_references_update_file_fields($file_being_kept, $file_being_merged) {
+  public function auditfilesMergeFileReferencesUpdateFileFields($file_being_kept, $file_being_merged) {
     $connection = Database::getConnection();
     // Get any fields that might be referencing this file being merged.
     $file_being_merged_fields = file_get_file_references(File::load($file_being_merged), NULL, EntityStorageInterface::FIELD_LOAD_REVISION, NULL);
@@ -254,12 +276,12 @@ class ServiceAuditFilesMergeFileReferences {
       foreach ($field_references as $entity_type => $type_references) {
         foreach ($type_references as $id => $reference) {
           $entity = \Drupal::entityTypeManager()->getStorage($entity_type)->load($id);
-          if ($entity) {	
+          if ($entity) {
             $field_items = $entity->get($field_name)->getValue();
             $alt = $field_items[0]['alt'];
-            $title = $field_items[0]['title'] ? $field_items[0]['title']: '';
+            $title = $field_items[0]['title'] ? $field_items[0]['title'] : '';
             foreach ($field_items as $item_id => $item) {
-              if ($item['target_id'] == $file_being_merged) {          	
+              if ($item['target_id'] == $file_being_merged) {
                 $file_object_being_kept = File::load($file_being_kept);
                 foreach ($entity->get($field_name)->getValue() as $key => $value) {
                   if (!empty($file_object_being_kept) && $entity->get($field_name)->getValue() != $file_being_kept) {
@@ -279,5 +301,5 @@ class ServiceAuditFilesMergeFileReferences {
       }
     }
   }
-  
+
 }

@@ -231,11 +231,11 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
         return $form;
       }
     }
-    $file_names = \Drupal::service('auditfiles.merge_file_references')->_auditfiles_merge_file_references_get_file_list();
+    $file_names = \Drupal::service('auditfiles.merge_file_references')->auditfilesMergeFileReferencesGetFileList();
     if (!empty($file_names)) {
       $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
       foreach ($file_names as $file_name) {
-        $rows[$file_name] = \Drupal::service('auditfiles.merge_file_references')->_auditfiles_merge_file_references_get_file_data($file_name, $date_format);
+        $rows[$file_name] = \Drupal::service('auditfiles.merge_file_references')->auditfilesMergeFileReferencesGetFileData($file_name, $date_format);
       }
     }
     // Set up the pager.
@@ -269,7 +269,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
     ];
     $form['files'] = [
       '#type' => 'tableselect',
-      '#header' => \Drupal::service('auditfiles.merge_file_references')->_auditfiles_merge_file_references_get_header(),
+      '#header' => \Drupal::service('auditfiles.merge_file_references')->auditfilesMergeFileReferencesGetHeader(),
       '#empty' => $this->t('No items found.'),
       '#prefix' => '<div><em>' . $form_count . '</em></div>',
     ];
@@ -368,7 +368,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
    */
   public function confirmSubmissionHandlerFileMerge(array &$form, FormStateInterface $form_state) {
     $storage = $form_state->getStorage();
-    batch_set(\Drupal::service('auditfiles.merge_file_references')->_auditfiles_merge_file_references_batch_merge_create_batch($form_state->getValue('file_being_kept'), $storage['files_being_merged']));
+    batch_set(\Drupal::service('auditfiles.merge_file_references')->auditfilesMergeFileReferencesBatchMergeCreateBatch($form_state->getValue('file_being_kept'), $storage['files_being_merged']));
     unset($storage['stage']);
   }
 

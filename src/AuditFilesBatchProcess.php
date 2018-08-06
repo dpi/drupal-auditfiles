@@ -267,7 +267,7 @@ class AuditFilesBatchProcess {
    *   to the next.
    */
   public static function _auditfiles_merge_file_references_batch_merge_process_batch($file_being_kept, $file_being_merged, array &$context) {
-    \Drupal::service('auditfiles.merge_file_references')->_auditfiles_merge_file_references_batch_merge_process_file($file_being_kept, $file_being_merged);
+    \Drupal::service('auditfiles.merge_file_references')->auditfilesMergeFileReferencesBatchMergeProcessFile($file_being_kept, $file_being_merged);
     $context['results'][] = $file_being_merged;
     $context['message'] = t(
       'Merged file ID %file_being_merged into file ID %file_being_kept.',
