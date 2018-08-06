@@ -112,11 +112,11 @@ class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface 
       return $form;
     }
     $config = \Drupal::config('auditfiles_config.settings');
-    $file_ids = \Drupal::service('auditfiles.managed_not_used')->_auditfiles_managed_not_used_get_file_list();
+    $file_ids = \Drupal::service('auditfiles.managed_not_used')->auditfilesManagedNotUsedGetFileList();
     if (!empty($file_ids)) {
       $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
       foreach ($file_ids as $file_id) {
-        $rows[$file_id] = \Drupal::service('auditfiles.managed_not_used')->_auditfiles_managed_not_used_get_file_data($file_id, $date_format);
+        $rows[$file_id] = \Drupal::service('auditfiles.managed_not_used')->auditfilesManagedNotUsedGetFileData($file_id, $date_format);
       }
     }
     if (!empty($rows)) {
@@ -143,7 +143,7 @@ class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface 
     // Create the form table.
     $form['files'] = array(
       '#type' => 'tableselect',
-      '#header' => \Drupal::service('auditfiles.managed_not_used')->_auditfiles_managed_not_used_get_header(),
+      '#header' => \Drupal::service('auditfiles.managed_not_used')->auditfilesManagedNotUsedGetHeader(),
       '#empty' => $this->t('No items found.'),
       '#prefix' => '<div><em>' . $form_count . '</em></div>',
     );
@@ -202,7 +202,7 @@ class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface 
    * Submit form confirm delete record.
    */
   public function confirmSubmissionHandlerFileDelete(array &$form, FormStateInterface $form_state) {
-    batch_set(\Drupal::service('auditfiles.managed_not_used')->_auditfiles_managed_not_used_batch_delete_create_batch($form_state->getValue('changelist')));
+    batch_set(\Drupal::service('auditfiles.managed_not_used')->auditfilesManagedNotUsedBatchDeleteCreateBatch($form_state->getValue('changelist')));
   }
 
 }

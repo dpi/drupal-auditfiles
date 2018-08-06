@@ -1,21 +1,24 @@
 <?php
+
 /**
-* @file providing the service that used in 'managed not used' functionality.
-*
-*/
-namespace  Drupal\auditfiles;
+ * @File providing the service that used in 'managed not used' functionality.
+ */
+namespace Drupal\auditfiles;
 
 use Drupal\Core\Database\Database;
-use Drupal\Component\Utility\Html;
 
+/**
+ * Service managed not used functions.
+ */
 class ServiceAuditFilesManagedNotUsed {
+
   /**
    * Retrieves the file IDs to operate on.
    *
    * @return array
    *   The file IDs.
    */
-  function _auditfiles_managed_not_used_get_file_list() {
+  function auditfilesManagedNotUsedGetFileList() {
     $config = \Drupal::config('auditfiles_config.settings');
     $connection = Database::getConnection();
     $query = 'SELECT fid FROM {file_managed} WHERE fid NOT IN (SELECT fid FROM {file_usage})';
@@ -32,15 +35,18 @@ class ServiceAuditFilesManagedNotUsed {
    * @param int $file_id
    *   The ID of the file to prepare for display.
    *
+   * @param int $date_format
+   *   The Format of the date to prepare for display.
+   *
    * @return array
-   *   The row for the table on the report, with the file's information formatted
-   *   for display.
+   *   The row for the table on the report, with the file's
+   *   information formatted for display.
    */
-  function _auditfiles_managed_not_used_get_file_data($file_id, $date_format) {
+  function auditfilesManagedNotUsedGetFileData($file_id, $date_format) {
     $connection = Database::getConnection();
     $query = $connection->select('file_managed', 'fm');
     $query->condition('fm.fid', $file_id);
-    $query->fields('fm', ['fid','uid','filename','uri','filemime','filesize','created','status']);
+    $query->fields('fm', ['fid', 'uid', 'filename', 'uri', 'filemime', 'filesize', 'created', 'status']);
     $results = $query->execute()->fetchAll();
     $file = $results[0];
     return [
@@ -62,7 +68,7 @@ class ServiceAuditFilesManagedNotUsed {
    * @return array
    *   The header to use.
    */
-  function _auditfiles_managed_not_used_get_header() {
+  function auditfilesManagedNotUsedGetHeader() {
     return [
       'fid' => [
         'data' => t('File ID'),
@@ -95,9 +101,9 @@ class ServiceAuditFilesManagedNotUsed {
   }
 
   /**
-   * Batch process
+   * Batch process.
    */
-  function _auditfiles_managed_not_used_batch_delete_create_batch(array $fileids) {
+  function auditfilesManagedNotUsedBatchDeleteCreateBatch(array $fileids) {
     $batch['error_message'] = t('One or more errors were encountered processing the files.');
     $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::_auditfiles_managed_not_used_batch_finish_batch';
     $batch['progress_message'] = t('Completed @current of @total operations.');
@@ -124,11 +130,11 @@ class ServiceAuditFilesManagedNotUsed {
    * @param int $file_id
    *   The ID of the file to delete from the database.
    */
-  function _auditfiles_managed_not_used_batch_delete_process_file($file_id) {
+  function auditfilesManagedNotUsedBatchDeleteProcessFile($file_id) {
     $connection = Database::getConnection();
     $num_rows = $connection->delete('file_managed')
       ->condition('fid', $file_id)
-    ->execute();
+      ->execute();
     if (empty($num_rows)) {
       drupal_set_message(
         t(
@@ -137,9 +143,10 @@ class ServiceAuditFilesManagedNotUsed {
         ),
         'warning'
       );
-    } else {
-        drupal_set_message(
-        t(  
+    }
+    else {
+      drupal_set_message(
+        t(
           'Sucessfully deleted File ID : %fid from the file_managed table.',
           ['%fid' => $file_id]
         )

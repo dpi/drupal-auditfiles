@@ -120,7 +120,7 @@ class AuditFilesBatchProcess {
    * the next.
    */
   public static function _auditfiles_managed_not_used_batch_delete_process_batch($file_id, array &$context) {
-    \Drupal::service('auditfiles.managed_not_used')->_auditfiles_managed_not_used_batch_delete_process_file($file_id);
+    \Drupal::service('auditfiles.managed_not_used')->auditfilesManagedNotUsedBatchDeleteProcessFile($file_id);
     $context['results'][] = $file_id;
     $context['message'] = t('Processed file ID %file_id.', ['%file_id' => $file_id]);
   }
