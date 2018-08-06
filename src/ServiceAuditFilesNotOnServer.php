@@ -3,7 +3,6 @@
 namespace Drupal\auditfiles;
 
 use Drupal\Core\Database\Database;
-use Drupal\Component\Utility\Html;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 
@@ -92,7 +91,7 @@ class ServiceAuditFilesNotOnServer {
    * @return array
    *   The header to use.
    */
-  function auditfilesNotOnServerGetHeader() {
+  public function auditfilesNotOnServerGetHeader() {
     return [
       'fid' => [
         'data' => $this->t('File ID'),
