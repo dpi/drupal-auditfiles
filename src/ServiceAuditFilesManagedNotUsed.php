@@ -40,9 +40,9 @@ class ServiceAuditFilesManagedNotUsed {
   /**
    * Retrieves information about an individual file from the database.
    *
-   * @param int $file_id 
-   * The ID of the file to prepare for display.
-   * @param int $date_format 
+   * @param int $file_id
+   *   The ID of the file to prepare for display.
+   * @param int $date_format
    *   The Format of the date to prepare for display.
    *
    * @return array
