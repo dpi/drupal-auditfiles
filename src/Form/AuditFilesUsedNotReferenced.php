@@ -5,13 +5,13 @@ namespace Drupal\auditfiles\Form;
 use Drupal\Core\Form\ConfirmFormInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
-use Drupal\Core\Link;
 use Drupal\file\Entity\File;
 
+/**
+ * File used but not referenced functionality.
+ */
 class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterface {
 
   /**
@@ -105,7 +105,7 @@ class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterfa
         '#type' => 'submit',
         '#value' => $this->getConfirmText(),
         '#button_type' => 'primary',
-        '#submit' => ['::confirmSubmissionHandlerDeleteFile']
+        '#submit' => ['::confirmSubmissionHandlerDeleteFile'],
       ];
       $form['actions']['cancel'] = ConfirmFormHelper::buildCancelLink($this, $this->getRequest());
       if (!isset($form['#theme'])) {
@@ -129,7 +129,7 @@ class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterfa
       }
     }
     // Setup the record count and related messages.
-    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records'): 250;
+    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
     if (!empty($rows)) {
       if ($maximum_records > 0) {
         $file_count_message = $this->t('Found at least @count files in the file_usage table that are not referenced in content.');
@@ -187,14 +187,14 @@ class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterfa
         if (!empty($file_id)) {
           $storage = [
             'files' => $form_state->getValue('files'),
-            'confirm' => TRUE
+            'confirm' => TRUE,
           ];
-          $form_state->setStorage($storage);      
+          $form_state->setStorage($storage);
           $form_state->setRebuild();
         }
-      } 
-      if(!isset($storage)) {
-        drupal_set_message($this->t('No items were selected to operate on.'), 'error');  
+      }
+      if (!isset($storage)) {
+        drupal_set_message($this->t('No items were selected to operate on.'), 'error');
       }
     }
   }
