@@ -385,14 +385,14 @@ class ServiceAuditFilesNotInDatabase {
           'changed' => $file->timestamp,
         ])->execute();
       if (empty($results)) {
-        drupal_set_message(t('Failed to add %file to the database.', ['%file' => $filepathname]));
+        drupal_set_message($this->t('Failed to add %file to the database.', ['%file' => $filepathname]));
       }
       else {
-        drupal_set_message(t('Sucessfully added %file to the database.', ['%file' => $filepathname]));
+        drupal_set_message($this->t('Sucessfully added %file to the database.', ['%file' => $filepathname]));
       }
     }
     else {
-      drupal_set_message(t('The file %file is already in the database.', ['%file' => $filepathname]), 'error');
+      drupal_set_message($this->t('The file %file is already in the database.', ['%file' => $filepathname]), 'error');
     }
   }
 
@@ -439,10 +439,10 @@ class ServiceAuditFilesNotInDatabase {
     $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
     $real_files_path = drupal_realpath($file_system_stream . '://');
     if (file_unmanaged_delete($real_files_path . DIRECTORY_SEPARATOR . $filename)) {
-      drupal_set_message(t('Sucessfully deleted %file from the server.', ['%file' => $filename]));
+      drupal_set_message($this->t('Sucessfully deleted %file from the server.', ['%file' => $filename]));
     }
     else {
-      drupal_set_message(t('Failed to delete %file from the server.', ['%file' => $filename]));
+      drupal_set_message($this->t('Failed to delete %file from the server.', ['%file' => $filename]));
     }
   }
 

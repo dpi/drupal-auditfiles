@@ -82,7 +82,7 @@ class ServiceAuditFilesUsedNotReferenced {
     $file_managed = $connection->query("SELECT * FROM {file_managed} fm WHERE fid = $file_id")->fetchObject();
     if (empty($file_managed)) {
       $url = Url::fromUri('internal:/admin/reports/auditfiles/usednotmanaged');
-      $result_link = Link::fromTextAndUrl(t('Used not managed'), $url)->toString();
+      $result_link = Link::fromTextAndUrl($this->t('Used not managed'), $url)->toString();
       $row = [
         'fid' => $this->t(
           'This file is not listed in the file_managed table. See the "%usednotmanaged" report.',

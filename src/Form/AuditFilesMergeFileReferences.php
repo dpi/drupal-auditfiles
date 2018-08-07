@@ -118,7 +118,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
               ];
             }
             else {
-              drupal_set_message(t('A file object was not found for file ID @fid.', ['@fid' => $file_id]));
+              drupal_set_message($this->t('A file object was not found for file ID @fid.', ['@fid' => $file_id]));
             }
           }
           else {
@@ -203,7 +203,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
                   ];
                 }
                 else {
-                  drupal_set_message(t('A file object was not found for file ID @fid.', ['@fid' => $result->fid]));
+                  drupal_set_message($this->t('A file object was not found for file ID @fid.', ['@fid' => $result->fid]));
                 }
               }
             }

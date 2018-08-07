@@ -154,7 +154,7 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
     $form['files'] = [
       '#type' => 'tableselect',
       '#header' => \Drupal::service('auditfiles.not_on_server')->auditfilesNotOnServerGetHeader(),
-      '#empty' => t('No items found.'),
+      '#empty' => $this->t('No items found.'),
       '#prefix' => '<div><em>' . $form_count . '</em></div>',
     ];
     // Add the data.
@@ -172,7 +172,7 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
       $form['actions'] = ['#type' => 'actions'];
       $form['actions']['submit'] = [
         '#type' => 'submit',
-        '#value' => t('Delete selected items from the database'),
+        '#value' => $this->t('Delete selected items from the database'),
         '#submit' => ['::submissionHandlerDeleteFromDb'],
       ];
       $form['pager'] = ['#type' => 'pager'];

@@ -116,7 +116,7 @@ class ServiceAuditFilesUsedNotManaged {
     $num_rows = $connection->delete('file_usage')->condition('fid', $file_id)->execute();
     if (empty($num_rows)) {
       drupal_set_message(
-        t(
+        $this->t(
           'There was a problem deleting the record with file ID %fid from the file_usage table. Check the logs for more information.',
           ['%fid' => $file_id]
         ),
@@ -125,7 +125,7 @@ class ServiceAuditFilesUsedNotManaged {
     }
     else {
       drupal_set_message(
-        t(
+        $this->t(
           'Sucessfully deleted File ID : %fid from the file_usages table.',
           ['%fid' => $file_id]
         )
