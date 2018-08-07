@@ -118,10 +118,10 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
       }
       return $form;
     }
-    $file_data = \Drupal::service('auditfiles.referenced_not_used')->_auditfiles_referenced_not_used_get_file_list();
+    $file_data = \Drupal::service('auditfiles.referenced_not_used')->auditfilesReferencedNotUsedGetFileList();
     if (!empty($file_data)) {
       foreach ($file_data as $reference_id => $row_data) {
-        $rows[$reference_id] = \Drupal::service('auditfiles.referenced_not_used')->_auditfiles_referenced_not_used_get_file_data($row_data);
+        $rows[$reference_id] = \Drupal::service('auditfiles.referenced_not_used')->auditfilesReferencedNotUsedGetFileData($row_data);
       }
     }
     if (!empty($rows)) {
@@ -146,7 +146,7 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
     }
     $form['files'] = [
       '#type' => 'tableselect',
-      '#header' => \Drupal::service('auditfiles.referenced_not_used')->_auditfiles_referenced_not_used_get_header(),
+      '#header' => \Drupal::service('auditfiles.referenced_not_used')->auditfilesReferencedNotUsedGetHeader(),
       '#empty' => $this->t('No items found.'),
       '#prefix' => '<div><em>' . $form_count . '</em></div>',
     ];
@@ -238,10 +238,10 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
   public function confirmSubmissionHandler(array &$form, FormStateInterface $form_state) {
     $storage = &$form_state->getStorage();
     if ($storage['op'] == 'add') {
-      batch_set(\Drupal::service('auditfiles.referenced_not_used')->_auditfiles_referenced_not_used_batch_add_create_batch($form_state->getValue('changelist')));
+      batch_set(\Drupal::service('auditfiles.referenced_not_used')->auditfilesReferencedNotUsedBatchAddCreateBatch($form_state->getValue('changelist')));
     }
     else {
-      batch_set(\Drupal::service('auditfiles.referenced_not_used')->_auditfiles_referenced_not_used_batch_delete_create_batch($form_state->getValue('changelist')));
+      batch_set(\Drupal::service('auditfiles.referenced_not_used')->auditfilesReferencedNotUsedBatchDeleteCreateBatch($form_state->getValue('changelist')));
     }
   }
 

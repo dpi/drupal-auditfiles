@@ -21,6 +21,7 @@ services:
 
   auditfiles.referenced_not_used:
     class: Drupal\auditfiles\ServiceAuditFilesReferencedNotUsed
+    arguments: ['@string_translation']
 
   auditfiles.merge_file_references:
     class: Drupal\auditfiles\ServiceAuditFilesMergeFileReferences
