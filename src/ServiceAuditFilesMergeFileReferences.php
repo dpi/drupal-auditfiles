@@ -74,18 +74,10 @@ class ServiceAuditFilesMergeFileReferences {
    *   information formatted for display.
    */
   public function auditfilesMergeFileReferencesGetFileData($file_name, $date_format) {
-    $config = \Drupal::config('auditfiles_config.settings');
     $connection = Database::getConnection();
     $fid_query = 'SELECT fid FROM {file_managed} WHERE filename = :filename';
     $fid_results = $connection->query($fid_query, [':filename' => $file_name])->fetchAll();
     if (count($fid_results) > 0) {
-      $fid_header = [
-        $this->t('File ID'),
-        $this->t('URI'),
-        $this->t('Size (in bytes)'),
-        $this->t('Date'),
-      ];
-      $fid_rows = [];
       $references = '<ul>';
       foreach ($fid_results as $fid_result) {
         $query = $connection->select('file_managed', 'fm');
@@ -200,7 +192,6 @@ class ServiceAuditFilesMergeFileReferences {
       ->condition('fid', $file_being_kept)
       ->execute()
       ->fetchAll();
-    $file_being_kept_name = reset($file_being_kept_name_results);
     $file_being_merged_results = $connection->select('file_usage', 'fu')
       ->fields('fu', ['module', 'type', 'id', 'count'])
       ->condition('fid', $file_being_merged)
@@ -266,8 +257,6 @@ class ServiceAuditFilesMergeFileReferences {
    *   The file ID of the file to merge.
    */
   public function auditfilesMergeFileReferencesUpdateFileFields($file_being_kept, $file_being_merged) {
-    $connection = Database::getConnection();
-    // Get any fields that might be referencing this file being merged.
     $file_being_merged_fields = file_get_file_references(File::load($file_being_merged), NULL, EntityStorageInterface::FIELD_LOAD_REVISION, NULL);
     if (empty($file_being_merged_fields)) {
       return;
@@ -280,10 +269,10 @@ class ServiceAuditFilesMergeFileReferences {
             $field_items = $entity->get($field_name)->getValue();
             $alt = $field_items[0]['alt'];
             $title = $field_items[0]['title'] ? $field_items[0]['title'] : '';
-            foreach ($field_items as $item_id => $item) {
+            foreach ($field_items as $item) {
               if ($item['target_id'] == $file_being_merged) {
                 $file_object_being_kept = File::load($file_being_kept);
-                foreach ($entity->get($field_name)->getValue() as $key => $value) {
+                foreach ($entity->get($field_name)->getValue() as $value) {
                   if (!empty($file_object_being_kept) && $entity->get($field_name)->getValue() != $file_being_kept) {
                     $entity->$field_name = [
                       'target_id' => $file_object_being_kept->id(),
