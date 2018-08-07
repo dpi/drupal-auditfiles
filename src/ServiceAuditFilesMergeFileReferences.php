@@ -272,7 +272,6 @@ class ServiceAuditFilesMergeFileReferences {
             foreach ($field_items as $item) {
               if ($item['target_id'] == $file_being_merged) {
                 $file_object_being_kept = File::load($file_being_kept);
-                foreach ($entity->get($field_name)->getValue() as $value) {
                   if (!empty($file_object_being_kept) && $entity->get($field_name)->getValue() != $file_being_kept) {
                     $entity->$field_name = [
                       'target_id' => $file_object_being_kept->id(),
@@ -280,7 +279,6 @@ class ServiceAuditFilesMergeFileReferences {
                       'title' => $title,
                     ];
                   }
-                }
                 $entity->save();
                 break;
               }
