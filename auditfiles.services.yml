@@ -17,6 +17,7 @@ services:
 
   auditfiles.used_not_referenced:
     class: Drupal\auditfiles\ServiceAuditFilesUsedNotReferenced
+    arguments: ['@string_translation']
 
   auditfiles.referenced_not_used:
     class: Drupal\auditfiles\ServiceAuditFilesReferencedNotUsed

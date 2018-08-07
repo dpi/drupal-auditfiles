@@ -24,6 +24,7 @@ class ServiceAuditFilesUsedNotManaged {
 
   /**
    * Retrieves the file IDs to operate on.
+   * 
    * @return array
    *   The file IDs.
    */
