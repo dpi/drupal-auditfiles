@@ -34,7 +34,7 @@ class AuditFilesBatchProcess {
    * The batch process for adding the file.
    *
    * @param string $filename
-   *   File name that to be process. 
+   *   File name that to be process.
    * @param array $context
    *   Used by the Batch API to keep track of data and pass it from one
    *   operation to the next.
@@ -49,7 +49,7 @@ class AuditFilesBatchProcess {
    * The batch process for deleting the file.
    *
    * @param string $filename
-   *   File name that to be process. 
+   *   File name that to be process.
    * @param array $context
    *   Used by the Batch API to keep track of data and pass it from one
    *   operation to the next.
@@ -216,8 +216,7 @@ class AuditFilesBatchProcess {
   }
 
   /**
-   * The batch process for adding the file.
-   *   Used by the Batch API to keep track of and pass data from one operation.
+   * Used by the Batch API to keep track of and pass data from one operation.
    */
   public static function auditfilesReferencedNotUsedBatchAddProcessBatch($reference_id, array &$context) {
     \Drupal::service('auditfiles.referenced_not_used')->auditfilesReferencedNotUsedBatchAddProcessFile($reference_id);
@@ -226,7 +225,6 @@ class AuditFilesBatchProcess {
   }
 
   /**
-   * The batch process for deleting the file.
    * Used by the Batch API to keep track of and pass data from one operation.
    */
   public static function auditfilesReferencedNotUsedBatchDeleteProcessBatch($reference_id, array &$context) {
