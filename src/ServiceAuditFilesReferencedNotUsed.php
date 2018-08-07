@@ -248,7 +248,7 @@ class ServiceAuditFilesReferencedNotUsed {
    */
   public function auditfilesReferencedNotUsedBatchDeleteCreateBatch(array $referenceids) {
     $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
-    $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::_auditfiles_referenced_not_used_batch_finish_batch';
+    $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchFinishBatch';
     $batch['progress_message'] = $this->t('Completed @current of @total operations.');
     $batch['title'] = $this->t('Deleting file references from their content');
     $operations = $reference_ids = [];
@@ -260,7 +260,7 @@ class ServiceAuditFilesReferencedNotUsed {
     // Fill in the $operations variable.
     foreach ($reference_ids as $reference_id) {
       $operations[] = [
-        '\Drupal\auditfiles\AuditFilesBatchProcess::_auditfiles_referenced_not_used_batch_delete_process_batch',
+        '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchDeleteProcessBatch',
         [$reference_id],
       ];
     }

@@ -134,7 +134,7 @@ class ServiceAuditFilesNotOnServer {
    */
   public function auditfilesNotOnServerBatchDeleteCeateBatch(array $fileids) {
     $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
-    $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::_auditfiles_not_on_server_batch_finish_batch';
+    $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesNotOnServerBatchFinishBatch';
     $batch['progress_message'] = $this->t('Completed @current of @total operations.');
     $batch['title'] = $this->t('Deleting files from the database');
     $operations = $file_ids = [];
@@ -145,7 +145,7 @@ class ServiceAuditFilesNotOnServer {
     }
     foreach ($file_ids as $file_id) {
       $operations[] = [
-        '\Drupal\auditfiles\AuditFilesBatchProcess::_auditfiles_not_on_server_batch_delete_process_batch',
+        '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesNotOnServerBatchDeleteProcessBatch',
         [$file_id],
       ];
     }

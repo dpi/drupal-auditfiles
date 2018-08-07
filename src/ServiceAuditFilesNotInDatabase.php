@@ -221,13 +221,13 @@ class ServiceAuditFilesNotInDatabase {
     $files = trim($config->get('auditfiles_exclude_files') ? $config->get('auditfiles_exclude_files') : '.htaccess');
     if ($files) {
       $exclude_files = explode(';', $files);
-      array_walk($exclude_files, '\\Drupal\\auditfiles\\AuditFilesBatchProcess::_auditfiles_make_preg', FALSE);
+      array_walk($exclude_files, '\\Drupal\\auditfiles\\AuditFilesBatchProcess::auditfilesMakePreg', FALSE);
       $exclusions_array = array_merge($exclusions_array, $exclude_files);
     }
     $paths = trim($config->get('auditfiles_exclude_paths') ? $config->get('auditfiles_exclude_paths') : 'color;css;ctools;js');
     if ($paths) {
       $exclude_paths = explode(';', $paths);
-      array_walk($exclude_paths, '\\Drupal\\auditfiles\\AuditFilesBatchProcess::_auditfiles_make_preg', TRUE);
+      array_walk($exclude_paths, '\\Drupal\\auditfiles\\AuditFilesBatchProcess::auditfilesMakePreg', TRUE);
       $exclusions_array = array_merge($exclusions_array, $exclude_paths);
     }
     // Exclude other file streams that may be deinfed and in use.
@@ -242,14 +242,14 @@ class ServiceAuditFilesNotInDatabase {
         }
       }
     }
-    array_walk($exclude_streams, '\\Drupal\\auditfiles\\AuditFilesBatchProcess::_auditfiles_make_preg', FALSE);
+    array_walk($exclude_streams, '\\Drupal\\auditfiles\\AuditFilesBatchProcess::auditfilesMakePreg', FALSE);
     $exclusions_array = array_merge($exclusions_array, $exclude_streams);
     // Create the list of requested extension exclusions. (This is a little more
     // complicated.)
     $extensions = trim($config->get('auditfiles_exclude_extensions') ? $config->get('auditfiles_exclude_extensions') : '');
     if ($extensions) {
       $exclude_extensions = explode(';', $extensions);
-      array_walk($exclude_extensions, '\\Drupal\\auditfiles\\AuditFilesBatchProcess::_auditfiles_make_preg', FALSE);
+      array_walk($exclude_extensions, '\\Drupal\\auditfiles\\AuditFilesBatchProcess::auditfilesMakePreg', FALSE);
       $extensions = implode('|', $exclude_extensions);
       $extensions = '(' . $extensions . ')$';
       $exclusions_array[] = $extensions;
@@ -324,7 +324,7 @@ class ServiceAuditFilesNotInDatabase {
   public function auditfilesNotInDatabaseBatchAddCreateBatch(array $fileids) {
     $batch['title'] = $this->t('Adding files to Drupal file management');
     $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
-    $batch['finished'] = "\Drupal\auditfiles\AuditFilesBatchProcess::auditfiles_not_in_database_batch_finish_batch";
+    $batch['finished'] = "\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesNotInDatabaseBatchFinishBatch";
     $batch['progress_message'] = $this->t('Completed @current of @total operations.');
     $operations = [];
     $file_ids = [];
@@ -335,7 +335,7 @@ class ServiceAuditFilesNotInDatabase {
     }
     foreach ($file_ids as $file_id) {
       $operations[] = [
-        "\Drupal\auditfiles\AuditFilesBatchProcess::auditfiles_not_in_database_batch_add_process_batch",
+        "\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesNotInDatabaseBatchAddProcessBatch",
         [$file_id],
       ];
     }
@@ -408,7 +408,7 @@ class ServiceAuditFilesNotInDatabase {
   public function auditfilesNotInDatabaseBatchDeleteCreateBatch(array $file_names) {
     $batch['title'] = $this->t('Adding files to Drupal file management');
     $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
-    $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfiles_not_in_database_batch_finish_batch';
+    $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesNotInDatabaseBatchFinishBatch';
     $batch['progress_message'] = $this->t('Completed @current of @total operations.');
     $batch['title'] = $this->t('Deleting files from the server');
     $operations = [];
@@ -420,7 +420,7 @@ class ServiceAuditFilesNotInDatabase {
     }
     foreach ($filenames as $filename) {
       $operations[] = [
-        '\Drupal\auditfiles\AuditFilesBatchProcess::auditfiles_not_in_database_batch_delete_process_batch',
+        '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesNotInDatabaseBatchDeleteProcessBatch',
         [$filename],
       ];
     }

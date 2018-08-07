@@ -150,7 +150,7 @@ class ServiceAuditFilesMergeFileReferences {
    */
   public function auditfilesMergeFileReferencesBatchMergeCreateBatch($file_being_kept, array $files_being_merged) {
     $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
-    $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::_auditfiles_merge_file_references_batch_finish_batch';
+    $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesMergeFileReferencesBatchFinishBatch';
     $batch['progress_message'] = $this->t('Completed @current of @total operations.');
     $batch['title'] = $this->t('Merging files');
     $operations = $file_ids = [];
@@ -162,7 +162,7 @@ class ServiceAuditFilesMergeFileReferences {
     foreach ($file_ids as $file_id) {
       if ($file_id != $file_being_kept) {
         $operations[] = [
-          '\Drupal\auditfiles\AuditFilesBatchProcess::_auditfiles_merge_file_references_batch_merge_process_batch',
+          '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesMergeFileReferencesBatchMergeProcessBatch',
           [
             $file_being_kept,
             $file_id,
