@@ -146,8 +146,8 @@ class AuditFilesBatchProcess {
   /**
    * The batch process for deleting the file feature 'used not managed'.
    */
-  public static function _auditfiles_used_not_managed_batch_delete_process_batch($file_id, array &$context) {
-    \Drupal::service('auditfiles.used_not_managed')->_auditfiles_used_not_managed_batch_delete_process_file($file_id);
+  public static function auditfilesUsedNotManagedBatchDeleteProcessBatch($file_id, array &$context) {
+    \Drupal::service('auditfiles.used_not_managed')->auditfilesUsedNotManagedBatchDeleteProcessFile($file_id);
     $context['results'][] = $file_id;
     $context['message'] = t('Processed file ID %file_id.', ['%file_id' => $file_id]);
   }
@@ -155,7 +155,7 @@ class AuditFilesBatchProcess {
   /**
    * Called when the batch is complete : functionality 'used not managed'.
    */
-  public static function _auditfiles_used_not_managed_batch_finish_batch($success, $results, $operations) {
+  public static function auditfilesUsedNotManagedBatchFinishBatch($success, $results, $operations) {
     if (!$success) {
       $error_operation = reset($operations);
       drupal_set_message(

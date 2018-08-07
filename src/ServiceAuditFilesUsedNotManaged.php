@@ -1,22 +1,33 @@
 <?php
-/**
- * @file providing the service that used in 'used not managed' functionality.
- *
- */
-namespace  Drupal\auditfiles;
+
+namespace Drupal\auditfiles;
 
 use Drupal\Core\Database\Database;
-use Drupal\Component\Utility\Html;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
+/**
+ * Form for Files used not managed functionality.
+ */
 class ServiceAuditFilesUsedNotManaged {
+
+  use StringTranslationTrait;
+
+  /**
+   * Define constructor for string translation.
+   */
+  public function __construct(TranslationInterface $translation) {
+    $this->stringTranslation = $translation;
+  }
+
   /**
    * Retrieves the file IDs to operate on.
    * @return array
    *   The file IDs.
    */
-  function _auditfiles_used_not_managed_get_file_list() {
+  public function auditfilesUsedNotManagedGetFileList() {
     // Get all the file IDs in the file_usage table that are not in the
     // file_managed table.
     $connection = Database::getConnection();
@@ -32,17 +43,17 @@ class ServiceAuditFilesUsedNotManaged {
   /**
    * Retrieves information about an individual file from the database.
    */
-  function _auditfiles_used_not_managed_get_file_data($file_id) {
+  public function auditfilesUsedNotManagedGetFileData($file_id) {
     // Get the file information for the specified file ID from the database.
     $connection = Database::getConnection();
     $query = 'SELECT * FROM {file_usage} WHERE fid = ' . $file_id;
     $file = $connection->query($query)->fetchObject();
 
-    $url = Url::fromUri('internal:/'.$file->type . '/' . $file->id);
+    $url = Url::fromUri('internal:/' . $file->type . '/' . $file->id);
     $result = Link::fromTextAndUrl($file->type . '/' . $file->id, $url)->toString();
-    return  [
+    return [
       'fid' => $file->fid,
-      'module' => $file->module . ' ' . t('module'),
+      'module' => $file->module . ' ' . $this->t('module'),
       'id' => $result,
       'count' => $file->count,
     ];
@@ -51,19 +62,19 @@ class ServiceAuditFilesUsedNotManaged {
   /**
    * Returns the header to use for the display table.
    */
-  function _auditfiles_used_not_managed_get_header() {
+  public function auditfilesUsedNotManagedGetHeader() {
     return [
       'fid' => [
-        'data' => t('File ID'),
+        'data' => $this->t('File ID'),
       ],
       'module' => [
-        'data' => t('Used by'),
+        'data' => $this->t('Used by'),
       ],
       'id' => [
-        'data' => t('Used in'),
+        'data' => $this->t('Used in'),
       ],
       'count' => [
-        'data' => t('Count'),
+        'data' => $this->t('Count'),
       ],
     ];
   }
@@ -71,11 +82,11 @@ class ServiceAuditFilesUsedNotManaged {
   /**
    * Creates the batch for deleting files from the file_usage table.
    */
-  function _auditfiles_used_not_managed_batch_delete_create_batch(array $fileids) {
-    $batch['error_message'] = t('One or more errors were encountered processing the files.');
-    $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::_auditfiles_used_not_managed_batch_finish_batch';
-    $batch['progress_message'] = t('Completed @current of @total operations.');
-    $batch['title'] = t('Deleting files from the file_usage table');
+  public function auditfilesUsedNotManagedBatchDeleteCreateBatch(array $fileids) {
+    $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
+    $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesUsedNotManagedBatchFinishBatch';
+    $batch['progress_message'] = $this->t('Completed @current of @total operations.');
+    $batch['title'] = $this->t('Deleting files from the file_usage table');
     $operations = $file_ids = [];
     foreach ($fileids as $file_id) {
       if ($file_id != 0) {
@@ -85,7 +96,7 @@ class ServiceAuditFilesUsedNotManaged {
     // Fill in the $operations variable.
     foreach ($file_ids as $file_id) {
       $operations[] = [
-        '\Drupal\auditfiles\AuditFilesBatchProcess::_auditfiles_used_not_managed_batch_delete_process_batch',
+        '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesUsedNotManagedBatchDeleteProcessBatch',
         [$file_id],
       ];
     }
@@ -99,7 +110,7 @@ class ServiceAuditFilesUsedNotManaged {
    * @param int $file_id
    *   The ID of the file to delete from the database.
    */
-  function _auditfiles_used_not_managed_batch_delete_process_file($file_id) {
+  public function auditfilesUsedNotManagedBatchDeleteProcessFile($file_id) {
     $connection = Database::getConnection();
     $num_rows = $connection->delete('file_usage')->condition('fid', $file_id)->execute();
     if (empty($num_rows)) {
@@ -113,7 +124,7 @@ class ServiceAuditFilesUsedNotManaged {
     }
     else {
       drupal_set_message(
-        t(  
+        t(
           'Sucessfully deleted File ID : %fid from the file_usages table.',
           ['%fid' => $file_id]
         )

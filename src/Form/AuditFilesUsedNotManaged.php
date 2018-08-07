@@ -108,10 +108,10 @@ class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface 
       }
       return $form;
     }
-    $file_ids = \Drupal::service('auditfiles.used_not_managed')->_auditfiles_used_not_managed_get_file_list();
+    $file_ids = \Drupal::service('auditfiles.used_not_managed')->auditfilesUsedNotManagedGetFileList();
     if (!empty($file_ids)) {
       foreach ($file_ids as $file_id) {
-        $rows[$file_id] = \Drupal::service('auditfiles.used_not_managed')->_auditfiles_used_not_managed_get_file_data($file_id);
+        $rows[$file_id] = \Drupal::service('auditfiles.used_not_managed')->auditfilesUsedNotManagedGetFileData($file_id);
       }
     }
     // Set up the pager.
@@ -140,7 +140,7 @@ class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface 
     // Create the form table.
     $form['files'] = [
       '#type' => 'tableselect',
-      '#header' => \Drupal::service('auditfiles.used_not_managed')->_auditfiles_used_not_managed_get_header(),
+      '#header' => \Drupal::service('auditfiles.used_not_managed')->auditfilesUsedNotManagedGetHeader(),
       '#empty' => $this->t('No items found.'),
       '#prefix' => '<div><em>' . $form_count . '</em></div>',
     ];
@@ -200,7 +200,7 @@ class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface 
    * Submit handler for confirmation.
    */
   public function confirmSubmissionHandlerDeleteFile(array &$form, FormStateInterface $form_state) {
-    batch_set(\Drupal::service('auditfiles.used_not_managed')->_auditfiles_used_not_managed_batch_delete_create_batch($form_state->getValue('changelist')));
+    batch_set(\Drupal::service('auditfiles.used_not_managed')->auditfilesUsedNotManagedBatchDeleteCreateBatch($form_state->getValue('changelist')));
   }
 
 }
