@@ -119,7 +119,7 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
       }
       return $form;
     }
-    $config = \Drupal::config('auditfiles_config.settings');
+    $config = \Drupal::config('auditfiles.settings');
     // Get the records to display.
     // Check to see if there is saved data, and if so, use that.
     $rows = \Drupal::service('auditfiles.not_in_database')->auditfilesNotInDatabaseGetReportsFiles();

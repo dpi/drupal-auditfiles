@@ -111,7 +111,7 @@ class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface 
       }
       return $form;
     }
-    $config = \Drupal::config('auditfiles_config.settings');
+    $config = \Drupal::config('auditfiles.settings');
     $file_ids = \Drupal::service('auditfiles.managed_not_used')->auditfilesManagedNotUsedGetFileList();
     if (!empty($file_ids)) {
       $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';

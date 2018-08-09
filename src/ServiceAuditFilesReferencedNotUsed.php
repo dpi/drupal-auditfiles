@@ -30,7 +30,7 @@ class ServiceAuditFilesReferencedNotUsed {
    *   The file IDs.
    */
   public function auditfilesReferencedNotUsedGetFileList() {
-    $config = \Drupal::config('auditfiles_config.settings');
+    $config = \Drupal::config('auditfiles.settings');
     $connection = Database::getConnection();
     $file_references = $files_referenced = [];
     // Get a list of all files that are referenced in content.
@@ -88,7 +88,7 @@ class ServiceAuditFilesReferencedNotUsed {
    *   information formatted for display.
    */
   public function auditfilesReferencedNotUsedGetFileData(array $row_data) {
-    $config = \Drupal::config('auditfiles_config.settings');
+    $config = \Drupal::config('auditfiles.settings');
     $connection = Database::getConnection();
     $query = 'SELECT * FROM {' . $row_data['table'] . '} WHERE ' . $row_data['column'] . ' = ' . $row_data['file_id'];
     $result = $connection->query($query)->fetchAll();

@@ -27,7 +27,7 @@ class ServiceAuditFilesManagedNotUsed {
    *   The file IDs.
    */
   public function auditfilesManagedNotUsedGetFileList() {
-    $config = \Drupal::config('auditfiles_config.settings');
+    $config = \Drupal::config('auditfiles.settings');
     $connection = Database::getConnection();
     $query = 'SELECT fid FROM {file_managed} WHERE fid NOT IN (SELECT fid FROM {file_usage})';
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;

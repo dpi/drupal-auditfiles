@@ -67,7 +67,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $config = \Drupal::config('auditfiles_config.settings');
+    $config = \Drupal::config('auditfiles.settings');
     $connection = Database::getConnection();
     $storage = $form_state->getStorage();
     $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
@@ -324,7 +324,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
    * Submit form.
    */
   public function submissionHandlerMergeRecord(array &$form, FormStateInterface $form_state) {
-    \Drupal::configFactory()->getEditable('auditfiles_config.settings')
+    \Drupal::configFactory()->getEditable('auditfiles.settings')
       ->set('auditfiles_merge_file_references_show_single_file_names', $form_state->getValue('auditfiles_merge_file_references_show_single_file_names'))->save();
     if (!empty($form_state->getValue('files'))) {
       foreach ($form_state->getValue('files') as $file_id) {

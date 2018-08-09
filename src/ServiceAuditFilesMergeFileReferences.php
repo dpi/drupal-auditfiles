@@ -30,7 +30,7 @@ class ServiceAuditFilesMergeFileReferences {
    *   The file IDs.
    */
   public function auditfilesMergeFileReferencesGetFileList() {
-    $config = \Drupal::config('auditfiles_config.settings');
+    $config = \Drupal::config('auditfiles.settings');
     $connection = Database::getConnection();
     $result_set = [];
     $query = 'SELECT fid, filename FROM {file_managed} ORDER BY filename ASC';

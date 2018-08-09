@@ -27,7 +27,7 @@ class ServiceAuditFilesNotOnServer {
    *   The file IDs.
    */
   public function auditfilesNotOnServerGetFileList() {
-    $config = \Drupal::config('auditfiles_config.settings');
+    $config = \Drupal::config('auditfiles.settings');
     $file_ids = [];
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
     $connection = Database::getConnection();

@@ -66,7 +66,7 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $config = \Drupal::config('auditfiles_config.settings');
+    $config = \Drupal::config('auditfiles.settings');
     $storage = &$form_state->getStorage();
     if (isset($storage['confirm'])) {
       $values = $form_state->getValue('files');

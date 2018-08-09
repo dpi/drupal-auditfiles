@@ -23,14 +23,14 @@ class AuditFilesConfig extends ConfigFormBase {
    * Create configurations Name.
    */
   protected function getEditableConfigNames() {
-    return ['auditfiles_config.settings'];
+    return ['auditfiles.settings'];
   }
 
   /**
    * Create form for configurations.
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $config = $this->config('auditfiles_config.settings');
+    $config = $this->config('auditfiles.settings');
     $form['auditfiles_file_system_paths'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('File system paths'),
@@ -145,7 +145,7 @@ class AuditFilesConfig extends ConfigFormBase {
    * Submit popup after login configurations.
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $this->config('auditfiles_config.settings')
+    $this->config('auditfiles.settings')
       ->set('auditfiles_file_system_path', $form_state->getValue('auditfiles_file_system_path'))
       ->set('auditfiles_exclude_files', $form_state->getValue('auditfiles_exclude_files'))
       ->set('auditfiles_exclude_extensions', $form_state->getValue('auditfiles_exclude_extensions'))

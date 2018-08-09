@@ -30,7 +30,7 @@ class ServiceAuditFilesUsedNotReferenced {
    *   The file IDs.
    */
   public function auditfilesUsedNotReferencedGetFileList() {
-    $config = \Drupal::config('auditfiles_config.settings');
+    $config = \Drupal::config('auditfiles.settings');
     $connection = Database::getConnection();
     $query = 'SELECT DISTINCT fid FROM {file_usage} fu';
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;

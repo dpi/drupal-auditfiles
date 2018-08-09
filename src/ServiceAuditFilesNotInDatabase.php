@@ -26,7 +26,7 @@ class ServiceAuditFilesNotInDatabase {
    * Get the files that are not in database.
    */
   public function auditfilesNotInDatabaseGetReportsFiles() {
-    $config = \Drupal::config('auditfiles_config.settings');
+    $config = \Drupal::config('auditfiles.settings');
     $report_files = [];
     $reported_files = [];
     $this->auditfilesNotInDatabaseGetFilesForReport('', $report_files);
@@ -61,7 +61,7 @@ class ServiceAuditFilesNotInDatabase {
    * Get files for report.
    */
   public function auditfilesNotInDatabaseGetFilesForReport($path, array &$report_files) {
-    $config = \Drupal::config('auditfiles_config.settings');
+    $config = \Drupal::config('auditfiles.settings');
     $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
     $real_files_path = drupal_realpath($file_system_stream . '://');
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
@@ -154,7 +154,7 @@ class ServiceAuditFilesNotInDatabase {
    *   The list of files and diretories found in the given path.
    */
   public function auditfilesNotInDatabaseGetFiles($path) {
-    $config = \Drupal::config('auditfiles_config.settings');
+    $config = \Drupal::config('auditfiles.settings');
     $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
     $real_files_path = drupal_realpath($file_system_stream . '://');
     $exclusions = $this->auditfilesGetExclusions();
@@ -216,7 +216,7 @@ class ServiceAuditFilesNotInDatabase {
    *   The excluions.
    */
   public function auditfilesGetExclusions() {
-    $config = \Drupal::config('auditfiles_config.settings');
+    $config = \Drupal::config('auditfiles.settings');
     $exclusions_array = [];
     $files = trim($config->get('auditfiles_exclude_files') ? $config->get('auditfiles_exclude_files') : '.htaccess');
     if ($files) {
@@ -435,7 +435,7 @@ class ServiceAuditFilesNotInDatabase {
    *   The full pathname of the file to delete from the server.
    */
   public function auditfilesNotInDatabaseBatchDeleteProcessFile($filename) {
-    $config = \Drupal::config('auditfiles_config.settings');
+    $config = \Drupal::config('auditfiles.settings');
     $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
     $real_files_path = drupal_realpath($file_system_stream . '://');
     if (file_unmanaged_delete($real_files_path . DIRECTORY_SEPARATOR . $filename)) {
