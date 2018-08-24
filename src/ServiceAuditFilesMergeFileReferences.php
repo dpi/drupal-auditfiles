@@ -272,13 +272,13 @@ class ServiceAuditFilesMergeFileReferences {
             foreach ($field_items as $item) {
               if ($item['target_id'] == $file_being_merged) {
                 $file_object_being_kept = File::load($file_being_kept);
-                  if (!empty($file_object_being_kept) && $entity->get($field_name)->getValue() != $file_being_kept) {
-                    $entity->$field_name = [
-                      'target_id' => $file_object_being_kept->id(),
-                      'alt' => $alt,
-                      'title' => $title,
-                    ];
-                  }
+                if (!empty($file_object_being_kept) && $entity->get($field_name)->getValue() != $file_being_kept) {
+                  $entity->$field_name = [
+                    'target_id' => $file_object_being_kept->id(),
+                    'alt' => $alt,
+                    'title' => $title,
+                  ];
+                }
                 $entity->save();
                 break;
               }
