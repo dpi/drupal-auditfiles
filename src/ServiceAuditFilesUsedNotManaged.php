@@ -7,6 +7,8 @@ use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Config\ConfigFactory;
+use Drupal\Core\Database\Connection;
 
 /**
  * Form for Files used not managed functionality.
@@ -16,10 +18,30 @@ class ServiceAuditFilesUsedNotManaged {
   use StringTranslationTrait;
 
   /**
-   * Define constructor for string translation.
+   * The Configuration Factory.
+   *
+   * @var Drupal\Core\Config\ConfigFactory
    */
-  public function __construct(TranslationInterface $translation) {
+  protected $config_factory;
+
+  /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $connection;
+
+  /**
+   * Define constructor for string translation.
+   * @param \Drupal\Core\Config\ConfigFactory $config_factory
+   *   A configuration factory object.
+   * @param \Drupal\Core\Database\Connection $connection
+   *   A database connection for queries.
+   */
+  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection) {
     $this->stringTranslation = $translation;
+    $this->config_factory = $config_factory;
+    $this->connection = $connection;
   }
 
   /**
@@ -31,10 +53,12 @@ class ServiceAuditFilesUsedNotManaged {
   public function auditfilesUsedNotManagedGetFileList() {
     // Get all the file IDs in the file_usage table that are not in the
     // file_managed table.
-    $connection = Database::getConnection();
-    $config = \Drupal::config('auditfiles.settings');
+
+    $connection = $this->connection;
+    $config = $this->config_factory->get('auditfiles.settings');
     $query = 'SELECT DISTINCT fid FROM {file_usage} fu WHERE fid NOT IN (SELECT fid FROM {file_managed})';
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
+
     if ($maximum_records > 0) {
       $query .= ' LIMIT ' . $maximum_records;
     }
@@ -46,7 +70,7 @@ class ServiceAuditFilesUsedNotManaged {
    */
   public function auditfilesUsedNotManagedGetFileData($file_id) {
     // Get the file information for the specified file ID from the database.
-    $connection = Database::getConnection();
+    $connection = $this->connection;
     $query = 'SELECT * FROM {file_usage} WHERE fid = ' . $file_id;
     $file = $connection->query($query)->fetchObject();
 
@@ -112,7 +136,7 @@ class ServiceAuditFilesUsedNotManaged {
    *   The ID of the file to delete from the database.
    */
   public function auditfilesUsedNotManagedBatchDeleteProcessFile($file_id) {
-    $connection = Database::getConnection();
+    $connection = $this->connection;
     $num_rows = $connection->delete('file_usage')->condition('fid', $file_id)->execute();
     if (empty($num_rows)) {
       drupal_set_message(

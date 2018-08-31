@@ -13,7 +13,7 @@ services:
 
   auditfiles.used_not_managed:
     class: Drupal\auditfiles\ServiceAuditFilesUsedNotManaged
-    arguments: ['@string_translation']
+    arguments: ['@string_translation', '@config.factory', '@database']
 
   auditfiles.used_not_referenced:
     class: Drupal\auditfiles\ServiceAuditFilesUsedNotReferenced
@@ -21,7 +21,7 @@ services:
 
   auditfiles.referenced_not_used:
     class: Drupal\auditfiles\ServiceAuditFilesReferencedNotUsed
-    arguments: ['@string_translation']
+    arguments: ['@string_translation', '@config.factory', '@database', '@entity_field.manager']
 
   auditfiles.merge_file_references:
     class: Drupal\auditfiles\ServiceAuditFilesMergeFileReferences

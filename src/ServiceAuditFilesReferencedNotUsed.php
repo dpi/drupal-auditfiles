@@ -8,6 +8,9 @@ use Drupal\Core\Url;
 use Drupal\file\Entity\File;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Config\ConfigFactory;
+use Drupal\Core\Database\Connection;
+use Drupal\Core\Entity\EntityFieldManager;
 
 /**
  * List all methods used in referenced not used functionality.
@@ -17,10 +20,34 @@ class ServiceAuditFilesReferencedNotUsed {
   use StringTranslationTrait;
 
   /**
+   * The Configuration Factory.
+   *
+   * @var Drupal\Core\Config\ConfigFactory
+   */
+  protected $config_factory;
+
+  /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $connection;
+
+  /**
+   * The entityFieldManager connection.
+   *
+   * @var Drupal\Core\Entity\EntityFieldManager
+   */
+  protected $entity_field_manager;
+
+  /**
    * Define constructor for string translation.
    */
-  public function __construct(TranslationInterface $translation) {
+  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, EntityFieldManager $entity_field_manager) {
     $this->stringTranslation = $translation;
+    $this->config_factory = $config_factory;
+    $this->connection = $connection;
+    $this->entity_field_manager = $entity_field_manager;
   }
 
   /**
@@ -30,13 +57,13 @@ class ServiceAuditFilesReferencedNotUsed {
    *   The file IDs.
    */
   public function auditfilesReferencedNotUsedGetFileList() {
-    $config = \Drupal::config('auditfiles.settings');
-    $connection = Database::getConnection();
+    $config = $this->config_factory->get('auditfiles.settings');
+    $connection = $this->connection;
     $file_references = $files_referenced = [];
     // Get a list of all files that are referenced in content.
     $files_in_fields = [];
-    $fields[] = \Drupal::service('entity_field.manager')->getFieldMapByFieldType('image');
-    $fields[] = \Drupal::service('entity_field.manager')->getFieldMapByFieldType('file');
+    $fields[] = $this->entity_field_manager->getFieldMapByFieldType('image');
+    $fields[] = $this->entity_field_manager->getFieldMapByFieldType('file');
     if ($fields) {
       $count = 0;
       foreach ($fields as $key => $value) {
@@ -53,7 +80,7 @@ class ServiceAuditFilesReferencedNotUsed {
         $table = $value['table'];
         $column = $value['column'];
         $entity_type = $value['entity_type'];
-        if (Database::getConnection()->schema()->tableExists($table)) {
+        if ($this->connection->schema()->tableExists($table)) {
           $query = 'SELECT entity_id, ' . $column . ' FROM {' . $table . '}';
           $query .= ' WHERE ' . $column . ' NOT IN (SELECT DISTINCT fid FROM {file_usage})';
           $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
@@ -88,8 +115,8 @@ class ServiceAuditFilesReferencedNotUsed {
    *   information formatted for display.
    */
   public function auditfilesReferencedNotUsedGetFileData(array $row_data) {
-    $config = \Drupal::config('auditfiles.settings');
-    $connection = Database::getConnection();
+    $config = $this->config_factory->get('auditfiles.settings');
+    $connection = $this->connection;
     $query = 'SELECT * FROM {' . $row_data['table'] . '} WHERE ' . $row_data['column'] . ' = ' . $row_data['file_id'];
     $result = $connection->query($query)->fetchAll();
     $result = reset($result);
@@ -195,7 +222,7 @@ class ServiceAuditFilesReferencedNotUsed {
    */
   public function auditfilesReferencedNotUsedBatchAddProcessFile($reference_id) {
     $reference_id_parts = explode('.', $reference_id);
-    $connection = Database::getConnection();
+    $connection = $this->connection;
     $data = [
       'fid' => $reference_id_parts[4],
       // @todo This is hard coded for now, but need to determine how to figure out
@@ -276,7 +303,7 @@ class ServiceAuditFilesReferencedNotUsed {
    */
   public function auditfilesReferencedNotUsedBatchDeleteProcessFile($reference_id) {
     $reference_id_parts = explode('.', $reference_id);
-    $connection = Database::getConnection();
+    $connection = $this->connection;
     $num_rows = $connection->delete($reference_id_parts[0])
       ->condition($reference_id_parts[1], $reference_id_parts[4])
       ->execute();
