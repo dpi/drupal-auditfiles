@@ -7,11 +7,37 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Form for Not in database functionality.
  */
 class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
+
+  /**
+   * The Config.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactoryStorage;
+
+  /**
+   * @param ConfigFactoryInterface $config_factory
+   */
+  public function __construct(ConfigFactoryInterface $config_factory) {
+    $this->configFactoryStorage = $config_factory;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('config.factory')
+    );
+  }
 
   /**
    * Widget Id.
@@ -119,7 +145,7 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
       }
       return $form;
     }
-    $config = \Drupal::config('auditfiles.settings');
+    $config = $this->configFactoryStorage->get('auditfiles.settings');
     // Get the records to display.
     // Check to see if there is saved data, and if so, use that.
     $rows = \Drupal::service('auditfiles.not_in_database')->auditfilesNotInDatabaseGetReportsFiles();

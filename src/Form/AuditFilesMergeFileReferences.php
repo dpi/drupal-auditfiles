@@ -8,11 +8,37 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
 use Drupal\Core\Database\Database;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Form for merge file references.
  */
 class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInterface {
+
+  /**
+   * The Config.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactoryStorage;
+
+  /**
+   * @param ConfigFactoryInterface $config_factory
+   */
+  public function __construct(ConfigFactoryInterface $config_factory) {
+    $this->configFactoryStorage = $config_factory;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('config.factory')
+    );
+  }
 
   /**
    * Widget Id.
@@ -67,7 +93,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $config = \Drupal::config('auditfiles.settings');
+    $config = $this->configFactoryStorage->get('auditfiles.settings');
     $connection = Database::getConnection();
     $storage = $form_state->getStorage();
     $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';

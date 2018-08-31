@@ -7,11 +7,37 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class for file used but not managed.
  */
 class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface {
+
+  /**
+   * The Config.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactoryStorage;
+
+  /**
+   * @param ConfigFactoryInterface $config_factory
+   */
+  public function __construct(ConfigFactoryInterface $config_factory) {
+    $this->configFactoryStorage = $config_factory;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('config.factory')
+    );
+  }
 
   /**
    * Widget Id.
@@ -66,7 +92,7 @@ class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface 
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $config = \Drupal::config('auditfiles.settings');
+    $config = $this->configFactoryStorage->get('auditfiles.settings');
     $storage = &$form_state->getStorage();
     if (isset($storage['confirm'])) {
       $values = $form_state->getValue('files');

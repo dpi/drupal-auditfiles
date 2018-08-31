@@ -8,11 +8,37 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
 use Drupal\file\Entity\File;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Form for Managed not used functionality.
  */
 class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface {
+
+  /**
+   * The Config.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactoryStorage;
+
+  /**
+   * @param ConfigFactoryInterface $config_factory
+   */
+  public function __construct(ConfigFactoryInterface $config_factory) {
+    $this->configFactoryStorage = $config_factory;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('config.factory')
+    );
+  }
 
   /**
    * Widget Id.
@@ -111,7 +137,7 @@ class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface 
       }
       return $form;
     }
-    $config = \Drupal::config('auditfiles.settings');
+    $config = $this->configFactoryStorage->get('auditfiles.settings');
     $file_ids = \Drupal::service('auditfiles.managed_not_used')->auditfilesManagedNotUsedGetFileList();
     if (!empty($file_ids)) {
       $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
