@@ -7,6 +7,7 @@ use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Datetime\DateFormatter;
 
 /**
  * Service managed not used functions.
@@ -30,12 +31,20 @@ class ServiceAuditFilesManagedNotUsed {
   protected $connection;
 
   /**
+   * The Date Fromatter.
+   *
+   * @var Drupal\Core\Datetime\DateFormatter
+   */
+  protected $date_formatter;
+
+  /**
    * Define constructor for string translation.
    */
-  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection) {
+  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, DateFormatter $date_formatter) {
     $this->stringTranslation = $translation;
     $this->config_factory = $config_factory;
     $this->connection = $connection;
+    $this->date_formatter = $date_formatter;
   }
 
   /**
@@ -91,7 +100,7 @@ class ServiceAuditFilesManagedNotUsed {
       'path' => drupal_realpath($file->uri),
       'filemime' => $file->filemime,
       'filesize' => number_format($file->filesize),
-      'datetime' => \Drupal::service('date.formatter')->format($file->created, $date_format),
+      'datetime' => $this->date_formatter->format($file->created, $date_format),
       'status' => ($file->status = 1) ? 'Permanent' : 'Temporary',
     ];
   }
