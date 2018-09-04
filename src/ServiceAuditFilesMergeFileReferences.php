@@ -8,6 +8,8 @@ use Drupal\file\Entity\File;
 use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Config\ConfigFactory;
+use Drupal\Core\Database\Connection;
 
 /**
  * Define all methods that used in merge file references functionality.
@@ -17,10 +19,26 @@ class ServiceAuditFilesMergeFileReferences {
   use StringTranslationTrait;
 
   /**
+   * The Configuration Factory.
+   *
+   * @var Drupal\Core\Config\ConfigFactory
+   */
+  protected $config_factory;
+
+  /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $connection;
+
+  /**
    * Define constructor for string translation.
    */
-  public function __construct(TranslationInterface $translation) {
+  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection) {
     $this->stringTranslation = $translation;
+    $this->config_factory = $config_factory;
+    $this->connection = $connection;
   }
 
   /**
@@ -30,8 +48,8 @@ class ServiceAuditFilesMergeFileReferences {
    *   The file IDs.
    */
   public function auditfilesMergeFileReferencesGetFileList() {
-    $config = \Drupal::config('auditfiles.settings');
-    $connection = Database::getConnection();
+    $config = $this->config_factory->get('auditfiles.settings');
+    $connection = $this->connection;
     $result_set = [];
     $query = 'SELECT fid, filename FROM {file_managed} ORDER BY filename ASC';
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
@@ -74,7 +92,7 @@ class ServiceAuditFilesMergeFileReferences {
    *   information formatted for display.
    */
   public function auditfilesMergeFileReferencesGetFileData($file_name, $date_format) {
-    $connection = Database::getConnection();
+    $connection = $this->connection;
     $fid_query = 'SELECT fid FROM {file_managed} WHERE filename = :filename';
     $fid_results = $connection->query($fid_query, [':filename' => $file_name])->fetchAll();
     if (count($fid_results) > 0) {
@@ -175,7 +193,7 @@ class ServiceAuditFilesMergeFileReferences {
    *   The file ID of the file to merge.
    */
   public function auditfilesMergeFileReferencesBatchMergeProcessFile($file_being_kept, $file_being_merged) {
-    $connection = Database::getConnection();
+    $connection = $this->connection;
     $file_being_kept_results = $connection->select('file_usage', 'fu')
       ->fields('fu', ['module', 'type', 'id', 'count'])
       ->condition('fid', $file_being_kept)

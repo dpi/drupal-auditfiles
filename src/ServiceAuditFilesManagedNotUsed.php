@@ -5,6 +5,8 @@ namespace Drupal\auditfiles;
 use Drupal\Core\Database\Database;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Config\ConfigFactory;
+use Drupal\Core\Database\Connection;
 
 /**
  * Service managed not used functions.
@@ -14,10 +16,26 @@ class ServiceAuditFilesManagedNotUsed {
   use StringTranslationTrait;
 
   /**
+   * The Configuration Factory.
+   *
+   * @var Drupal\Core\Config\ConfigFactory
+   */
+  protected $config_factory;
+
+  /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $connection;
+
+  /**
    * Define constructor for string translation.
    */
-  public function __construct(TranslationInterface $translation) {
+  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection) {
     $this->stringTranslation = $translation;
+    $this->config_factory = $config_factory;
+    $this->connection = $connection;
   }
 
   /**
@@ -27,8 +45,8 @@ class ServiceAuditFilesManagedNotUsed {
    *   The file IDs.
    */
   public function auditfilesManagedNotUsedGetFileList() {
-    $config = \Drupal::config('auditfiles.settings');
-    $connection = Database::getConnection();
+    $config = $this->config_factory->get('auditfiles.settings');
+    $connection = $this->connection;
     $query = 'SELECT fid FROM {file_managed} WHERE fid NOT IN (SELECT fid FROM {file_usage})';
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
     if ($maximum_records > 0) {
@@ -50,7 +68,7 @@ class ServiceAuditFilesManagedNotUsed {
    *   information formatted for display.
    */
   public function auditfilesManagedNotUsedGetFileData($file_id, $date_format) {
-    $connection = Database::getConnection();
+    $connection = $this->connection;
     $query = $connection->select('file_managed', 'fm');
     $query->condition('fm.fid', $file_id);
     $query->fields('fm', [
@@ -147,7 +165,7 @@ class ServiceAuditFilesManagedNotUsed {
    *   The ID of the file to delete from the database.
    */
   public function auditfilesManagedNotUsedBatchDeleteProcessFile($file_id) {
-    $connection = Database::getConnection();
+    $connection = $this->connection;
     $num_rows = $connection->delete('file_managed')
       ->condition('fid', $file_id)
       ->execute();

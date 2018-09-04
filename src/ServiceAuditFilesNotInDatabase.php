@@ -7,6 +7,8 @@ use Drupal\user\Entity\User;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Config\ConfigFactory;
+use Drupal\Core\Database\Connection;
 
 /**
  * Define all methods that are used on Files not in database functionality.
@@ -16,17 +18,33 @@ class ServiceAuditFilesNotInDatabase {
   use StringTranslationTrait;
 
   /**
+   * The Configuration Factory.
+   *
+   * @var Drupal\Core\Config\ConfigFactory
+   */
+  protected $config_factory;
+
+  /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $connection;
+
+  /**
    * Define constructor for string translation.
    */
-  public function __construct(TranslationInterface $translation) {
+  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection) {
     $this->stringTranslation = $translation;
+    $this->config_factory = $config_factory;
+    $this->connection = $connection;
   }
 
   /**
    * Get the files that are not in database.
    */
   public function auditfilesNotInDatabaseGetReportsFiles() {
-    $config = \Drupal::config('auditfiles.settings');
+    $config = $this->config_factory->get('auditfiles.settings');
     $report_files = [];
     $reported_files = [];
     $this->auditfilesNotInDatabaseGetFilesForReport('', $report_files);
@@ -61,7 +79,7 @@ class ServiceAuditFilesNotInDatabase {
    * Get files for report.
    */
   public function auditfilesNotInDatabaseGetFilesForReport($path, array &$report_files) {
-    $config = \Drupal::config('auditfiles.settings');
+    $config = $this->config_factory->get('auditfiles.settings');
     $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
     $real_files_path = drupal_realpath($file_system_stream . '://');
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
@@ -107,7 +125,7 @@ class ServiceAuditFilesNotInDatabase {
    */
   public function auditfilesNotInDatabaseIsFileInDatabase($filepathname) {
     $file_uri = file_build_uri($filepathname);
-    $connection = Database::getConnection();
+    $connection = $this->connection;
     $query = $connection->select('file_managed', 'fm');
     $query->condition('fm.uri', $file_uri);
     $query->fields('fm', ['fid']);
@@ -154,7 +172,7 @@ class ServiceAuditFilesNotInDatabase {
    *   The list of files and diretories found in the given path.
    */
   public function auditfilesNotInDatabaseGetFiles($path) {
-    $config = \Drupal::config('auditfiles.settings');
+    $config = $this->config_factory->get('auditfiles.settings');
     $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
     $real_files_path = drupal_realpath($file_system_stream . '://');
     $exclusions = $this->auditfilesGetExclusions();
@@ -216,7 +234,7 @@ class ServiceAuditFilesNotInDatabase {
    *   The excluions.
    */
   public function auditfilesGetExclusions() {
-    $config = \Drupal::config('auditfiles.settings');
+    $config = $this->config_factory->get('auditfiles.settings');
     $exclusions_array = [];
     $files = trim($config->get('auditfiles_exclude_files') ? $config->get('auditfiles_exclude_files') : '.htaccess');
     if ($files) {
@@ -363,7 +381,7 @@ class ServiceAuditFilesNotInDatabase {
     $uuid_service = \Drupal::service('uuid');
     $uuid = $uuid_service->generate();
 
-    $connection = Database::getConnection();
+    $connection = $this->connection;
     $query = $connection->select('file_managed', 'fm');
     $query->condition('fm.uri', $file->uri);
     $query->fields('fm', ['fid']);
@@ -435,7 +453,7 @@ class ServiceAuditFilesNotInDatabase {
    *   The full pathname of the file to delete from the server.
    */
   public function auditfilesNotInDatabaseBatchDeleteProcessFile($filename) {
-    $config = \Drupal::config('auditfiles.settings');
+    $config = $this->config_factory->get('auditfiles.settings');
     $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
     $real_files_path = drupal_realpath($file_system_stream . '://');
     if (file_unmanaged_delete($real_files_path . DIRECTORY_SEPARATOR . $filename)) {

@@ -8,6 +8,9 @@ use Drupal\Core\Url;
 use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Config\ConfigFactory;
+use Drupal\Core\Database\Connection;
+use Drupal\Core\Entity\EntityFieldManager;
 
 /**
  * List all methods used in files used not managed functionality.
@@ -17,10 +20,34 @@ class ServiceAuditFilesUsedNotReferenced {
   use StringTranslationTrait;
 
   /**
+   * The Configuration Factory.
+   *
+   * @var Drupal\Core\Config\ConfigFactory
+   */
+  protected $config_factory;
+
+  /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $connection;
+
+  /**
+   * The entityFieldManager connection.
+   *
+   * @var Drupal\Core\Entity\EntityFieldManager
+   */
+  protected $entity_field_manager;
+
+  /**
    * Define constructor for string translation.
    */
-  public function __construct(TranslationInterface $translation) {
+  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, EntityFieldManager $entity_field_manager) {
     $this->stringTranslation = $translation;
+    $this->config_factory = $config_factory;
+    $this->connection = $connection;
+    $this->entity_field_manager = $entity_field_manager;
   }
 
   /**
@@ -30,8 +57,8 @@ class ServiceAuditFilesUsedNotReferenced {
    *   The file IDs.
    */
   public function auditfilesUsedNotReferencedGetFileList() {
-    $config = \Drupal::config('auditfiles.settings');
-    $connection = Database::getConnection();
+    $config = $this->config_factory->get('auditfiles.settings');
+    $connection = $this->connection;
     $query = 'SELECT DISTINCT fid FROM {file_usage} fu';
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
     if ($maximum_records > 0) {
@@ -39,8 +66,8 @@ class ServiceAuditFilesUsedNotReferenced {
     }
     $files_in_file_usage = $connection->query($query)->fetchCol();
     $files_in_fields = [];
-    $fields[] = \Drupal::service('entity_field.manager')->getFieldMapByFieldType('image');
-    $fields[] = \Drupal::service('entity_field.manager')->getFieldMapByFieldType('file');
+    $fields[] = $this->entity_field_manager->getFieldMapByFieldType('image');
+    $fields[] = $this->entity_field_manager->getFieldMapByFieldType('file');
     $count = 0;
     foreach ($fields as $key => $value) {
       foreach ($value as $table_prefix => $entity_type) {
@@ -54,7 +81,7 @@ class ServiceAuditFilesUsedNotReferenced {
     foreach ($field_data as $key => $value) {
       $table = $value['table'];
       $column = $value['column'];
-      if (Database::getConnection()->schema()->tableExists($table)) {
+      if ($this->connection->schema()->tableExists($table)) {
         $query = "SELECT t.$column FROM {$table} AS t INNER JOIN {file_usage} AS f ON f.fid = t.$column";
         $result = $connection->query($query);
         foreach ($result as $fid) {
@@ -78,7 +105,7 @@ class ServiceAuditFilesUsedNotReferenced {
    *   information formatted for display.
    */
   public function auditfilesUsedNotReferencedGetFileData($file_id) {
-    $connection = Database::getConnection();
+    $connection = $this->connection;
     $file_managed = $connection->query("SELECT * FROM {file_managed} fm WHERE fid = $file_id")->fetchObject();
     if (empty($file_managed)) {
       $url = Url::fromUri('internal:/admin/reports/auditfiles/usednotmanaged');
@@ -174,7 +201,7 @@ class ServiceAuditFilesUsedNotReferenced {
    *   The ID of the file to delete from the database.
    */
   public function auditfilesUsedNotReferencedBatchDeleteProcessFile($file_id) {
-    $connection = Database::getConnection();
+    $connection = $this->connection;
     $num_rows = $connection->delete('file_usage')->condition('fid', $file_id)->execute();
     if (empty($num_rows)) {
       drupal_set_message(
