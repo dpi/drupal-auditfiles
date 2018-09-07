@@ -1,7 +1,7 @@
 services:
   auditfiles.not_in_database:
     class: Drupal\auditfiles\ServiceAuditFilesNotInDatabase
-    arguments: ['@string_translation', '@config.factory', '@database']
+    arguments: ['@string_translation', '@config.factory', '@database', '@stream_wrapper_manager']
 
   auditfiles.not_on_server:
     class: Drupal\auditfiles\ServiceAuditFilesNotOnServer

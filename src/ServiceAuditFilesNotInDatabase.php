@@ -9,6 +9,7 @@ use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\StreamWrapper\StreamWrapperManager;
 
 /**
  * Define all methods that are used on Files not in database functionality.
@@ -32,12 +33,20 @@ class ServiceAuditFilesNotInDatabase {
   protected $connection;
 
   /**
+   * The Stream Wrapper Manager.
+   *
+   * @var Drupal\Core\StreamWrapper\StreamWrapperManager
+   */
+  protected $stream_wrapper_manage;
+
+  /**
    * Define constructor for string translation.
    */
-  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection) {
+  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, StreamWrapperManager $stream_wrapper_manage) {
     $this->stringTranslation = $translation;
     $this->config_factory = $config_factory;
     $this->connection = $connection;
+    $this->stream_wrapper_manage = $stream_wrapper_manage;
   }
 
   /**
@@ -251,11 +260,11 @@ class ServiceAuditFilesNotInDatabase {
     // Exclude other file streams that may be deinfed and in use.
     $exclude_streams = [];
     $auditfiles_file_system_path = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
-    $file_system_paths = \Drupal::service("stream_wrapper_manager")->getWrappers(StreamWrapperInterface::LOCAL);
+    $file_system_paths = $this->stream_wrapper_manage->getWrappers(StreamWrapperInterface::LOCAL);
     foreach ($file_system_paths as $file_system_path_id => $file_system_path) {
       if ($file_system_path_id != $auditfiles_file_system_path) {
         $uri = $file_system_path_id . '://';
-        if ($wrapper = \Drupal::service('stream_wrapper_manager')->getViaUri($uri)) {
+        if ($wrapper = $this->stream_wrapper_manage->getViaUri($uri)) {
           $exclude_streams[] = $wrapper->realpath();
         }
       }
