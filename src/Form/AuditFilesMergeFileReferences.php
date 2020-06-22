@@ -11,11 +11,14 @@ use Drupal\Core\Database\Database;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Messenger\MessengerTrait;
 
 /**
  * Form for merge file references.
  */
 class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInterface {
+
+  use MessengerTrait;
 
   /**
    * The Config.
@@ -36,7 +39,8 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('config.factory')
+      $container->get('config.factory'),
+      $container->get('date.formatter')
     );
   }
 
@@ -140,11 +144,14 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
                 'fileid' => $file_id,
                 'fileuri' => $file->uri,
                 'filesize' => number_format($file->filesize),
-                'timestamp' => format_date($file->created, $date_format),
+                'timestamp' => $this->dateFormatter->format($file->created, $date_format)
+
               ];
             }
             else {
-              drupal_set_message($this->t('A file object was not found for file ID @fid.', ['@fid' => $file_id]));
+              $this->messenger()->addStatus(
+                $this->t('A file object was not found for file ID @fid.', ['@fid' => $file_id])
+              );
             }
           }
           else {
@@ -225,11 +232,13 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
                     'fileid' => $file->fid,
                     'fileuri' => $file->uri,
                     'filesize' => number_format($file->filesize),
-                    'timestamp' => format_date($file->created, $date_format),
+                    'timestamp' => $this->dateFormatter->format($file->created, $date_format),
                   ];
                 }
                 else {
-                  drupal_set_message($this->t('A file object was not found for file ID @fid.', ['@fid' => $result->fid]));
+                  $this->messenger()->addStatus(
+                    $this->t('A file object was not found for file ID @fid.', ['@fid' => $result->fid])
+                  );
                 }
               }
             }
@@ -268,7 +277,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
     if (!empty($rows)) {
       $items_per_page = $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
       if (!empty($items_per_page)) {
-        $current_page = pager_default_initialize(count($rows), $items_per_page);
+        $current_page = \Drupal::service('pager.manager')->createPager(count($rows), $items_per_page)->getCurrentPage();
         // Break the total data set into page sized chunks.
         $pages = array_chunk($rows, $items_per_page, TRUE);
       }
@@ -365,7 +374,9 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
         }
       }
       if (!isset($storage)) {
-        drupal_set_message($this->t('At least one file name must be selected in order to merge the file IDs. No changes were made.'), 'error');
+        $this->messenger()->addStatus(
+          $this->t('At least one file name must be selected in order to merge the file IDs. No changes were made.')
+        );
       }
     }
   }

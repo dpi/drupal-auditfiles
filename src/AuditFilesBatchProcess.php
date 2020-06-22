@@ -3,11 +3,14 @@
 namespace Drupal\auditfiles;
 
 use Drupal\Component\Utility\Html;
+use Drupal\Core\Messenger\MessengerTrait;
 
 /**
  * Process batch files.
  */
 class AuditFilesBatchProcess {
+
+  use MessengerTrait;
 
   /**
    * Called when the batch is completed in 'not in database fumctionality'.
@@ -18,14 +21,13 @@ class AuditFilesBatchProcess {
     }
     else {
       $error_operation = reset($operations);
-      drupal_set_message(
+      $this->messenger()->addError(
         t('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
             '@args' => print_r($error_operation[0], TRUE),
           ]
-        ),
-        'error'
+        )
       );
     }
   }
@@ -72,7 +74,8 @@ class AuditFilesBatchProcess {
    */
   public static function auditfilesMakePreg(&$element, $key = '', $makefilepath = FALSE) {
     if ($makefilepath) {
-      $realpath = drupal_realpath(file_build_uri($element));
+      $realpath = \Drupal::service('file_system')
+        ->realpath(file_build_uri($element));
       if ($realpath) {
         $element = $realpath;
       }
@@ -89,14 +92,13 @@ class AuditFilesBatchProcess {
     }
     else {
       $error_operation = reset($operations);
-      drupal_set_message(
+      $this->messenger()->addError(
         t('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
             '@args' => print_r($error_operation[0], TRUE),
           ]
-        ),
-        'error'
+        )
       );
     }
   }
@@ -131,14 +133,13 @@ class AuditFilesBatchProcess {
   public static function auditfilesManagedNotUsedBatchFinishBatch($success, $results, $operations) {
     if (!$success) {
       $error_operation = reset($operations);
-      drupal_set_message(
+      $this->messenger()->addError(
         t('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
             '@args' => print_r($error_operation[0], TRUE),
           ]
-        ),
-        'error'
+        )
       );
     }
   }
@@ -158,14 +159,14 @@ class AuditFilesBatchProcess {
   public static function auditfilesUsedNotManagedBatchFinishBatch($success, $results, $operations) {
     if (!$success) {
       $error_operation = reset($operations);
-      drupal_set_message(
+
+      $this->messenger()->addError(
         t('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
             '@args' => print_r($error_operation[0], TRUE),
           ]
-        ),
-        'error'
+        )
       );
     }
   }
@@ -185,14 +186,13 @@ class AuditFilesBatchProcess {
   public static function auditfilesUsedNotReferencedBatchFinishBatch($success, $results, $operations) {
     if (!$success) {
       $error_operation = reset($operations);
-      drupal_set_message(
+      $this->messenger()->addError(
         t('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
             '@args' => print_r($error_operation[0], TRUE),
           ]
-        ),
-        'error'
+        )
       );
     }
   }
@@ -203,14 +203,13 @@ class AuditFilesBatchProcess {
   public static function auditfilesReferencedNotUsedBatchFinishBatch($success, $results, $operations) {
     if (!$success) {
       $error_operation = reset($operations);
-      drupal_set_message(
+      $this->messenger()->addError(
         t('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
             '@args' => print_r($error_operation[0], TRUE),
           ]
-        ),
-        'error'
+        )
       );
     }
   }
@@ -239,14 +238,13 @@ class AuditFilesBatchProcess {
   public static function auditfilesMergeFileReferencesBatchFinishBatch($success, $results, $operations) {
     if (!$success) {
       $error_operation = reset($operations);
-      drupal_set_message(
+      $this->messenger()->addError(
         t('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
             '@args' => print_r($error_operation[0], TRUE),
           ]
-        ),
-        'error'
+        )
       );
     }
   }

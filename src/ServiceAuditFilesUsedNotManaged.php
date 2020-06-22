@@ -7,6 +7,7 @@ use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
 
@@ -16,6 +17,7 @@ use Drupal\Core\Database\Connection;
 class ServiceAuditFilesUsedNotManaged {
 
   use StringTranslationTrait;
+  use MessengerTrait;
 
   /**
    * The Configuration Factory.
@@ -139,16 +141,15 @@ class ServiceAuditFilesUsedNotManaged {
     $connection = $this->connection;
     $num_rows = $connection->delete('file_usage')->condition('fid', $file_id)->execute();
     if (empty($num_rows)) {
-      drupal_set_message(
+      $this->messenger()->addWarning(
         $this->t(
           'There was a problem deleting the record with file ID %fid from the file_usage table. Check the logs for more information.',
           ['%fid' => $file_id]
-        ),
-        'warning'
+        )
       );
     }
     else {
-      drupal_set_message(
+      $this->messenger()->addStatus(
         $this->t(
           'Sucessfully deleted File ID : %fid from the file_usages table.',
           ['%fid' => $file_id]

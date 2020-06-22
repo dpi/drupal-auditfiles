@@ -8,8 +8,11 @@ use Drupal\file\Entity\File;
 use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Datetime\DateFormatter;
+use Drupal\Core\File\FileSystemInterface;
 
 /**
  * Define all methods that used in merge file references functionality.
@@ -17,6 +20,7 @@ use Drupal\Core\Database\Connection;
 class ServiceAuditFilesMergeFileReferences {
 
   use StringTranslationTrait;
+  use MessengerTrait;
 
   /**
    * The Configuration Factory.
@@ -33,12 +37,28 @@ class ServiceAuditFilesMergeFileReferences {
   protected $connection;
 
   /**
+   * The Date Formatter.
+   *
+   * @var Drupal\Core\Datetime\DateFormatter
+   */
+  protected $date_formatter;
+
+  /**
+   * The file system service.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
+  protected $file_system;
+
+  /**
    * Define constructor for string translation.
    */
-  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection) {
+  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, DateFormatter $date_formatter, FileSystemInterface $file_system) {
     $this->stringTranslation = $translation;
     $this->config_factory = $config_factory;
     $this->connection = $connection;
+    $this->date_formatter = $date_formatter;
+    $this->file_system = $file_system;
   }
 
   /**
@@ -117,7 +137,7 @@ class ServiceAuditFilesMergeFileReferences {
             '%id' => $file->fid,
             '%file' => $file->filename,
             '%uri' => $file->uri,
-            '%date' => format_date($file->created, $date_format),
+            '%date' => $this->date_formatter->format($file->created, $date_format),
           ]
         ) . '</li>';
       }
@@ -200,8 +220,9 @@ class ServiceAuditFilesMergeFileReferences {
       ->execute()
       ->fetchAll();
     if (empty($file_being_kept_results)) {
-      $message = $this->t('There was no file usage data found for the file you choose to keep. No changes were made.');
-      drupal_set_message($message, 'warning');
+      $this->messenger()->addWarning(
+        $this->t('There was no file usage data found for the file you choose to keep. No changes were made.')
+      );
       return;
     }
     $file_being_kept_data = reset($file_being_kept_results);
@@ -216,11 +237,12 @@ class ServiceAuditFilesMergeFileReferences {
       ->execute()
       ->fetchAll();
     if (empty($file_being_merged_results)) {
-      $message = $this->t(
-        'There was an error retrieving the file usage data from the database for file ID %fid. Please check the files in one of the other reports. No changes were made for this file.',
-        ['%fid' => $file_being_merged]
+      $this->messenger()->addWarning(
+        $this->t(
+          'There was an error retrieving the file usage data from the database for file ID %fid. Please check the files in one of the other reports. No changes were made for this file.',
+          ['%fid' => $file_being_merged]
+        )
       );
-      drupal_set_message($message, 'warning');
       return;
     }
     $file_being_merged_data = reset($file_being_merged_results);
@@ -262,7 +284,7 @@ class ServiceAuditFilesMergeFileReferences {
       ->execute();
     // Delete the duplicate file.
     if (!empty($file_being_merged_uri->uri)) {
-      file_unmanaged_delete($file_being_merged_uri->uri);
+      $this->file_system->delete($file_being_merged_uri->uri);
     }
   }
 
@@ -297,7 +319,7 @@ class ServiceAuditFilesMergeFileReferences {
                     'title' => $title,
                   ];
                 }
-                $entity->save();
+              $entity->save();
                 break;
               }
             }

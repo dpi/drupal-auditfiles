@@ -11,11 +11,14 @@ use Drupal\file\Entity\File;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Messenger\MessengerTrait;
 
 /**
  * Form for File not on server functionality.
  */
 class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
+
+  use MessengerTrait;
 
   /**
    * The Config.
@@ -156,7 +159,7 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
     if (!empty($rows)) {
       $items_per_page = $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
       if (!empty($items_per_page)) {
-        $current_page = pager_default_initialize(count($rows), $items_per_page);
+        $current_page = \Drupal::service('pager.manager')->createPager(count($rows), $items_per_page)->getCurrentPage();
         // Break the total data set into page sized chunks.
         $pages = array_chunk($rows, $items_per_page, TRUE);
       }
@@ -230,7 +233,9 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
         }
       }
       if (!isset($storage)) {
-        drupal_set_message($this->t('No items were selected to operate on.'), 'error');
+        $this->messenger()->addError(
+          $this->t('No items were selected to operate on.')
+        );
       }
     }
   }

@@ -8,6 +8,7 @@ use Drupal\Core\Url;
 use Drupal\file\Entity\File;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityFieldManager;
@@ -18,6 +19,7 @@ use Drupal\Core\Entity\EntityFieldManager;
 class ServiceAuditFilesReferencedNotUsed {
 
   use StringTranslationTrait;
+  use MessengerTrait;
 
   /**
    * The Configuration Factory.
@@ -249,7 +251,7 @@ class ServiceAuditFilesReferencedNotUsed {
       $connection->insert('file_usage')->fields($data)->execute();
     }
     else {
-      drupal_set_message(
+      $this->messenger()->addError(
         $this->t(
            'The file is already in the file_usage table (file id: "@fid", module: "@module", type: "@type", entity id: "@id").',
           [
@@ -258,8 +260,7 @@ class ServiceAuditFilesReferencedNotUsed {
             '@type' => $data['type'],
             '@id' => $data['id'],
           ]
-        ),
-        'error'
+        )
       );
     }
   }
@@ -308,7 +309,7 @@ class ServiceAuditFilesReferencedNotUsed {
       ->condition($reference_id_parts[1], $reference_id_parts[4])
       ->execute();
     if (empty($num_rows)) {
-      drupal_set_message(
+      $this->messenger()->addWarning(
         $this->t(
           'There was a problem deleting the reference to file ID %fid in the %entity_type with ID %eid. Check the logs for more information.',
           [
@@ -316,12 +317,11 @@ class ServiceAuditFilesReferencedNotUsed {
             '%entity_type' => $reference_id_parts[3],
             '%eid' => $reference_id_parts[2],
           ]
-        ),
-        'warning'
+        )
       );
     }
     else {
-      drupal_set_message(
+      $this->messenger()->addStatus(
         $this->t(
           'file ID %fid  deleted successfully.',
           [

@@ -5,6 +5,7 @@ namespace Drupal\auditfiles;
 use Drupal\Core\Database\Database;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Datetime\DateFormatter;
@@ -15,6 +16,7 @@ use Drupal\Core\Datetime\DateFormatter;
 class ServiceAuditFilesManagedNotUsed {
 
   use StringTranslationTrait;
+  use MessengerTrait;
 
   /**
    * The Configuration Factory.
@@ -97,7 +99,7 @@ class ServiceAuditFilesManagedNotUsed {
       'uid' => $file->uid,
       'filename' => $file->filename,
       'uri' => $file->uri,
-      'path' => drupal_realpath($file->uri),
+      'path' => $this->fileSystem->realpath($file->uri),
       'filemime' => $file->filemime,
       'filesize' => number_format($file->filesize),
       'datetime' => $this->date_formatter->format($file->created, $date_format),
@@ -179,16 +181,15 @@ class ServiceAuditFilesManagedNotUsed {
       ->condition('fid', $file_id)
       ->execute();
     if (empty($num_rows)) {
-      drupal_set_message(
+      $this->messenger()->addWarning(
         $this->t(
           'There was a problem deleting the record with file ID %fid from the file_managed table. Check the logs for more information.',
           ['%fid' => $file_id]
-        ),
-        'warning'
+        )
       );
     }
     else {
-      drupal_set_message(
+      $this->messenger()->addStatus(
         $this->t(
           'Sucessfully deleted File ID : %fid from the file_managed table.',
           ['%fid' => $file_id]
@@ -196,5 +197,4 @@ class ServiceAuditFilesManagedNotUsed {
       );
     }
   }
-
 }
