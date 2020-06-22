@@ -1,0 +1,25 @@
+8.x-2.3
+
+Issue #3153839 by lhridley: Implement CHANGELOG.txt for 8.x-2.x
+Issue #2998775 by volkswagenchick, alonaoneill, keshav.k: README.txt does not follow best practice
+Issue #2997092 by deepakkumar14, keshav.k: Remove Dependency injection of stream_wrapper_manager
+Issue #2997088 by deepakkumar14: Remove dependency injection of date.formatter service
+Issue #2996412 by deepakkumar14: Remove dependency injection of config, database connection and entityFileManager from all files
+Issue #2996338 by deepakkumar14, keshav.k: Remove dependencies injection of DatabaseConnection , configuration and entityfieldmanager
+Issue #2995456 by keshav.k, vandna b: \Drupal::config() calls should be avoided in classes use dependency injection
+Issue #2994545 by keshav.k, vandna b, Vidushi Mehta: \Drupal calls should be avoided in classes, use dependency injection instead
+Issue #2991570 by Vidushi Mehta, brahmjeet789, keshav.k: Hook help is missing
+
+8.x-2.2
+
+Issue #2991519 by jlscott: Incorrect configuration settings name
+General code cleanup
+
+8.x-1.1
+
+fix table not found issue
+Issue #2990360 by keshav.k: PHP Fatal error: Cannot use Drupal\Component\Utility\String as String because 'String' is a special class name in ./src/Form/AuditFilesConfig.php on line 7 Errors parsing ./src/Form/AuditFilesConfig.php
+55ec7c5 fix coding indentation
+Issue #2989420 by karuna patel, keshav.k, vandna b: README.txt does not follow best practices
+Issue #2989426 by vandna b: [D8] Fix all coding issues listed here
+initial commit
