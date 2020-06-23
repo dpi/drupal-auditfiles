@@ -319,7 +319,9 @@ class ServiceAuditFilesNotInDatabase {
       if ($file_system_path_id != $auditfiles_file_system_path) {
         $uri = $file_system_path_id . '://';
         if ($wrapper = $this->streamWrapperManager->getViaUri($uri)) {
-          $exclude_streams[] = $wrapper->realpath();
+          if (!empty($wrapper->realpath()) {
+            $exclude_streams[] = $wrapper->realpath();
+          }
         }
       }
     }
