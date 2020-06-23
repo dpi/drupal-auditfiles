@@ -71,29 +71,32 @@ class ServiceAuditFilesUsedNotReferenced {
     $fields[] = $this->entity_field_manager->getFieldMapByFieldType('image');
     $fields[] = $this->entity_field_manager->getFieldMapByFieldType('file');
     $count = 0;
-    foreach ($fields as $key => $value) {
-      foreach ($value as $table_prefix => $entity_type) {
-        foreach ($entity_type as $key1 => $value1) {
-          $field_data[$count]['table'] = $table_prefix . '__' . $key1;
-          $field_data[$count]['column'] = $key1 . '_target_id';
-          $count++;
-        }
-      }
-    }
-    foreach ($field_data as $key => $value) {
-      $table = $value['table'];
-      $column = $value['column'];
-      if ($this->connection->schema()->tableExists($table)) {
-        $query = "SELECT t.$column FROM {$table} AS t INNER JOIN {file_usage} AS f ON f.fid = t.$column";
-        $result = $connection->query($query);
-        foreach ($result as $fid) {
-          if (in_array($fid->{$column}, $files_in_file_usage)) {
-            $files_in_fields[] = $fid->{$column};
+    if ($fields) {
+      $field_data = [];
+      foreach ($fields as $key => $value) {
+        foreach ($value as $table_prefix => $entity_type) {
+          foreach ($entity_type as $key1 => $value1) {
+            $field_data[$count]['table'] = $table_prefix . '__' . $key1;
+            $field_data[$count]['column'] = $key1 . '_target_id';
+            $count++;
           }
         }
       }
+      foreach ($field_data as $key => $value) {
+        $table = $value['table'];
+        $column = $value['column'];
+        if ($this->connection->schema()->tableExists($table)) {
+          $query = "SELECT t.$column FROM {$table} AS t INNER JOIN {file_usage} AS f ON f.fid = t.$column";
+          $result = $connection->query($query);
+          foreach ($result as $fid) {
+            if (in_array($fid->{$column}, $files_in_file_usage)) {
+              $files_in_fields[] = $fid->{$column};
+            }
+          }
+        }
+      }
+      return array_diff($files_in_file_usage, $files_in_fields);
     }
-    return array_diff($files_in_file_usage, $files_in_fields);
   }
 
   /**

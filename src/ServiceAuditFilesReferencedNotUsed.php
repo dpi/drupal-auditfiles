@@ -67,6 +67,7 @@ class ServiceAuditFilesReferencedNotUsed {
     $fields[] = $this->entity_field_manager->getFieldMapByFieldType('image');
     $fields[] = $this->entity_field_manager->getFieldMapByFieldType('file');
     if ($fields) {
+      $field_data = [];
       $count = 0;
       foreach ($fields as $key => $value) {
         foreach ($value as $table_prefix => $entity_type) {
