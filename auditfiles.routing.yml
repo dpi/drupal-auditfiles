@@ -4,7 +4,7 @@ auditfiles.notindatabase:
     _form: '\Drupal\auditfiles\Form\AuditFilesNotInDatabase'
     _title: 'Not in database'
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'access audit files reports'
 
 auditfiles.auditfiles_configuration:
   path: '/admin/config/system/auditfiles_config'
@@ -12,7 +12,7 @@ auditfiles.auditfiles_configuration:
     _form: '\Drupal\auditfiles\Form\AuditFilesConfig'
     _title: 'Audit Files'
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'access audit files reports'
 
 auditfiles.audit_files_notonserver:
   path: 'admin/reports/auditfiles/notonserver'
@@ -20,7 +20,7 @@ auditfiles.audit_files_notonserver:
     _form: '\Drupal\auditfiles\Form\AuditFilesNotOnServer'
     _title: 'Not on server'
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'access audit files reports'
 
 auditfiles.audit_files_managednotused:
   path: 'admin/reports/auditfiles/managednotused'
@@ -28,7 +28,7 @@ auditfiles.audit_files_managednotused:
     _form: '\Drupal\auditfiles\Form\AuditFilesManagedNotUsed'
     _title: 'Managed not used'
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'access audit files reports'
 
 auditfiles.audit_files_usednotmanaged:
   path: 'admin/reports/auditfiles/usednotmanaged'
@@ -36,7 +36,7 @@ auditfiles.audit_files_usednotmanaged:
     _form: '\Drupal\auditfiles\Form\AuditFilesUsedNotManaged'
     _title: 'Used not managed'
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'access audit files reports'
 
 auditfiles.audit_files_usednotreferenced:
   path: 'admin/reports/auditfiles/usednotreferenced'
@@ -44,7 +44,7 @@ auditfiles.audit_files_usednotreferenced:
     _form: '\Drupal\auditfiles\Form\AuditFilesUsedNotReferenced'
     _title: 'Used not referenced'
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'access audit files reports'
 
 auditfiles.audit_files_referencednotused:
   path: 'admin/reports/auditfiles/referencednotused'
@@ -52,7 +52,7 @@ auditfiles.audit_files_referencednotused:
     _form: '\Drupal\auditfiles\Form\AuditFilesReferencedNotUsed'
     _title: 'Referenced not used'
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'access audit files reports'
 
 auditfiles.audit_files_mergefilereferences:
   path: 'admin/reports/auditfiles/mergefilereferences'
@@ -60,7 +60,7 @@ auditfiles.audit_files_mergefilereferences:
     _form: '\Drupal\auditfiles\Form\AuditFilesMergeFileReferences'
     _title: 'Merge file references'
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'access audit files reports'
 
 auditfiles.report_auditfiles:
   path: 'admin/reports/auditfiles'
@@ -68,4 +68,4 @@ auditfiles.report_auditfiles:
     _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
     _title: 'Audit Files'
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'access audit files reports'
