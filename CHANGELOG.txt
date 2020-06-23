@@ -1,5 +1,6 @@
-8.x-2.x
+8.x-2.4
 
+Issue #3127142 by Suresh Prabhu Parkala: Drupal 9 readiness
 Issue #3004280 by karuna patel, Sergiu Stici, naresh_bavaskar, i-trokhanenko, lhridley: D9 Deprecated Code Report
 
 8.x-2.3
