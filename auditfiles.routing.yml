@@ -12,7 +12,7 @@ auditfiles.auditfiles_configuration:
     _form: '\Drupal\auditfiles\Form\AuditFilesConfig'
     _title: 'Audit Files'
   requirements:
-    _permission: 'access audit files reports'
+    _permission: 'configure audit files reports'
 
 auditfiles.audit_files_notonserver:
   path: 'admin/reports/auditfiles/notonserver'
