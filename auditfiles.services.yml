@@ -1,7 +1,7 @@
 services:
   auditfiles.not_in_database:
     class: Drupal\auditfiles\ServiceAuditFilesNotInDatabase
-    arguments: ['@string_translation', '@config.factory', '@database', '@stream_wrapper_manager']
+    arguments: ['@string_translation', '@config.factory', '@database', '@stream_wrapper_manager', '@date.formatter', '@file_system']
 
   auditfiles.not_on_server:
     class: Drupal\auditfiles\ServiceAuditFilesNotOnServer
@@ -25,4 +25,4 @@ services:
 
   auditfiles.merge_file_references:
     class: Drupal\auditfiles\ServiceAuditFilesMergeFileReferences
-    arguments: ['@string_translation', '@config.factory', '@database']
+    arguments: ['@string_translation', '@config.factory', '@database', '@date.formatter', '@file_system']
