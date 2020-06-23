@@ -6,6 +6,7 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Datetime\Entity\DateFormat;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -23,10 +24,10 @@ class AuditFilesConfig extends ConfigFormBase {
   /**
    * Class constructor.
    *
-   * @param Drupal\Core\StreamWrapperInterface\StreamWrapperInterface $stream_wrapper
+   * @param Drupal\Core\StreamWrapper\StreamWrapperManager $stream_wrapper
    *   The stream wrapper service.
    */
-  public function __construct(StreamWrapperInterface $stream_wrapper) {
+  public function __construct(StreamWrapperManager $stream_wrapper) {
     $this->streamWrapperManager = $stream_wrapper;
   }
 
