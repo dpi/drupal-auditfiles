@@ -2,5 +2,6 @@ name: Audit Files
 type: module
 description: Allows for comparing and correcting files and file references in the "files" directory, in the database, and in content.
 core : 8.x
+core_version_requirement: ^8 || ^9
 package: Media
 configure: auditfiles.auditfiles_configuration
