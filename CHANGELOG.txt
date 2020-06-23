@@ -1,5 +1,6 @@
 8.x-2.x
 
+Issue #3154049 by lhridley: Drupal 9 Coding Standards Refactoring
 Issue #3092517 by lhridley: Issue with the NotOnServer $query->range
 Issue #3051823 by lhridley, bgodin95: Audit Files should specify its own access permissions
 

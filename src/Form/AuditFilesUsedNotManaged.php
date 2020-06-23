@@ -8,9 +8,10 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Messenger\MessengerTrait;
+use Drupal\auditfiles\ServiceAuditFilesUsedNotManaged;
+use Drupal\Core\Pager\PagerManagerInterface;
 
 /**
  * Class for file used but not managed.
@@ -27,10 +28,33 @@ class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface 
   protected $configFactoryStorage;
 
   /**
-   * @param ConfigFactoryInterface $config_factory
+   * The auditfiles.managed_not_used service.
+   *
+   * @var Drupal\auditfiles\ServiceAuditFilesUsedNotManaged
    */
-  public function __construct(ConfigFactoryInterface $config_factory) {
+  protected $filesUsedNotManaged;
+
+  /**
+   * The pager.manager service.
+   *
+   * @var \Drupal\Core\Pager\PagerManagerInterface
+   */
+  protected $pagerManager;
+
+  /**
+   * Class constructor.
+   *
+   * @param Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The configuration service.
+   * @param Drupal\auditfiles\ServiceAuditFilesUsedNotManaged $files_used_not_managed
+   *   The auditfiles.used_not_managed service.
+   * @param Drupal\Core\Pager\PagerManagerInterface $pager_manager
+   *   The pager.manager service.
+   */
+  public function __construct(ConfigFactoryInterface $config_factory, ServiceAuditFilesUsedNotManaged $files_used_not_managed, PagerManagerInterface $pager_manager) {
     $this->configFactoryStorage = $config_factory;
+    $this->filesUsedNotManaged = $files_used_not_managed;
+    $this->pagerManager = $pager_manager;
   }
 
   /**
@@ -38,7 +62,9 @@ class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface 
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('config.factory')
+      $container->get('config.factory'),
+      $container->get('auditfiles.used_not_managed'),
+      $container->get('pager.manager')
     );
   }
 
@@ -137,17 +163,17 @@ class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface 
       }
       return $form;
     }
-    $file_ids = \Drupal::service('auditfiles.used_not_managed')->auditfilesUsedNotManagedGetFileList();
+    $file_ids = $this->filesUsedNotManaged->auditfilesUsedNotManagedGetFileList();
     if (!empty($file_ids)) {
       foreach ($file_ids as $file_id) {
-        $rows[$file_id] = \Drupal::service('auditfiles.used_not_managed')->auditfilesUsedNotManagedGetFileData($file_id);
+        $rows[$file_id] = $this->filesUsedNotManaged->auditfilesUsedNotManagedGetFileData($file_id);
       }
     }
     // Set up the pager.
     if (!empty($rows)) {
       $items_per_page = $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
       if (!empty($items_per_page)) {
-        $current_page = \Drupal::service('pager.manager')->createPager(count($rows), $items_per_page)->getCurrentPage();
+        $current_page = $this->pagerManager->createPager(count($rows), $items_per_page)->getCurrentPage();
         $pages = array_chunk($rows, $items_per_page, TRUE);
       }
     }
@@ -169,7 +195,7 @@ class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface 
     // Create the form table.
     $form['files'] = [
       '#type' => 'tableselect',
-      '#header' => \Drupal::service('auditfiles.used_not_managed')->auditfilesUsedNotManagedGetHeader(),
+      '#header' => $this->filesUsedNotManaged->auditfilesUsedNotManagedGetHeader(),
       '#empty' => $this->t('No items found.'),
       '#prefix' => '<div><em>' . $form_count . '</em></div>',
     ];
@@ -231,7 +257,7 @@ class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface 
    * Submit handler for confirmation.
    */
   public function confirmSubmissionHandlerDeleteFile(array &$form, FormStateInterface $form_state) {
-    batch_set(\Drupal::service('auditfiles.used_not_managed')->auditfilesUsedNotManagedBatchDeleteCreateBatch($form_state->getValue('changelist')));
+    batch_set($this->filesUsedNotManaged->auditfilesUsedNotManagedBatchDeleteCreateBatch($form_state->getValue('changelist')));
   }
 
 }

@@ -2,7 +2,6 @@
 
 namespace Drupal\auditfiles;
 
-use Drupal\Core\Database\Database;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\Component\Render\FormattableMarkup;
@@ -26,7 +25,7 @@ class ServiceAuditFilesUsedNotReferenced {
    *
    * @var Drupal\Core\Config\ConfigFactory
    */
-  protected $config_factory;
+  protected $configFactory;
 
   /**
    * The database connection.
@@ -40,16 +39,16 @@ class ServiceAuditFilesUsedNotReferenced {
    *
    * @var Drupal\Core\Entity\EntityFieldManager
    */
-  protected $entity_field_manager;
+  protected $entityFieldManager;
 
   /**
    * Define constructor for string translation.
    */
   public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, EntityFieldManager $entity_field_manager) {
     $this->stringTranslation = $translation;
-    $this->config_factory = $config_factory;
+    $this->configFactory = $config_factory;
     $this->connection = $connection;
-    $this->entity_field_manager = $entity_field_manager;
+    $this->entityFieldManager = $entity_field_manager;
   }
 
   /**
@@ -59,7 +58,7 @@ class ServiceAuditFilesUsedNotReferenced {
    *   The file IDs.
    */
   public function auditfilesUsedNotReferencedGetFileList() {
-    $config = $this->config_factory->get('auditfiles.settings');
+    $config = $this->configFactory->get('auditfiles.settings');
     $connection = $this->connection;
     $query = 'SELECT DISTINCT fid FROM {file_usage} fu';
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
@@ -68,10 +67,10 @@ class ServiceAuditFilesUsedNotReferenced {
     }
     $files_in_file_usage = $connection->query($query)->fetchCol();
     $files_in_fields = [];
-    $fields[] = $this->entity_field_manager->getFieldMapByFieldType('image');
-    $fields[] = $this->entity_field_manager->getFieldMapByFieldType('file');
+    $fields[] = $this->entityFieldManager->getFieldMapByFieldType('image');
+    $fields[] = $this->entityFieldManager->getFieldMapByFieldType('file');
     $count = 0;
-    foreach ($fields as $key => $value) {
+    foreach ($fields as $value) {
       foreach ($value as $table_prefix => $entity_type) {
         foreach ($entity_type as $key1 => $value1) {
           $field_data[$count]['table'] = $table_prefix . '__' . $key1;
@@ -80,7 +79,7 @@ class ServiceAuditFilesUsedNotReferenced {
         }
       }
     }
-    foreach ($field_data as $key => $value) {
+    foreach ($field_data as $value) {
       $table = $value['table'];
       $column = $value['column'];
       if ($this->connection->schema()->tableExists($table)) {

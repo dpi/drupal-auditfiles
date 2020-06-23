@@ -2,7 +2,6 @@
 
 namespace Drupal\auditfiles;
 
-use Drupal\Core\Database\Database;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Messenger\MessengerTrait;
@@ -23,7 +22,7 @@ class ServiceAuditFilesManagedNotUsed {
    *
    * @var Drupal\Core\Config\ConfigFactory
    */
-  protected $config_factory;
+  protected $configFactory;
 
   /**
    * The database connection.
@@ -37,16 +36,16 @@ class ServiceAuditFilesManagedNotUsed {
    *
    * @var Drupal\Core\Datetime\DateFormatter
    */
-  protected $date_formatter;
+  protected $dateFormatter;
 
   /**
    * Define constructor for string translation.
    */
   public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, DateFormatter $date_formatter) {
     $this->stringTranslation = $translation;
-    $this->config_factory = $config_factory;
+    $this->configFactory = $config_factory;
     $this->connection = $connection;
-    $this->date_formatter = $date_formatter;
+    $this->dateFormatter = $date_formatter;
   }
 
   /**
@@ -56,7 +55,7 @@ class ServiceAuditFilesManagedNotUsed {
    *   The file IDs.
    */
   public function auditfilesManagedNotUsedGetFileList() {
-    $config = $this->config_factory->get('auditfiles.settings');
+    $config = $this->configFactory->get('auditfiles.settings');
     $connection = $this->connection;
     $query = 'SELECT fid FROM {file_managed} WHERE fid NOT IN (SELECT fid FROM {file_usage})';
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
@@ -102,7 +101,7 @@ class ServiceAuditFilesManagedNotUsed {
       'path' => $this->fileSystem->realpath($file->uri),
       'filemime' => $file->filemime,
       'filesize' => number_format($file->filesize),
-      'datetime' => $this->date_formatter->format($file->created, $date_format),
+      'datetime' => $this->dateFormatter->format($file->created, $date_format),
       'status' => ($file->status = 1) ? 'Permanent' : 'Temporary',
     ];
   }
@@ -197,4 +196,5 @@ class ServiceAuditFilesManagedNotUsed {
       );
     }
   }
+
 }

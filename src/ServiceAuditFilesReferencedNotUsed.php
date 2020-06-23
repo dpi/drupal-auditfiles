@@ -2,16 +2,15 @@
 
 namespace Drupal\auditfiles;
 
-use Drupal\Core\Database\Database;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
-use Drupal\file\Entity\File;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityFieldManager;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
  * List all methods used in referenced not used functionality.
@@ -26,7 +25,7 @@ class ServiceAuditFilesReferencedNotUsed {
    *
    * @var Drupal\Core\Config\ConfigFactory
    */
-  protected $config_factory;
+  protected $configFactory;
 
   /**
    * The database connection.
@@ -40,16 +39,35 @@ class ServiceAuditFilesReferencedNotUsed {
    *
    * @var Drupal\Core\Entity\EntityFieldManager
    */
-  protected $entity_field_manager;
+  protected $entityFieldManager;
 
   /**
-   * Define constructor for string translation.
+   * The entity_type.manager service.
+   *
+   * @var Drupal\Core\Entity\EntityTypeManagerInterface
    */
-  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, EntityFieldManager $entity_field_manager) {
+  protected $entityTypeManager;
+
+  /**
+   * Class constructor.
+   *
+   * @param Drupal\Core\StringTranslation\TranslationInterface $translation
+   *   The translation service.
+   * @param Drupal\Core\Config\ConfigFactory $config_factory
+   *   The configuration service.
+   * @param Drupal\Core\Database\Connection $connection
+   *   The connection service.
+   * @param Drupal\Core\Entity\EntityFieldManager $entity_field_manager
+   *   The field manager service.
+   * @param Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager service.
+   */
+  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, EntityFieldManager $entity_field_manager, EntityTypeManagerInterface $entity_type_manager) {
     $this->stringTranslation = $translation;
-    $this->config_factory = $config_factory;
+    $this->configFactory = $config_factory;
     $this->connection = $connection;
-    $this->entity_field_manager = $entity_field_manager;
+    $this->entityFieldManager = $entity_field_manager;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -59,16 +77,16 @@ class ServiceAuditFilesReferencedNotUsed {
    *   The file IDs.
    */
   public function auditfilesReferencedNotUsedGetFileList() {
-    $config = $this->config_factory->get('auditfiles.settings');
+    $config = $this->configFactory->get('auditfiles.settings');
     $connection = $this->connection;
     $file_references = $files_referenced = [];
     // Get a list of all files that are referenced in content.
-    $files_in_fields = [];
-    $fields[] = $this->entity_field_manager->getFieldMapByFieldType('image');
-    $fields[] = $this->entity_field_manager->getFieldMapByFieldType('file');
+    $fields = [];
+    $fields[] = $this->entityFieldManager->getFieldMapByFieldType('image');
+    $fields[] = $this->entityFieldManager->getFieldMapByFieldType('file');
     if ($fields) {
       $count = 0;
-      foreach ($fields as $key => $value) {
+      foreach ($fields as $value) {
         foreach ($value as $table_prefix => $entity_type) {
           foreach ($entity_type as $key1 => $value1) {
             $field_data[$count]['table'] = $table_prefix . '__' . $key1;
@@ -78,7 +96,7 @@ class ServiceAuditFilesReferencedNotUsed {
           }
         }
       }
-      foreach ($field_data as $key => $value) {
+      foreach ($field_data as $value) {
         $table = $value['table'];
         $column = $value['column'];
         $entity_type = $value['entity_type'];
@@ -117,7 +135,6 @@ class ServiceAuditFilesReferencedNotUsed {
    *   information formatted for display.
    */
   public function auditfilesReferencedNotUsedGetFileData(array $row_data) {
-    $config = $this->config_factory->get('auditfiles.settings');
     $connection = $this->connection;
     $query = 'SELECT * FROM {' . $row_data['table'] . '} WHERE ' . $row_data['column'] . ' = ' . $row_data['file_id'];
     $result = $connection->query($query)->fetchAll();
@@ -144,7 +161,7 @@ class ServiceAuditFilesReferencedNotUsed {
     ];
     // If there is a file in the file_managed table, add some of that
     // information to the row, too.
-    $file_managed = File::load($result->{$row_data['column']});
+    $file_managed = $this->entityTypeManager->getStorage('file')->load($result->{$row_data['column']});
     if (!empty($file_managed)) {
       $row['uri'] = $file_managed->getFileuri();
       $row['filename'] = ['data' => $file_managed->getFilename(), 'hidden' => TRUE];

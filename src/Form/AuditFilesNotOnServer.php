@@ -7,11 +7,12 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
-use Drupal\file\Entity\File;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Messenger\MessengerTrait;
+use Drupal\auditfiles\ServiceAuditFilesNotOnServer;
+use Drupal\Core\Pager\PagerManagerInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
  * Form for File not on server functionality.
@@ -28,10 +29,43 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
   protected $configFactoryStorage;
 
   /**
-   * @param ConfigFactoryInterface $config_factory
+   * The auditfiles.not_on_server service.
+   *
+   * @var \Drupal\auditfiles\ServiceAuditFilesNotOnServer
    */
-  public function __construct(ConfigFactoryInterface $config_factory) {
+  protected $auditFilesNotOnServer;
+
+  /**
+   * The pager.manager service.
+   *
+   * @var \Drupal\Core\Pager\PagerManagerInterface
+   */
+  protected $pagerManager;
+
+  /**
+   * The entity_type.manager service.
+   *
+   * @var Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * Class Constructor.
+   *
+   * @param Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   Configuration service.
+   * @param Drupal\auditfiles\ServiceAuditFilesNotOnServer $audit_files_nos
+   *   The auditfiles.not_on_server service.
+   * @param Drupal\Core\Pager\PagerManagerInterface $pager_manager
+   *   Pager Manager service.
+   * @param Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   Entity Type Manager service.
+   */
+  public function __construct(ConfigFactoryInterface $config_factory, ServiceAuditFilesNotOnServer $audit_files_nos, PagerManagerInterface $pager_manager, EntityTypeManagerInterface $entity_type_manager) {
     $this->configFactoryStorage = $config_factory;
+    $this->auditFilesNotOnServer = $audit_files_nos;
+    $this->pagerManager = $pager_manager;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -39,7 +73,10 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('config.factory')
+      $container->get('config.factory'),
+      $container->get('auditfiles.not_on_server'),
+      $container->get('pager.manager'),
+      $container->get('entity_type.manager')
     );
   }
 
@@ -109,7 +146,7 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
       if (!empty($values)) {
         foreach ($values as $file_id) {
           if (!empty($file_id)) {
-            $file = File::load($file_id);
+            $file = $this->entityTypeManager->getStorage('file')->load($file_id);
             if (!empty($file)) {
               $form['changelist'][$file_id] = [
                 '#type' => 'hidden',
@@ -145,11 +182,11 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
       }
       return $form;
     }
-    $file_ids = \Drupal::service('auditfiles.not_on_server')->auditfilesNotOnServerGetFileList();
+    $file_ids = $this->auditFilesNotOnServer->auditfilesNotOnServerGetFileList();
     if (!empty($file_ids)) {
       $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
       foreach ($file_ids as $file_id) {
-        $row = \Drupal::service('auditfiles.not_on_server')->auditfilesNotOnServerGetFileData($file_id, $date_format);
+        $row = $this->auditFilesNotOnServer->auditfilesNotOnServerGetFileData($file_id, $date_format);
         if (isset($row)) {
           $rows[$file_id] = $row;
         }
@@ -159,7 +196,7 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
     if (!empty($rows)) {
       $items_per_page = $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
       if (!empty($items_per_page)) {
-        $current_page = \Drupal::service('pager.manager')->createPager(count($rows), $items_per_page)->getCurrentPage();
+        $current_page = $this->pagerManager->createPager(count($rows), $items_per_page)->getCurrentPage();
         // Break the total data set into page sized chunks.
         $pages = array_chunk($rows, $items_per_page, TRUE);
       }
@@ -182,7 +219,7 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
     // Create the form table.
     $form['files'] = [
       '#type' => 'tableselect',
-      '#header' => \Drupal::service('auditfiles.not_on_server')->auditfilesNotOnServerGetHeader(),
+      '#header' => $this->auditFilesNotOnServer->auditfilesNotOnServerGetHeader(),
       '#empty' => $this->t('No items found.'),
       '#prefix' => '<div><em>' . $form_count . '</em></div>',
     ];
@@ -244,7 +281,7 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
    * Delete record from database confirm.
    */
   public function confirmSubmissionHandlerDelete(array &$form, FormStateInterface $form_state) {
-    batch_set(\Drupal::service('auditfiles.not_on_server')->auditfilesNotOnServerBatchDeleteCeateBatch($form_state->getValue('changelist')));
+    batch_set($this->auditFilesNotOnServer->auditfilesNotOnServerBatchDeleteCreateBatch($form_state->getValue('changelist')));
   }
 
 }

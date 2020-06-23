@@ -8,9 +8,10 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Messenger\MessengerTrait;
+use Drupal\auditfiles\ServiceAuditFilesNotInDatabase;
+use Drupal\Core\Pager\PagerManagerInterface;
 
 /**
  * Form for Not in database functionality.
@@ -27,10 +28,33 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
   protected $configFactoryStorage;
 
   /**
-   * @param ConfigFactoryInterface $config_factory
+   * The auditfiles.not_in_database service.
+   *
+   * @var \Drupal\auditfiles\ServiceAuditFilesNotInDatabase
    */
-  public function __construct(ConfigFactoryInterface $config_factory) {
+  protected $auditFilesNotInDatabase;
+
+  /**
+   * The pager.manager service.
+   *
+   * @var \Drupal\Core\Pager\PagerManagerInterface
+   */
+  protected $pagerManager;
+
+  /**
+   * The constructor.
+   *
+   * @param Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The config factory storage service.
+   * @param Drupal\auditfiles\ServiceAuditFilesNotInDatabase $audit_files_nid
+   *   The auditfiles.not_in_database service.
+   * @param Drupal\Core\Pager\PagerManagerInterface $pager_manager
+   *   The pager.manager service.
+   */
+  public function __construct(ConfigFactoryInterface $config_factory, ServiceAuditFilesNotInDatabase $audit_files_nid, PagerManagerInterface $pager_manager) {
     $this->configFactoryStorage = $config_factory;
+    $this->auditFilesNotInDatabase = $audit_files_nid;
+    $this->pagerManager = $pager_manager;
   }
 
   /**
@@ -38,7 +62,9 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('config.factory')
+      $container->get('config.factory'),
+      $container->get('auditfiles.not_in_database'),
+      $container->get('pager.manager')
     );
   }
 
@@ -151,12 +177,12 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
     $config = $this->configFactoryStorage->get('auditfiles.settings');
     // Get the records to display.
     // Check to see if there is saved data, and if so, use that.
-    $rows = \Drupal::service('auditfiles.not_in_database')->auditfilesNotInDatabaseGetReportsFiles();
+    $rows = $this->auditFilesNotInDatabase->auditfilesNotInDatabaseGetReportsFiles();
     if (!empty($rows)) {
       // Set up the pager.
       $items_per_page = $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
       if (!empty($items_per_page)) {
-        $current_page = \Drupal::service('pager.manager')->createPager(count($rows), $items_per_page)->getCurrentPage();
+        $current_page = $this->pagerManager->createPager(count($rows), $items_per_page)->getCurrentPage();
         // Break the total data set into page sized chunks.
         $pages = array_chunk($rows, $items_per_page, TRUE);
       }
@@ -180,7 +206,7 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
     // Create the form table.
     $form['files'] = [
       '#type' => 'tableselect',
-      '#header' => \Drupal::service('auditfiles.not_in_database')->auditfilesNotInDatabaseGetHeader(),
+      '#header' => $this->auditFilesNotInDatabase->auditfilesNotInDatabaseGetHeader(),
       '#empty' => $this->t('No items found.'),
       '#prefix' => '<div><em>' . $form_count . '</em></div>',
     ];
@@ -278,10 +304,10 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
   public function confirmSubmissionHandler(array &$form, FormStateInterface $form_state) {
     $storage = &$form_state->getStorage();
     if ($storage['op'] == 'add') {
-      batch_set(\Drupal::service('auditfiles.not_in_database')->auditfilesNotInDatabaseBatchAddCreateBatch($form_state->getValue('changelist')));
+      batch_set($this->auditFilesNotInDatabase->auditfilesNotInDatabaseBatchAddCreateBatch($form_state->getValue('changelist')));
     }
     else {
-      batch_set(\Drupal::service('auditfiles.not_in_database')->auditfilesNotInDatabaseBatchDeleteCreateBatch($form_state->getValue('changelist')));
+      batch_set($this->auditFilesNotInDatabase->auditfilesNotInDatabaseBatchDeleteCreateBatch($form_state->getValue('changelist')));
     }
   }
 

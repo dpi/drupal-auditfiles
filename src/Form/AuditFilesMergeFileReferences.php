@@ -9,9 +9,10 @@ use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Messenger\MessengerTrait;
+use Drupal\auditfiles\ServiceAuditFilesMergeFileReferences;
+use Drupal\Core\Pager\PagerManagerInterface;
 
 /**
  * Form for merge file references.
@@ -24,14 +25,39 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
    * The Config.
    *
    * @var \Drupal\Core\Config\ConfigFactoryInterface
+   *   Configuration service.
    */
   protected $configFactoryStorage;
 
   /**
-   * @param ConfigFactoryInterface $config_factory
+   * The auditfiles.merge_file_references service.
+   *
+   * @var Drupal\auditfiles\ServiceAuditFilesMergeFileReferences
+   *   auditfiles.merge_file_references service.
    */
-  public function __construct(ConfigFactoryInterface $config_factory) {
+  protected $filesMergeFileReferences;
+
+  /**
+   * The pager.manager service.
+   *
+   * @var \Drupal\Core\Pager\PagerManagerInterface
+   */
+  protected $pagerManager;
+
+  /**
+   * Class Constructor.
+   *
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   Configuration service.
+   * @param Drupal\auditfiles\ServiceAuditFilesMergeFileReferences $service_auditfiles_merge_file_references
+   *   The auditfiles.merge_file_references service.
+   * @param Drupal\Core\Pager\PagerManagerInterface $pager_manager
+   *   Pager Manager service.
+   */
+  public function __construct(ConfigFactoryInterface $config_factory, ServiceAuditFilesMergeFileReferences $service_auditfiles_merge_file_references, PagerManagerInterface $pager_manager) {
     $this->configFactoryStorage = $config_factory;
+    $this->filesMergeFileReferences = $service_auditfiles_merge_file_references;
+    $this->pagerManager = $pager_manager;
   }
 
   /**
@@ -40,7 +66,9 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
-      $container->get('date.formatter')
+      $container->get('date.formatter'),
+      $container->get('auditfiles.merge_file_references'),
+      $container->get('pager.manager')
     );
   }
 
@@ -144,8 +172,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
                 'fileid' => $file_id,
                 'fileuri' => $file->uri,
                 'filesize' => number_format($file->filesize),
-                'timestamp' => $this->dateFormatter->format($file->created, $date_format)
-
+                'timestamp' => $this->dateFormatter->format($file->created, $date_format),
               ];
             }
             else {
@@ -266,18 +293,18 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
         return $form;
       }
     }
-    $file_names = \Drupal::service('auditfiles.merge_file_references')->auditfilesMergeFileReferencesGetFileList();
+    $file_names = $this->filesMergeFileReferences->auditfilesMergeFileReferencesGetFileList();
     if (!empty($file_names)) {
       $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
       foreach ($file_names as $file_name) {
-        $rows[$file_name] = \Drupal::service('auditfiles.merge_file_references')->auditfilesMergeFileReferencesGetFileData($file_name, $date_format);
+        $rows[$file_name] = $this->filesMergeFileReferences->auditfilesMergeFileReferencesGetFileData($file_name, $date_format);
       }
     }
     // Set up the pager.
     if (!empty($rows)) {
       $items_per_page = $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
       if (!empty($items_per_page)) {
-        $current_page = \Drupal::service('pager.manager')->createPager(count($rows), $items_per_page)->getCurrentPage();
+        $current_page = $this->pagerManager->createPager(count($rows), $items_per_page)->getCurrentPage();
         // Break the total data set into page sized chunks.
         $pages = array_chunk($rows, $items_per_page, TRUE);
       }
@@ -304,7 +331,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
     ];
     $form['files'] = [
       '#type' => 'tableselect',
-      '#header' => \Drupal::service('auditfiles.merge_file_references')->auditfilesMergeFileReferencesGetHeader(),
+      '#header' => $this->filesMergeFileReferences->auditfilesMergeFileReferencesGetHeader(),
       '#empty' => $this->t('No items found.'),
       '#prefix' => '<div><em>' . $form_count . '</em></div>',
     ];
@@ -359,7 +386,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
    * Submit form.
    */
   public function submissionHandlerMergeRecord(array &$form, FormStateInterface $form_state) {
-    \Drupal::configFactory()->getEditable('auditfiles.settings')
+    $this->configFactoryStorage->getEditable('auditfiles.settings')
       ->set('auditfiles_merge_file_references_show_single_file_names', $form_state->getValue('auditfiles_merge_file_references_show_single_file_names'))->save();
     if (!empty($form_state->getValue('files'))) {
       foreach ($form_state->getValue('files') as $file_id) {
@@ -405,7 +432,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
    */
   public function confirmSubmissionHandlerFileMerge(array &$form, FormStateInterface $form_state) {
     $storage = $form_state->getStorage();
-    batch_set(\Drupal::service('auditfiles.merge_file_references')->auditfilesMergeFileReferencesBatchMergeCreateBatch($form_state->getValue('file_being_kept'), $storage['files_being_merged']));
+    batch_set($this->filesMergeFileReferences->auditfilesMergeFileReferencesBatchMergeCreateBatch($form_state->getValue('file_being_kept'), $storage['files_being_merged']));
     unset($storage['stage']);
   }
 

@@ -2,8 +2,6 @@
 
 namespace Drupal\auditfiles;
 
-use Drupal\Core\Database\Database;
-use Drupal\user\Entity\User;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -13,6 +11,10 @@ use Drupal\Core\Database\Connection;
 use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Drupal\Core\Datetime\DateFormatter;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Session\AccountProxyInterface;
+use Drupal\Core\File\MimeType\MimeTypeGuesser;
+use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Component\Uuid\UuidInterface;
 
 /**
  * Define all methods that are used on Files not in database functionality.
@@ -27,12 +29,12 @@ class ServiceAuditFilesNotInDatabase {
    *
    * @var Drupal\Core\Config\ConfigFactory
    */
-  protected $config_factory;
+  protected $configFactory;
 
   /**
    * The database connection.
    *
-   * @var \Drupal\Core\Database\Connection
+   * @var Drupal\Core\Database\Connection
    */
   protected $connection;
 
@@ -41,39 +43,71 @@ class ServiceAuditFilesNotInDatabase {
    *
    * @var Drupal\Core\StreamWrapper\StreamWrapperManager
    */
-  protected $stream_wrapper_manage;
+  protected $streamWrapperManager;
 
   /**
    * The Date Formatter.
    *
    * @var Drupal\Core\Datetime\DateFormatter
    */
-  protected $date_formatter;
+  protected $dateFormatter;
 
   /**
    * The file system service.
    *
-   * @var \Drupal\Core\File\FileSystemInterface
+   * @var Drupal\Core\File\FileSystemInterface
    */
-  protected $file_system;
+  protected $fileSystem;
+
+  /**
+   * The current user from the current sesson.
+   *
+   * @var Drupal\Core\Session\AccountProxyInterface
+   */
+  protected $currentUser;
+
+  /**
+   * The file.mime_type.guesser service.
+   *
+   * @var Drupal\Core\File\MimeType\MimeTypeGuesser
+   */
+  protected $fileMimeTypeGuesser;
+
+  /**
+   * The system time service.
+   *
+   * @var Drupal\Component\Datetime\TimeInterface
+   */
+  protected $timeService;
+
+  /**
+   * The uuid service.
+   *
+   * @var Drupal\Component\Uuid\UuidInterface
+   */
+  protected $uuid;
 
   /**
    * Define constructor for string translation.
    */
-  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, StreamWrapperManager $stream_wrapper_manage, DateFormatter $date_formatter, FileSystemInterface $file_system) {
+  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, StreamWrapperManager $stream_wrapper_manage, DateFormatter $date_formatter, FileSystemInterface $file_system, AccountProxyInterface $current_user, MimeTypeGuesser $file_mime_type_guesser, TimeInterface $time_service, UuidInterface $uuid) {
     $this->stringTranslation = $translation;
-    $this->config_factory = $config_factory;
+    $this->configFactory = $config_factory;
     $this->connection = $connection;
-    $this->stream_wrapper_manage = $stream_wrapper_manage;
-    $this->date_formatter = $date_formatter;
-    $this->file_system = $file_system;
+    $this->streamWrapperManager = $stream_wrapper_manage;
+    $this->dateFormatter = $date_formatter;
+    $this->fileSystem = $file_system;
+    $this->currentUser = $current_user;
+    $this->fileMimeTypeGuesser = $file_mime_type_guesser;
+    $this->timeService = $time_service;
+    $this->uuid = $uuid;
   }
 
   /**
    * Get the files that are not in database.
    */
   public function auditfilesNotInDatabaseGetReportsFiles() {
-    $config = $this->config_factory->get('auditfiles.settings');
+    $config = $this->configFactory->get('auditfiles.settings');
     $report_files = [];
     $reported_files = [];
     $this->auditfilesNotInDatabaseGetFilesForReport('', $report_files);
@@ -81,7 +115,7 @@ class ServiceAuditFilesNotInDatabase {
       // Get the static paths necessary for processing the files.
       $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
       // The full file system path to the Drupal root directory.
-      $real_files_path = \Drupal::service('file_system')->realpath($file_system_stream . '://');
+      $real_files_path = $this->fileSystem->realpath($file_system_stream . '://');
       // Get the chosen date format for displaying the file dates with.
       $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
       foreach ($report_files as $report_file) {
@@ -108,9 +142,9 @@ class ServiceAuditFilesNotInDatabase {
    * Get files for report.
    */
   public function auditfilesNotInDatabaseGetFilesForReport($path, array &$report_files) {
-    $config = $this->config_factory->get('auditfiles.settings');
+    $config = $this->configFactory->get('auditfiles.settings');
     $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
-    $real_files_path = $real_files_path = \Drupal::service('file_system')->realpath($file_system_stream . '://');
+    $real_files_path = $real_files_path = $this->fileSystem->realpath($file_system_stream . '://');
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
     if ($maximum_records > 0 && count($report_files) < $maximum_records) {
       $new_files = $this->auditfilesNotInDatabaseGetFiles($path);
@@ -175,10 +209,10 @@ class ServiceAuditFilesNotInDatabase {
       $filepathname = $filepath . DIRECTORY_SEPARATOR . $filename;
     }
     $real_filepathname = $real_path . DIRECTORY_SEPARATOR . $filepathname;
-    $filemime = \Drupal::service('file.mime_type.guesser')->guess($real_filepathname);
+    $filemime = $this->fileMimeTypeGuesser->guess($real_filepathname);
     $filesize = number_format(filesize($real_filepathname));
     if (!empty($date_format)) {
-      $filemodtime = $this->date_formatter->format(filemtime($real_filepathname), $date_format);
+      $filemodtime = $this->dateFormatter->format(filemtime($real_filepathname), $date_format);
     }
     // Format the data for the table row.
     $row_data[$filepathname] = [
@@ -201,9 +235,9 @@ class ServiceAuditFilesNotInDatabase {
    *   The list of files and diretories found in the given path.
    */
   public function auditfilesNotInDatabaseGetFiles($path) {
-    $config = $this->config_factory->get('auditfiles.settings');
+    $config = $this->configFactory->get('auditfiles.settings');
     $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
-    $real_files_path = $real_files_path = \Drupal::service('file_system')->realpath($file_system_stream . '://');
+    $real_files_path = $real_files_path = $this->fileSystem->realpath($file_system_stream . '://');
     $exclusions = $this->auditfilesGetExclusions();
     // The variable to store the data being returned.
     $file_list = [];
@@ -263,7 +297,7 @@ class ServiceAuditFilesNotInDatabase {
    *   The excluions.
    */
   public function auditfilesGetExclusions() {
-    $config = $this->config_factory->get('auditfiles.settings');
+    $config = $this->configFactory->get('auditfiles.settings');
     $exclusions_array = [];
     $files = trim($config->get('auditfiles_exclude_files') ? $config->get('auditfiles_exclude_files') : '.htaccess');
     if ($files) {
@@ -280,11 +314,11 @@ class ServiceAuditFilesNotInDatabase {
     // Exclude other file streams that may be deinfed and in use.
     $exclude_streams = [];
     $auditfiles_file_system_path = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
-    $file_system_paths = $this->stream_wrapper_manage->getWrappers(StreamWrapperInterface::LOCAL);
+    $file_system_paths = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::LOCAL);
     foreach ($file_system_paths as $file_system_path_id => $file_system_path) {
       if ($file_system_path_id != $auditfiles_file_system_path) {
         $uri = $file_system_path_id . '://';
-        if ($wrapper = $this->stream_wrapper_manage->getViaUri($uri)) {
+        if ($wrapper = $this->streamWrapperManager->getViaUri($uri)) {
           $exclude_streams[] = $wrapper->realpath();
         }
       }
@@ -397,18 +431,17 @@ class ServiceAuditFilesNotInDatabase {
    *   The full pathname to the file to add to the database.
    */
   public function auditfilesNotInDatabaseBatchAddProcessFile($filepathname) {
-    $user = User::load(\Drupal::currentUser()->id());
+    $user = $this->currentUser->id();
     $file = new \StdClass();
     $file->uid = $user->get('uid')->value;
     $file->filename = trim(basename($filepathname));
     $file->uri = file_build_uri($filepathname);
-    $real_filenamepath = \Drupal::service('file_system')->realpath($file->uri);
-    $file->filemime = \Drupal::service('file.mime_type.guesser')->guess($real_filenamepath);
+    $real_filenamepath = $this->fileSystem->realpath($file->uri);
+    $file->filemime = $this->fileMimeTypeGuesser->guess($real_filenamepath);
     $file->filesize = filesize($real_filenamepath);
     $file->status = FILE_STATUS_PERMANENT;
-    $file->timestamp =  \Drupal::time()->getCurrentTime();
-    $uuid_service = \Drupal::service('uuid');
-    $uuid = $uuid_service->generate();
+    $file->timestamp = $this->timeService->getCurrentTime();
+    $uuid = $this->uuid->generate();
 
     $connection = $this->connection;
     $query = $connection->select('file_managed', 'fm');
@@ -416,7 +449,7 @@ class ServiceAuditFilesNotInDatabase {
     $query->fields('fm', ['fid']);
     $existing_file = $query->execute()->fetchField();
     if (empty($existing_file)) {
-      $results = \Drupal::database()->merge('file_managed')
+      $results = $this->connection->merge('file_managed')
         ->key(['fid' => NULL])
         ->fields([
           'fid' => NULL,
@@ -488,11 +521,11 @@ class ServiceAuditFilesNotInDatabase {
    *   The full pathname of the file to delete from the server.
    */
   public function auditfilesNotInDatabaseBatchDeleteProcessFile($filename) {
-    $config = $this->config_factory->get('auditfiles.settings');
+    $config = $this->configFactory->get('auditfiles.settings');
     $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
-    $real_files_path = \Drupal::service('file_system')->realpath($file_system_stream . '://');
+    $real_files_path = $this->fileSystem->realpath($file_system_stream . '://');
 
-    if ($this->file_system->delete($real_files_path . DIRECTORY_SEPARATOR . $filename)) {
+    if ($this->fileSystem->delete($real_files_path . DIRECTORY_SEPARATOR . $filename)) {
       $this->messenger()->addStatus(
         $this->t('Sucessfully deleted %file from the server.', ['%file' => $filename])
       );

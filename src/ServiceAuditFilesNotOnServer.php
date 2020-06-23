@@ -2,13 +2,13 @@
 
 namespace Drupal\auditfiles;
 
-use Drupal\Core\Database\Database;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Datetime\DateFormatter;
+use Drupal\Core\File\FileSystemInterface;
 
 /**
  * Providing the service that used in not in database functionality.
@@ -23,7 +23,7 @@ class ServiceAuditFilesNotOnServer {
    *
    * @var Drupal\Core\Config\ConfigFactory
    */
-  protected $config_factory;
+  protected $configFactory;
 
   /**
    * The database connection.
@@ -37,16 +37,24 @@ class ServiceAuditFilesNotOnServer {
    *
    * @var Drupal\Core\Datetime\DateFormatter
    */
-  protected $date_formatter;
+  protected $dateFormatter;
+
+  /**
+   * The File System service.
+   *
+   * @var Drupal\Core\File\FileSystemInterface
+   */
+  protected $fileSystem;
 
   /**
    * Define constructor for string translation.
    */
-  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, DateFormatter $date_formatter) {
+  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, DateFormatter $date_formatter, FileSystemInterface $file_system) {
     $this->stringTranslation = $translation;
-    $this->config_factory = $config_factory;
+    $this->configFactory = $config_factory;
     $this->connection = $connection;
-    $this->date_formatter = $date_formatter;
+    $this->dateFormatter = $date_formatter;
+    $this->fileSystem = $file_system;
   }
 
   /**
@@ -56,7 +64,7 @@ class ServiceAuditFilesNotOnServer {
    *   The file IDs.
    */
   public function auditfilesNotOnServerGetFileList() {
-    $config = $this->config_factory->get('auditfiles.settings');
+    $config = $this->configFactory->get('auditfiles.settings');
     $file_ids = [];
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
     $connection = $this->connection;
@@ -66,7 +74,7 @@ class ServiceAuditFilesNotOnServer {
     $query->fields('fm', ['fid', 'uri']);
     $results = $query->execute()->fetchAll();
     foreach ($results as $result) {
-      $target = \Drupal::service('file_system')->realpath($result->uri);
+      $target = $this->fileSystem->realpath($result->uri);
       if (!file_exists($target)) {
         $file_ids[] = $result->fid;
       }
@@ -107,10 +115,10 @@ class ServiceAuditFilesNotOnServer {
       'uid' => $file->uid,
       'filename' => $file->filename,
       'uri' => $file->uri,
-      'path' => \Drupal::service('file_system')->realpath($file->uri),
+      'path' => $this->fileSystem->realpath($file->uri),
       'filemime' => $file->filemime,
       'filesize' => number_format($file->filesize),
-      'datetime' => $this->date_formatter->format($file->created, $date_format),
+      'datetime' => $this->dateFormatter->format($file->created, $date_format),
       'status' => ($file->status = 1) ? 'Permanent' : 'Temporary',
     ];
   }
@@ -162,7 +170,7 @@ class ServiceAuditFilesNotOnServer {
    * @return array
    *   The definition of the batch.
    */
-  public function auditfilesNotOnServerBatchDeleteCeateBatch(array $fileids) {
+  public function auditfilesNotOnServerBatchDeleteCreateBatch(array $fileids) {
     $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
     $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesNotOnServerBatchFinishBatch';
     $batch['progress_message'] = $this->t('Completed @current of @total operations.');

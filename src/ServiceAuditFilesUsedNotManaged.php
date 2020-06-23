@@ -2,7 +2,6 @@
 
 namespace Drupal\auditfiles;
 
-use Drupal\Core\Database\Database;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\Core\StringTranslation\TranslationInterface;
@@ -24,7 +23,7 @@ class ServiceAuditFilesUsedNotManaged {
    *
    * @var Drupal\Core\Config\ConfigFactory
    */
-  protected $config_factory;
+  protected $configFactory;
 
   /**
    * The database connection.
@@ -35,6 +34,9 @@ class ServiceAuditFilesUsedNotManaged {
 
   /**
    * Define constructor for string translation.
+   *
+   * @param \Drupal\Core\StringTranslation\TranslationInterface $translation
+   *   A Tranlation Serevice object.
    * @param \Drupal\Core\Config\ConfigFactory $config_factory
    *   A configuration factory object.
    * @param \Drupal\Core\Database\Connection $connection
@@ -42,7 +44,7 @@ class ServiceAuditFilesUsedNotManaged {
    */
   public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection) {
     $this->stringTranslation = $translation;
-    $this->config_factory = $config_factory;
+    $this->configFactory = $config_factory;
     $this->connection = $connection;
   }
 
@@ -55,9 +57,8 @@ class ServiceAuditFilesUsedNotManaged {
   public function auditfilesUsedNotManagedGetFileList() {
     // Get all the file IDs in the file_usage table that are not in the
     // file_managed table.
-
     $connection = $this->connection;
-    $config = $this->config_factory->get('auditfiles.settings');
+    $config = $this->configFactory->get('auditfiles.settings');
     $query = 'SELECT DISTINCT fid FROM {file_usage} fu WHERE fid NOT IN (SELECT fid FROM {file_managed})';
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
 

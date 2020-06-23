@@ -6,11 +6,38 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Datetime\Entity\DateFormat;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Use this class to create configuration form for module.
  */
 class AuditFilesConfig extends ConfigFormBase {
+
+  /**
+   * The Stream Wrapper Manager service.
+   *
+   * @var \Drupal\Core\StreamWrapperInterface
+   */
+  protected $streamWrapperManager;
+
+  /**
+   * Class constructor.
+   *
+   * @param Drupal\Core\StreamWrapperInterface\StreamWrapperInterface $stream_wrapper
+   *   The stream wrapper service.
+   */
+  public function __construct(StreamWrapperInterface $stream_wrapper) {
+    $this->streamWrapperManager = $stream_wrapper;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('stream_wrapper_manager'),
+    );
+  }
 
   /**
    * Widget Id.
@@ -37,7 +64,7 @@ class AuditFilesConfig extends ConfigFormBase {
       '#collapsible' => TRUE,
     ];
     // Show the file system path select list.
-    $file_system_paths = \Drupal::service("stream_wrapper_manager")->getWrappers(StreamWrapperInterface::LOCAL);
+    $file_system_paths = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::LOCAL);
     $options = [];
     foreach ($file_system_paths as $file_system_path_id => $file_system_path) {
       $options[$file_system_path_id] = $file_system_path_id . ' : file_' . $file_system_path_id . '_path';

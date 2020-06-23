@@ -8,9 +8,10 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Messenger\MessengerTrait;
+use Drupal\auditfiles\ServiceAuditFilesReferencedNotUsed;
+use Drupal\Core\Pager\PagerManagerInterface;
 
 /**
  * Form for Files referenced not used functionality.
@@ -27,10 +28,33 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
   protected $configFactoryStorage;
 
   /**
-   * @param ConfigFactoryInterface $config_factory
+   * The auditfiles.referenced_not_used service.
+   *
+   * @var Drupal\auditfiles\ServiceAuditFilesReferencedNotUsed
    */
-  public function __construct(ConfigFactoryInterface $config_factory) {
+  protected $filesReferencedNotUsed;
+
+  /**
+   * The pager.manager service.
+   *
+   * @var \Drupal\Core\Pager\PagerManagerInterface
+   */
+  protected $pagerManager;
+
+  /**
+   * Class Constructor.
+   *
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The configuration service.
+   * @param \Drupal\auditfiles\ServiceAuditFilesReferencedNotUsed $files_referenced_not_used
+   *   The auditfiles.referenced_not_used service.
+   * @param \Drupal\Core\Pager\PagerManagerInterface $pager_manager
+   *   The pager.manager service.
+   */
+  public function __construct(ConfigFactoryInterface $config_factory, ServiceAuditFilesReferencedNotUsed $files_referenced_not_used, PagerManagerInterface $pager_manager) {
     $this->configFactoryStorage = $config_factory;
+    $this->filesReferencedNotUsed = $files_referenced_not_used;
+    $this->pagerManager = $pager_manager;
   }
 
   /**
@@ -38,7 +62,9 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('config.factory')
+      $container->get('config.factory'),
+      $container->gert('auditfiles.referenced_not_used'),
+      $container->get('pager.manager')
     );
   }
 
@@ -147,16 +173,16 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
       }
       return $form;
     }
-    $file_data = \Drupal::service('auditfiles.referenced_not_used')->auditfilesReferencedNotUsedGetFileList();
+    $file_data = $this->filesReferencedNotUsed->auditfilesReferencedNotUsedGetFileList();
     if (!empty($file_data)) {
       foreach ($file_data as $reference_id => $row_data) {
-        $rows[$reference_id] = \Drupal::service('auditfiles.referenced_not_used')->auditfilesReferencedNotUsedGetFileData($row_data);
+        $rows[$reference_id] = $this->filesReferencedNotUsed->auditfilesReferencedNotUsedGetFileData($row_data);
       }
     }
     if (!empty($rows)) {
       $items_per_page = $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
       if (!empty($items_per_page)) {
-        $current_page = \Drupal::service('pager.manager')->createPager(count($rows), $items_per_page)->getCurrentPage();
+        $current_page = $this->pagerManager->createPager(count($rows), $items_per_page)->getCurrentPage();
         $pages = array_chunk($rows, $items_per_page, TRUE);
       }
     }
@@ -175,7 +201,7 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
     }
     $form['files'] = [
       '#type' => 'tableselect',
-      '#header' => \Drupal::service('auditfiles.referenced_not_used')->auditfilesReferencedNotUsedGetHeader(),
+      '#header' => $this->filesReferencedNotUsed->auditfilesReferencedNotUsedGetHeader(),
       '#empty' => $this->t('No items found.'),
       '#prefix' => '<div><em>' . $form_count . '</em></div>',
     ];
@@ -271,10 +297,10 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
   public function confirmSubmissionHandler(array &$form, FormStateInterface $form_state) {
     $storage = &$form_state->getStorage();
     if ($storage['op'] == 'add') {
-      batch_set(\Drupal::service('auditfiles.referenced_not_used')->auditfilesReferencedNotUsedBatchAddCreateBatch($form_state->getValue('changelist')));
+      batch_set($this->filesReferencedNotUsed->auditfilesReferencedNotUsedBatchAddCreateBatch($form_state->getValue('changelist')));
     }
     else {
-      batch_set(\Drupal::service('auditfiles.referenced_not_used')->auditfilesReferencedNotUsedBatchDeleteCreateBatch($form_state->getValue('changelist')));
+      batch_set($this->filesReferencedNotUsed->auditfilesReferencedNotUsedBatchDeleteCreateBatch($form_state->getValue('changelist')));
     }
   }
 

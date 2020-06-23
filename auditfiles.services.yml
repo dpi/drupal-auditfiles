@@ -1,11 +1,11 @@
 services:
   auditfiles.not_in_database:
     class: Drupal\auditfiles\ServiceAuditFilesNotInDatabase
-    arguments: ['@string_translation', '@config.factory', '@database', '@stream_wrapper_manager']
+    arguments: ['@string_translation', '@config.factory', '@database', '@stream_wrapper_manager', '@file_sysgtem', '@current_user', '@file.mime_type.guesser', '@datetime.time', '@uuid']
 
   auditfiles.not_on_server:
     class: Drupal\auditfiles\ServiceAuditFilesNotOnServer
-    arguments: ['@string_translation', '@config.factory', '@database', '@date.formatter']
+    arguments: ['@string_translation', '@config.factory', '@database', '@date.formatter', '@file_system']
 
   auditfiles.managed_not_used:
     class: Drupal\auditfiles\ServiceAuditFilesManagedNotUsed
@@ -21,8 +21,8 @@ services:
 
   auditfiles.referenced_not_used:
     class: Drupal\auditfiles\ServiceAuditFilesReferencedNotUsed
-    arguments: ['@string_translation', '@config.factory', '@database', '@entity_field.manager']
+    arguments: ['@string_translation', '@config.factory', '@database', '@entity_field.manager', '@entity_type.manager', '@file.usage']
 
   auditfiles.merge_file_references:
     class: Drupal\auditfiles\ServiceAuditFilesMergeFileReferences
-    arguments: ['@string_translation', '@config.factory', '@database']
+    arguments: ['@string_translation', '@config.factory', '@database', '@entity_type.manager']
