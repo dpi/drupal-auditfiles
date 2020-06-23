@@ -61,6 +61,7 @@ class ServiceAuditFilesNotOnServer {
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
     $connection = $this->connection;
     $query = $connection->select('file_managed', 'fm');
+    $query->orderBy('changed', 'DESC');
     $query->range(0, $maximum_records);
     $query->fields('fm', ['fid', 'uri']);
     $results = $query->execute()->fetchAll();
