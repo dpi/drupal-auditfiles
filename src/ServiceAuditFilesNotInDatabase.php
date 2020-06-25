@@ -2,105 +2,111 @@
 
 namespace Drupal\auditfiles;
 
+use Drupal\user\Entity\User;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Messenger\MessengerTrait;
-use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Drupal\Core\Datetime\DateFormatter;
 use Drupal\Core\File\FileSystemInterface;
-use Drupal\Core\Session\AccountProxyInterface;
-use Drupal\Core\File\MimeType\MimeTypeGuesser;
+use Drupal\Core\Session\AccountProxy;
+use Drupal\Core\ProxyClass\File\MimeType\MimeTypeGuesser;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Component\Uuid\UuidInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 
 /**
  * Define all methods that are used on Files not in database functionality.
  */
 class ServiceAuditFilesNotInDatabase {
 
-  use StringTranslationTrait;
+
   use MessengerTrait;
 
   /**
-   * The Configuration Factory.
+   * The Translation service.
    *
-   * @var Drupal\Core\Config\ConfigFactory
+   * @var \Drupal\Core\StringTranslation\TranslationInterface
+   */
+  protected $stringTranslation;
+
+  /**
+   * Config Factory service.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
   protected $configFactory;
-
   /**
    * The database connection.
    *
-   * @var Drupal\Core\Database\Connection
+   * @var \Drupal\Core\Database\Connection
    */
   protected $connection;
 
   /**
    * The Stream Wrapper Manager.
    *
-   * @var Drupal\Core\StreamWrapper\StreamWrapperManager
+   * @var \Drupal\Core\StreamWrapper\StreamWrapperManager
    */
   protected $streamWrapperManager;
 
   /**
-   * The Date Formatter.
-   *
-   * @var Drupal\Core\Datetime\DateFormatter
-   */
-  protected $dateFormatter;
-
-  /**
    * The file system service.
    *
-   * @var Drupal\Core\File\FileSystemInterface
+   * @var \Drupal\Core\File\FileSystemInterface
    */
   protected $fileSystem;
 
   /**
-   * The current user from the current sesson.
+   * Current user.
    *
-   * @var Drupal\Core\Session\AccountProxyInterface
+   * @var \Drupal\Core\Session\AccountProxy
    */
   protected $currentUser;
 
   /**
-   * The file.mime_type.guesser service.
+   * Mime Type Guesser service.
    *
-   * @var Drupal\Core\File\MimeType\MimeTypeGuesser
+   * @var \Drupal\Core\ProxyClass\File\MimeType\MimeTypeGuesser
    */
   protected $fileMimeTypeGuesser;
 
   /**
-   * The system time service.
+   * Time service.
    *
-   * @var Drupal\Component\Datetime\TimeInterface
+   * @var \Drupal\Component\Datetime\TimeInterface
    */
-  protected $timeService;
+  protected $time;
 
   /**
-   * The uuid service.
+   * UUID service.
    *
-   * @var Drupal\Component\Uuid\UuidInterface
+   * @var \Drupal\Component\Uuid\UuidInterface
    */
-  protected $uuid;
+  protected $uuidService;
+
+  /**
+   * The Date Formatter.
+   *
+   * @var \Drupal\Core\Datetime\DateFormatter
+   */
+  protected $dateFormatter;
 
   /**
    * Define constructor for string translation.
    */
-  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, StreamWrapperManager $stream_wrapper_manage, DateFormatter $date_formatter, FileSystemInterface $file_system, AccountProxyInterface $current_user, MimeTypeGuesser $file_mime_type_guesser, TimeInterface $time_service, UuidInterface $uuid) {
+  public function __construct(TranslationInterface $translation, ConfigFactoryInterface $config_factory, Connection $connection, StreamWrapperManager $stream_wrapper_manager, FileSystemInterface $file_system, AccountProxy $current_user, MimeTypeGuesser $file_mime_type_guesser, TimeInterface $time, UuidInterface $uuid, DateFormatter $date_formatter) {
     $this->stringTranslation = $translation;
     $this->configFactory = $config_factory;
     $this->connection = $connection;
-    $this->streamWrapperManager = $stream_wrapper_manage;
-    $this->dateFormatter = $date_formatter;
+    $this->streamWrapperManager = $stream_wrapper_manager;
     $this->fileSystem = $file_system;
     $this->currentUser = $current_user;
     $this->fileMimeTypeGuesser = $file_mime_type_guesser;
-    $this->timeService = $time_service;
-    $this->uuid = $uuid;
+    $this->time = $time;
+    $this->uuidService = $uuid;
+    $this->dateFormatter = $date_formatter;
   }
 
   /**
@@ -129,7 +135,7 @@ class ServiceAuditFilesNotInDatabase {
         $file_in_database = $this->auditfilesNotInDatabaseIsFileInDatabase($file_to_check);
         // If the file is not in the database, add to the list for displaying.
         if (!$file_in_database) {
-          // Gets the file's information (size, date, etc.) and assembles the
+          // Gets the file's information (size, date, etc.) and assempbles the.
           // array for the table.
           $reported_files += $this->auditfilesNotInDatabaseFormatRowData($report_file, $real_files_path, $date_format);
         }
@@ -319,9 +325,7 @@ class ServiceAuditFilesNotInDatabase {
       if ($file_system_path_id != $auditfiles_file_system_path) {
         $uri = $file_system_path_id . '://';
         if ($wrapper = $this->streamWrapperManager->getViaUri($uri)) {
-          if (!empty($wrapper->realpath()) {
-            $exclude_streams[] = $wrapper->realpath();
-          }
+          $exclude_streams[] = $wrapper->realpath();
         }
       }
     }
@@ -381,16 +385,16 @@ class ServiceAuditFilesNotInDatabase {
   public function auditfilesNotInDatabaseGetHeader() {
     return [
       'filepathname' => [
-        'data' => $this->t('File pathname'),
+        'data' => $this->stringTranslation->translate('File pathname'),
       ],
       'filemime' => [
-        'data' => $this->t('MIME'),
+        'data' => $this->stringTranslation->translate('MIME'),
       ],
       'filesize' => [
-        'data' => $this->t('Size (in bytes)'),
+        'data' => $this->stringTranslation->translate('Size (in bytes)'),
       ],
       'filemodtime' => [
-        'data' => $this->t('Last modified'),
+        'data' => $this->stringTranslation->translate('Last modified'),
       ],
     ];
   }
@@ -405,10 +409,10 @@ class ServiceAuditFilesNotInDatabase {
    *   The definition of the batch.
    */
   public function auditfilesNotInDatabaseBatchAddCreateBatch(array $fileids) {
-    $batch['title'] = $this->t('Adding files to Drupal file management');
-    $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
+    $batch['title'] = $this->stringTranslation->translate('Adding files to Drupal file management');
+    $batch['error_message'] = $this->stringTranslation->translate('One or more errors were encountered processing the files.');
     $batch['finished'] = "\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesNotInDatabaseBatchFinishBatch";
-    $batch['progress_message'] = $this->t('Completed @current of @total operations.');
+    $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
     $operations = [];
     $file_ids = [];
     foreach ($fileids as $file_id) {
@@ -433,7 +437,7 @@ class ServiceAuditFilesNotInDatabase {
    *   The full pathname to the file to add to the database.
    */
   public function auditfilesNotInDatabaseBatchAddProcessFile($filepathname) {
-    $user = $this->currentUser->id();
+    $user = User::load($this->currentUser->id());
     $file = new \StdClass();
     $file->uid = $user->get('uid')->value;
     $file->filename = trim(basename($filepathname));
@@ -442,8 +446,8 @@ class ServiceAuditFilesNotInDatabase {
     $file->filemime = $this->fileMimeTypeGuesser->guess($real_filenamepath);
     $file->filesize = filesize($real_filenamepath);
     $file->status = FILE_STATUS_PERMANENT;
-    $file->timestamp = $this->timeService->getCurrentTime();
-    $uuid = $this->uuid->generate();
+    $file->timestamp = $this->time->getCurrentTime();
+    $uuid = $this->uuidService->generate();
 
     $connection = $this->connection;
     $query = $connection->select('file_managed', 'fm');
@@ -468,18 +472,18 @@ class ServiceAuditFilesNotInDatabase {
         ])->execute();
       if (empty($results)) {
         $this->messenger()->addStatus(
-          $this->t('Failed to add %file to the database.', ['%file' => $filepathname])
+          $this->stringTranslation->translate('Failed to add %file to the database.', ['%file' => $filepathname])
         );
       }
       else {
         $this->messenger()->addStatus(
-          $this->t('Sucessfully added %file to the database.', ['%file' => $filepathname])
+          $this->stringTranslation->translate('Sucessfully added %file to the database.', ['%file' => $filepathname])
         );
       }
     }
     else {
       $this->messenger()->addStatus(
-        $this->t('The file %file is already in the database.', ['%file' => $filepathname])
+        $this->stringTranslation->translate('The file %file is already in the database.', ['%file' => $filepathname])
       );
     }
   }
@@ -494,11 +498,11 @@ class ServiceAuditFilesNotInDatabase {
    *   The definition of the batch.
    */
   public function auditfilesNotInDatabaseBatchDeleteCreateBatch(array $file_names) {
-    $batch['title'] = $this->t('Adding files to Drupal file management');
-    $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
+    $batch['title'] = $this->stringTranslation->translate('Adding files to Drupal file management');
+    $batch['error_message'] = $this->stringTranslation->translate('One or more errors were encountered processing the files.');
     $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesNotInDatabaseBatchFinishBatch';
-    $batch['progress_message'] = $this->t('Completed @current of @total operations.');
-    $batch['title'] = $this->t('Deleting files from the server');
+    $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
+    $batch['title'] = $this->stringTranslation->translate('Deleting files from the server');
     $operations = [];
     $filenames = [];
     foreach ($file_names as $file_name) {
@@ -529,12 +533,12 @@ class ServiceAuditFilesNotInDatabase {
 
     if ($this->fileSystem->delete($real_files_path . DIRECTORY_SEPARATOR . $filename)) {
       $this->messenger()->addStatus(
-        $this->t('Sucessfully deleted %file from the server.', ['%file' => $filename])
+        $this->stringTranslation->translate('Sucessfully deleted %file from the server.', ['%file' => $filename])
       );
     }
     else {
       $this->messenger()->addStatus(
-        $this->t('Failed to delete %file from the server.', ['%file' => $filename])
+        $this->stringTranslation->translate('Failed to delete %file from the server.', ['%file' => $filename])
       );
     }
   }
