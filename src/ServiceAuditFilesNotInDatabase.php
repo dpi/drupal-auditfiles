@@ -63,7 +63,7 @@ class ServiceAuditFilesNotInDatabase {
    *
    * @var \Drupal\Core\Session\AccountProxy
    */
-  protected $currentUser;
+   protected $currentUser;
 
   /**
    * Mime Type Guesser service.
@@ -446,7 +446,11 @@ class ServiceAuditFilesNotInDatabase {
     $file->filemime = $this->fileMimeTypeGuesser->guess($real_filenamepath);
     $file->filesize = filesize($real_filenamepath);
     $file->status = FILE_STATUS_PERMANENT;
+<<<<<<< HEAD
     $file->timestamp = $this->time->getCurrentTime();
+=======
+    $file->timestamp =  $this->time->getCurrentTime();
+>>>>>>> f644d1557e0bb5d106eb1a8a16cfaae596fe4d34
     $uuid = $this->uuidService->generate();
 
     $connection = $this->connection;
