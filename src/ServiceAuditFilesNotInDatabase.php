@@ -129,7 +129,7 @@ class ServiceAuditFilesNotInDatabase {
         $file_in_database = $this->auditfilesNotInDatabaseIsFileInDatabase($file_to_check);
         // If the file is not in the database, add to the list for displaying.
         if (!$file_in_database) {
-          // Gets the file's information (size, date, etc.) and assempbles the.
+          // Gets the file's information (size, date, etc.) and assembles the
           // array for the table.
           $reported_files += $this->auditfilesNotInDatabaseFormatRowData($report_file, $real_files_path, $date_format);
         }
