@@ -2,7 +2,6 @@
 
 namespace Drupal\auditfiles;
 
-use Drupal\user\Entity\User;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Messenger\MessengerTrait;
@@ -15,6 +14,7 @@ use Drupal\Core\ProxyClass\File\MimeType\MimeTypeGuesser;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Component\Uuid\UuidInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
  * Define all methods that are used on Files not in database functionality.
@@ -63,7 +63,7 @@ class ServiceAuditFilesNotInDatabase {
    *
    * @var \Drupal\Core\Session\AccountProxy
    */
-   protected $currentUser;
+  protected $currentUser;
 
   /**
    * Mime Type Guesser service.
@@ -94,9 +94,16 @@ class ServiceAuditFilesNotInDatabase {
   protected $dateFormatter;
 
   /**
+   * Entity Type Manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * Define constructor for string translation.
    */
-  public function __construct(TranslationInterface $translation, ConfigFactoryInterface $config_factory, Connection $connection, StreamWrapperManager $stream_wrapper_manager, FileSystemInterface $file_system, AccountProxy $current_user, MimeTypeGuesser $file_mime_type_guesser, TimeInterface $time, UuidInterface $uuid, DateFormatter $date_formatter) {
+  public function __construct(TranslationInterface $translation, ConfigFactoryInterface $config_factory, Connection $connection, StreamWrapperManager $stream_wrapper_manager, FileSystemInterface $file_system, AccountProxy $current_user, MimeTypeGuesser $file_mime_type_guesser, TimeInterface $time, UuidInterface $uuid, DateFormatter $date_formatter, EntityTypeManagerInterface $entity_type_manager) {
     $this->stringTranslation = $translation;
     $this->configFactory = $config_factory;
     $this->connection = $connection;
@@ -107,6 +114,7 @@ class ServiceAuditFilesNotInDatabase {
     $this->time = $time;
     $this->uuidService = $uuid;
     $this->dateFormatter = $date_formatter;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -437,7 +445,7 @@ class ServiceAuditFilesNotInDatabase {
    *   The full pathname to the file to add to the database.
    */
   public function auditfilesNotInDatabaseBatchAddProcessFile($filepathname) {
-    $user = User::load($this->currentUser->id());
+    $user = $this->entityTypeManager()->getStorage('user')->load($this->currentUser->id());
     $file = new \StdClass();
     $file->uid = $user->get('uid')->value;
     $file->filename = trim(basename($filepathname));

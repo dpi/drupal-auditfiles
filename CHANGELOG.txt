@@ -1,5 +1,6 @@
 8.x-2.x
 
+Issue #3154713 by lhridley: ServiceAuditFilesNotInDatabase:  Use DI for all services
 Issue #3051823 by lhridley: Audit Files should specify its own access permissions (additional permissions patch)
 Issue #3154177 by lhridley: ServiceNotFoundException:  The service "auditfiles.referenced_not_used has a dependency on a non-existent service "file.usage"
 Issue #3154147 by lhridley: Error:  Typecast error occurring in AuditFilesConfig.php

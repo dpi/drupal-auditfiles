@@ -1,7 +1,7 @@
 services:
   auditfiles.not_in_database:
     class: Drupal\auditfiles\ServiceAuditFilesNotInDatabase
-    arguments: ['@string_translation', '@config.factory', '@database', '@stream_wrapper_manager', '@file_system', '@current_user', '@file.mime_type.guesser', '@datetime.time', '@uuid', '@date.formatter']
+    arguments: ['@string_translation', '@config.factory', '@database', '@stream_wrapper_manager', '@file_system', '@current_user', '@file.mime_type.guesser', '@datetime.time', '@uuid', '@date.formatter', '@entity_type.manager']
 
   auditfiles.not_on_server:
     class: Drupal\auditfiles\ServiceAuditFilesNotOnServer
