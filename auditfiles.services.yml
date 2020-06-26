@@ -9,7 +9,7 @@ services:
 
   auditfiles.managed_not_used:
     class: Drupal\auditfiles\ServiceAuditFilesManagedNotUsed
-    arguments: ['@string_translation', '@config.factory', '@database', '@date.formatter']
+    arguments: ['@string_translation', '@config.factory', '@database', '@date.formatter', '@file_system']
 
   auditfiles.used_not_managed:
     class: Drupal\auditfiles\ServiceAuditFilesUsedNotManaged
@@ -25,4 +25,4 @@ services:
 
   auditfiles.merge_file_references:
     class: Drupal\auditfiles\ServiceAuditFilesMergeFileReferences
-    arguments: ['@string_translation', '@config.factory', '@database', '@entity_type.manager']
+    arguments: ['@string_translation', '@config.factory', '@database', '@date.formatter', '@file_system']

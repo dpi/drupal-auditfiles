@@ -21,7 +21,7 @@ class ServiceAuditFilesUsedNotManaged {
   /**
    * The Configuration Factory.
    *
-   * @var Drupal\Core\Config\ConfigFactory
+   * @var \Drupal\Core\Config\ConfigFactory
    */
   protected $configFactory;
 

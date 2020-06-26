@@ -11,8 +11,8 @@ use Drupal\Core\Database\Database;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Messenger\MessengerTrait;
-use Drupal\auditfiles\ServiceAuditFilesMergeFileReferences;
 use Drupal\Core\Pager\PagerManagerInterface;
+use Drupal\auditfiles\ServiceAuditFilesMergeFileReferences;
 
 /**
  * Form for merge file references.
@@ -25,39 +25,30 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
    * The Config.
    *
    * @var \Drupal\Core\Config\ConfigFactoryInterface
-   *   Configuration service.
    */
   protected $configFactoryStorage;
 
   /**
-   * The auditfiles.merge_file_references service.
-   *
-   * @var Drupal\auditfiles\ServiceAuditFilesMergeFileReferences
-   *   auditfiles.merge_file_references service.
-   */
-  protected $filesMergeFileReferences;
-
-  /**
-   * The pager.manager service.
+   * Pager Manager service.
    *
    * @var \Drupal\Core\Pager\PagerManagerInterface
    */
   protected $pagerManager;
 
   /**
-   * Class Constructor.
+   * Merge File References service.
    *
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   Configuration service.
-   * @param Drupal\auditfiles\ServiceAuditFilesMergeFileReferences $service_auditfiles_merge_file_references
-   *   The auditfiles.merge_file_references service.
-   * @param Drupal\Core\Pager\PagerManagerInterface $pager_manager
-   *   Pager Manager service.
+   * @var \Drupal\auditfiles\ServiceAuditFilesMergeFileReferences
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ServiceAuditFilesMergeFileReferences $service_auditfiles_merge_file_references, PagerManagerInterface $pager_manager) {
+  protected $mergeFileReferences;
+
+  /**
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   */
+  public function __construct(ConfigFactoryInterface $config_factory, PagerManagerInterface $pager_manager, ServiceAuditFilesMergeFileReferences $merge_file_references) {
     $this->configFactoryStorage = $config_factory;
-    $this->filesMergeFileReferences = $service_auditfiles_merge_file_references;
     $this->pagerManager = $pager_manager;
+    $this->mergeFileReferences = $merge_file_references;
   }
 
   /**
@@ -66,9 +57,8 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
-      $container->get('date.formatter'),
-      $container->get('auditfiles.merge_file_references'),
-      $container->get('pager.manager')
+      $container->get('pager.manager'),
+      $container->get('auditfiles.merge_file_references')
     );
   }
 
@@ -173,6 +163,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
                 'fileuri' => $file->uri,
                 'filesize' => number_format($file->filesize),
                 'timestamp' => $this->dateFormatter->format($file->created, $date_format),
+
               ];
             }
             else {
@@ -293,11 +284,11 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
         return $form;
       }
     }
-    $file_names = $this->filesMergeFileReferences->auditfilesMergeFileReferencesGetFileList();
+    $file_names = $this->mergeFileReferences->auditfilesMergeFileReferencesGetFileList();
     if (!empty($file_names)) {
       $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
       foreach ($file_names as $file_name) {
-        $rows[$file_name] = $this->filesMergeFileReferences->auditfilesMergeFileReferencesGetFileData($file_name, $date_format);
+        $rows[$file_name] = $this->mergeFileReferences->auditfilesMergeFileReferencesGetFileData($file_name, $date_format);
       }
     }
     // Set up the pager.
@@ -331,7 +322,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
     ];
     $form['files'] = [
       '#type' => 'tableselect',
-      '#header' => $this->filesMergeFileReferences->auditfilesMergeFileReferencesGetHeader(),
+      '#header' => $this->mergeFileReferences->auditfilesMergeFileReferencesGetHeader(),
       '#empty' => $this->t('No items found.'),
       '#prefix' => '<div><em>' . $form_count . '</em></div>',
     ];
@@ -432,7 +423,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
    */
   public function confirmSubmissionHandlerFileMerge(array &$form, FormStateInterface $form_state) {
     $storage = $form_state->getStorage();
-    batch_set($this->filesMergeFileReferences->auditfilesMergeFileReferencesBatchMergeCreateBatch($form_state->getValue('file_being_kept'), $storage['files_being_merged']));
+    batch_set($this->mergeFileReferences->auditfilesMergeFileReferencesBatchMergeCreateBatch($form_state->getValue('file_being_kept'), $storage['files_being_merged']));
     unset($storage['stage']);
   }
 

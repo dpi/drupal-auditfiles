@@ -6,7 +6,6 @@ use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
@@ -17,13 +16,19 @@ use Drupal\Core\Entity\EntityFieldManager;
  */
 class ServiceAuditFilesUsedNotReferenced {
 
-  use StringTranslationTrait;
   use MessengerTrait;
+
+  /**
+   * The Translation service.
+   *
+   * @var \Drupal\Core\StringTranslation\TranslationInterface
+   */
+  protected $stringTranslation;
 
   /**
    * The Configuration Factory.
    *
-   * @var Drupal\Core\Config\ConfigFactory
+   * @var \Drupal\Core\Config\ConfigFactory
    */
   protected $configFactory;
 
@@ -37,12 +42,12 @@ class ServiceAuditFilesUsedNotReferenced {
   /**
    * The entityFieldManager connection.
    *
-   * @var Drupal\Core\Entity\EntityFieldManager
+   * @var \Drupal\Core\Entity\EntityFieldManager
    */
   protected $entityFieldManager;
 
   /**
-   * Define constructor for string translation.
+   * Define constructor.
    */
   public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, EntityFieldManager $entity_field_manager) {
     $this->stringTranslation = $translation;
@@ -66,7 +71,7 @@ class ServiceAuditFilesUsedNotReferenced {
       $query .= ' LIMIT ' . $maximum_records;
     }
     $files_in_file_usage = $connection->query($query)->fetchCol();
-    $files_in_fields = [];
+    $files_in_fields = $field_data = [];
     $fields[] = $this->entityFieldManager->getFieldMapByFieldType('image');
     $fields[] = $this->entityFieldManager->getFieldMapByFieldType('file');
     $count = 0;
@@ -110,9 +115,9 @@ class ServiceAuditFilesUsedNotReferenced {
     $file_managed = $connection->query("SELECT * FROM {file_managed} fm WHERE fid = $file_id")->fetchObject();
     if (empty($file_managed)) {
       $url = Url::fromUri('internal:/admin/reports/auditfiles/usednotmanaged');
-      $result_link = Link::fromTextAndUrl($this->t('Used not managed'), $url)->toString();
+      $result_link = Link::fromTextAndUrl($this->stringTranslation->translate('Used not managed'), $url)->toString();
       $row = [
-        'fid' => $this->t(
+        'fid' => $this->stringTranslation->translate(
           'This file is not listed in the file_managed table. See the "%usednotmanaged" report.',
           ['%usednotmanaged' => $result_link]
         ),
@@ -130,7 +135,7 @@ class ServiceAuditFilesUsedNotReferenced {
         $result_link = Link::fromTextAndUrl($file_usage->id, $url)->toString();
         $used_in = ($file_usage->type == 'node') ? $result_link : $file_usage->id;
         $times_used = $file_usage->count;
-        $usage .= '<li>' . $this->t(
+        $usage .= '<li>' . $this->stringTranslation->translate(
           'Used by module: %used_by, as object type: %type, in content ID: %used_in; Times used: %times_used',
           [
             '%used_by' => $used_by,
@@ -160,13 +165,13 @@ class ServiceAuditFilesUsedNotReferenced {
   public function auditfilesUsedNotReferencedGetHeader() {
     return [
       'fid' => [
-        'data' => $this->t('File ID'),
+        'data' => $this->stringTranslation->translate('File ID'),
       ],
       'uri' => [
-        'data' => $this->t('File URI'),
+        'data' => $this->stringTranslation->translate('File URI'),
       ],
       'usage' => [
-        'data' => $this->t('Usages'),
+        'data' => $this->stringTranslation->translate('Usages'),
       ],
     ];
   }
@@ -175,10 +180,10 @@ class ServiceAuditFilesUsedNotReferenced {
    * Creates the batch for deleting files from the file_usage table.
    */
   public function auditfilesUsedNotReferencedBatchDeleteCreateBatch(array $fileids) {
-    $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
+    $batch['error_message'] = $this->stringTranslation->translate('One or more errors were encountered processing the files.');
     $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesUsedNotReferencedBatchFinishBatch';
-    $batch['progress_message'] = $this->t('Completed @current of @total operations.');
-    $batch['title'] = $this->t('Deleting files from the file_usage table');
+    $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
+    $batch['title'] = $this->stringTranslation->translate('Deleting files from the file_usage table');
     $operations = $file_ids = [];
     foreach ($fileids as $file_id) {
       if ($file_id != 0) {
@@ -206,12 +211,12 @@ class ServiceAuditFilesUsedNotReferenced {
     $num_rows = $connection->delete('file_usage')->condition('fid', $file_id)->execute();
     if (empty($num_rows)) {
       $this->messenger()->addWarning(
-        $this->t('There was a problem deleting the record with file ID %fid from the file_usage table. Check the logs for more information.', ['%fid' => $file_id])
+        $this->stringTranslation->translate('There was a problem deleting the record with file ID %fid from the file_usage table. Check the logs for more information.', ['%fid' => $file_id])
       );
     }
     else {
       $this->messenger()->addStatus(
-        $this->t(
+        $this->stringTranslation->translate(
           'Sucessfully deleted File ID : %fid from the file_usage table.',
           ['%fid' => $file_id]
         )

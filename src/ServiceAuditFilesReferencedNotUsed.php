@@ -5,7 +5,6 @@ namespace Drupal\auditfiles;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
@@ -17,13 +16,19 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
  */
 class ServiceAuditFilesReferencedNotUsed {
 
-  use StringTranslationTrait;
   use MessengerTrait;
+
+  /**
+   * The Translation service.
+   *
+   * @var \Drupal\Core\StringTranslation\TranslationInterface
+   */
+  protected $stringTranslation;
 
   /**
    * The Configuration Factory.
    *
-   * @var Drupal\Core\Config\ConfigFactory
+   * @var \Drupal\Core\Config\ConfigFactory
    */
   protected $configFactory;
 
@@ -37,14 +42,14 @@ class ServiceAuditFilesReferencedNotUsed {
   /**
    * The entityFieldManager connection.
    *
-   * @var Drupal\Core\Entity\EntityFieldManager
+   * @var \Drupal\Core\Entity\EntityFieldManager
    */
   protected $entityFieldManager;
 
   /**
    * The entity_type.manager service.
    *
-   * @var Drupal\Core\Entity\EntityTypeManagerInterface
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManager;
 
@@ -81,7 +86,7 @@ class ServiceAuditFilesReferencedNotUsed {
     $connection = $this->connection;
     $file_references = $files_referenced = [];
     // Get a list of all files that are referenced in content.
-    $fields = [];
+    $fields = $field_data = [];
     $fields[] = $this->entityFieldManager->getFieldMapByFieldType('image');
     $fields[] = $this->entityFieldManager->getFieldMapByFieldType('file');
     if ($fields) {
@@ -180,25 +185,25 @@ class ServiceAuditFilesReferencedNotUsed {
   public function auditfilesReferencedNotUsedGetHeader() {
     return [
       'file_id' => [
-        'data' => $this->t('File ID'),
+        'data' => $this->stringTranslation->translate('File ID'),
       ],
       'entity_type' => [
-        'data' => $this->t('Referencing entity type'),
+        'data' => $this->stringTranslation->translate('Referencing entity type'),
       ],
       'entity_id_display' => [
-        'data' => $this->t('Referencing entity ID'),
+        'data' => $this->stringTranslation->translate('Referencing entity ID'),
       ],
       'field' => [
-        'data' => $this->t('Field referenced in'),
+        'data' => $this->stringTranslation->translate('Field referenced in'),
       ],
       'uri' => [
-        'data' => $this->t('URI'),
+        'data' => $this->stringTranslation->translate('URI'),
       ],
       'filemime' => [
-        'data' => $this->t('MIME'),
+        'data' => $this->stringTranslation->translate('MIME'),
       ],
       'filesize' => [
-        'data' => $this->t('Size (in bytes)'),
+        'data' => $this->stringTranslation->translate('Size (in bytes)'),
       ],
     ];
   }
@@ -213,10 +218,10 @@ class ServiceAuditFilesReferencedNotUsed {
    *   The definition of the batch.
    */
   public function auditfilesReferencedNotUsedBatchAddCreateBatch(array $referenceids) {
-    $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
+    $batch['error_message'] = $this->stringTranslation->translate('One or more errors were encountered processing the files.');
     $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchFinishBatch';
-    $batch['progress_message'] = $this->t('Completed @current of @total operations.');
-    $batch['title'] = $this->t('Adding files to the file_usage table');
+    $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
+    $batch['title'] = $this->stringTranslation->translate('Adding files to the file_usage table');
     $operations = $reference_ids = [];
     foreach ($referenceids as $reference_id) {
       if (!empty($reference_id)) {
@@ -269,7 +274,7 @@ class ServiceAuditFilesReferencedNotUsed {
     }
     else {
       $this->messenger()->addError(
-        $this->t(
+        $this->stringTranslation->translate(
            'The file is already in the file_usage table (file id: "@fid", module: "@module", type: "@type", entity id: "@id").',
           [
             '@fid' => $data['fid'],
@@ -292,10 +297,10 @@ class ServiceAuditFilesReferencedNotUsed {
    *   The definition of the batch.
    */
   public function auditfilesReferencedNotUsedBatchDeleteCreateBatch(array $referenceids) {
-    $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
+    $batch['error_message'] = $this->stringTranslation->translate('One or more errors were encountered processing the files.');
     $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchFinishBatch';
-    $batch['progress_message'] = $this->t('Completed @current of @total operations.');
-    $batch['title'] = $this->t('Deleting file references from their content');
+    $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
+    $batch['title'] = $this->stringTranslation->translate('Deleting file references from their content');
     $operations = $reference_ids = [];
     foreach ($referenceids as $reference_id) {
       if ($reference_id != '') {
@@ -327,7 +332,7 @@ class ServiceAuditFilesReferencedNotUsed {
       ->execute();
     if (empty($num_rows)) {
       $this->messenger()->addWarning(
-        $this->t(
+        $this->stringTranslation->translate(
           'There was a problem deleting the reference to file ID %fid in the %entity_type with ID %eid. Check the logs for more information.',
           [
             '%fid' => $reference_id_parts[4],
@@ -339,7 +344,7 @@ class ServiceAuditFilesReferencedNotUsed {
     }
     else {
       $this->messenger()->addStatus(
-        $this->t(
+        $this->stringTranslation->translate(
           'file ID %fid  deleted successfully.',
           [
             '%fid' => $reference_id_parts[4],

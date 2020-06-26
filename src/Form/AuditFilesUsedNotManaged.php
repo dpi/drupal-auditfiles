@@ -30,7 +30,7 @@ class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface 
   /**
    * The auditfiles.managed_not_used service.
    *
-   * @var Drupal\auditfiles\ServiceAuditFilesUsedNotManaged
+   * @var \Drupal\auditfiles\ServiceAuditFilesUsedNotManaged
    */
   protected $filesUsedNotManaged;
 

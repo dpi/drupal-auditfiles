@@ -21,7 +21,7 @@ class ServiceAuditFilesNotOnServer {
   /**
    * The Configuration Factory.
    *
-   * @var Drupal\Core\Config\ConfigFactory
+   * @var \Drupal\Core\Config\ConfigFactory
    */
   protected $configFactory;
 
@@ -35,14 +35,14 @@ class ServiceAuditFilesNotOnServer {
   /**
    * The Date Formatter.
    *
-   * @var Drupal\Core\Datetime\DateFormatter
+   * @var \Drupal\Core\Datetime\DateFormatter
    */
   protected $dateFormatter;
 
   /**
    * The File System service.
    *
-   * @var Drupal\Core\File\FileSystemInterface
+   * @var \Drupal\Core\File\FileSystemInterface
    */
   protected $fileSystem;
 

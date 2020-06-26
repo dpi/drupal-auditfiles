@@ -63,7 +63,7 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
-      $container->gert('auditfiles.referenced_not_used'),
+      $container->get('auditfiles.referenced_not_used'),
       $container->get('pager.manager')
     );
   }

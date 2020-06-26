@@ -45,7 +45,7 @@ class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface 
   /**
    * The entity_type.manager service.
    *
-   * @var Drupal\Core\Entity\EntityTypeManagerInterface
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManager;
 
