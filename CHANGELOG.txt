@@ -1,4 +1,4 @@
-8.x-2.x
+8.x-2.7
 
 Issue #3155136 by lhridley: Convert all services to Dependency Injection
 Issue #3154713 by lhridley: ServiceAuditFilesNotInDatabase:  Use DI for all services
@@ -11,6 +11,14 @@ Issue #3154111 by lhridley: Update README.txt for new maintainer listing
 Issue #3154049 by lhridley: Drupal 9 Coding Standards Refactoring
 Issue #3092517 by lhridley: Issue with the NotOnServer $query->range
 Issue #3051823 by lhridley, bgodin95: Audit Files should specify its own access permissions
+
+8.x-2.6
+
+Issue #3154305 by lhridley: Undefined variable:  field_data
+
+8.x-2.5
+
+Issue #3154286: Mismatched services to constructor arguments
 
 8.x-2.4
 
