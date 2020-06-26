@@ -1,5 +1,9 @@
 8.x-2.x
 
+Issue #3155170 by lhridley: Exception: Error: Call to undefined method Drupal\auditfiles\ServiceAuditFilesNotInDatabase::entityTypeManager()
+
+8.x-2.7
+
 Issue #3155136 by lhridley: Convert all services to Dependency Injection
 Issue #3154713 by lhridley: ServiceAuditFilesNotInDatabase:  Use DI for all services
 Issue #3051823 by lhridley: Audit Files should specify its own access permissions (additional permissions patch)
@@ -12,10 +16,13 @@ Issue #3154049 by lhridley: Drupal 9 Coding Standards Refactoring
 Issue #3092517 by lhridley: Issue with the NotOnServer $query->range
 Issue #3051823 by lhridley, bgodin95: Audit Files should specify its own access permissions
 
-8.x-2.4
+8.x-2.6
 
-Issue #3127142 by Suresh Prabhu Parkala: Drupal 9 readiness
-Issue #3004280 by karuna patel, Sergiu Stici, naresh_bavaskar, i-trokhanenko, lhridley: D9 Deprecated Code Report
+Issue #3154305 by lhridley: Undefined variable:  field_data
+
+8.x-2.5
+
+Issue #3154286: Mismatched services to constructor argumentsanenko, lhridley: D9 Deprecated Code Report
 
 8.x-2.3
 

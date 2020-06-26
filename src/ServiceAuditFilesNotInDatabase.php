@@ -445,7 +445,7 @@ class ServiceAuditFilesNotInDatabase {
    *   The full pathname to the file to add to the database.
    */
   public function auditfilesNotInDatabaseBatchAddProcessFile($filepathname) {
-    $user = $this->entityTypeManager()->getStorage('user')->load($this->currentUser->id());
+    $user = $this->entityTypeManager->getStorage('user')->load($this->currentUser->id());
     $file = new \StdClass();
     $file->uid = $user->get('uid')->value;
     $file->filename = trim(basename($filepathname));
