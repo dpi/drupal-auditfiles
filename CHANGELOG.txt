@@ -1,5 +1,6 @@
 8.x-2.x
 
+Issue #3154446 by lhridley: Automated test:  AuditFilesNotInDatabase Report
 Issue #3155170 by lhridley: Exception: Error: Call to undefined method Drupal\auditfiles\ServiceAuditFilesNotInDatabase::entityTypeManager()
 
 8.x-2.7
