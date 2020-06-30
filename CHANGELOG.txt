@@ -1,5 +1,7 @@
 8.x-2.x
 
+Issue #3155265 by pradeepjha, markus_petrux: ParseError: syntax error, unexpected ')' in Composer\Autoload\includeFile() (line 40 of .../AuditFilesConfig.php)
+Issue #3154454 by lhridley: Automated test:  AuditFilesUsedNotManaged Report
 Issue #3154451 by lhridley: Automated test:  AuditFilesManagedNotUsed Report
 Issue #3155725 by lhridley: Coding Standards corrections
 Issue #3154448 by lhridley: Automated test:  AuditFilesNotOnServer Report
