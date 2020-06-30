@@ -26,7 +26,7 @@ class ServiceAuditFilesManagedNotUsed {
   /**
    * The Configuration Factory.
    *
-   * @var Drupal\Core\Config\ConfigFactory
+   * @var \Drupal\Core\Config\ConfigFactory
    */
   protected $configFactory;
 
@@ -38,12 +38,17 @@ class ServiceAuditFilesManagedNotUsed {
   protected $connection;
 
   /**
-   * The Date Fromatter.
+   * The Date Formatter.
    *
-   * @var Drupal\Core\Datetime\DateFormatter
+   * @var \Drupal\Core\Datetime\DateFormatter
    */
   protected $dateFormatter;
 
+  /**
+   * The File System service.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
   protected $fileSystem;
 
   /**

@@ -31,7 +31,7 @@ class ServiceAuditFilesMergeFileReferences {
    *
    * @var Drupal\Core\Config\ConfigFactory
    */
-  protected $config_factory;
+  protected $configFactory;
 
   /**
    * The database connection.
@@ -45,24 +45,24 @@ class ServiceAuditFilesMergeFileReferences {
    *
    * @var Drupal\Core\Datetime\DateFormatter
    */
-  protected $date_formatter;
+  protected $dateFormatter;
 
   /**
    * The file system service.
    *
    * @var \Drupal\Core\File\FileSystemInterface
    */
-  protected $file_system;
+  protected $fileSystem;
 
   /**
    * Define constructor for string translation.
    */
   public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, DateFormatter $date_formatter, FileSystemInterface $file_system) {
     $this->stringTranslation = $translation;
-    $this->config_factory = $config_factory;
+    $this->configFactory = $config_factory;
     $this->connection = $connection;
-    $this->date_formatter = $date_formatter;
-    $this->file_system = $file_system;
+    $this->dateFormatter = $date_formatter;
+    $this->fileSystem = $file_system;
   }
 
   /**
@@ -72,7 +72,7 @@ class ServiceAuditFilesMergeFileReferences {
    *   The file IDs.
    */
   public function auditfilesMergeFileReferencesGetFileList() {
-    $config = $this->config_factory->get('auditfiles.settings');
+    $config = $this->configFactory->get('auditfiles.settings');
     $connection = $this->connection;
     $result_set = [];
     $query = 'SELECT fid, filename FROM {file_managed} ORDER BY filename ASC';
@@ -141,7 +141,7 @@ class ServiceAuditFilesMergeFileReferences {
             '%id' => $file->fid,
             '%file' => $file->filename,
             '%uri' => $file->uri,
-            '%date' => $this->date_formatter->format($file->created, $date_format),
+            '%date' => $this->dateFormatter->format($file->created, $date_format),
           ]
         ) . '</li>';
       }
@@ -288,7 +288,7 @@ class ServiceAuditFilesMergeFileReferences {
       ->execute();
     // Delete the duplicate file.
     if (!empty($file_being_merged_uri->uri)) {
-      $this->file_system->delete($file_being_merged_uri->uri);
+      $this->fileSystem->delete($file_being_merged_uri->uri);
     }
   }
 

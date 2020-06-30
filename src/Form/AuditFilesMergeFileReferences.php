@@ -43,7 +43,14 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
   protected $mergeFileReferences;
 
   /**
+   * Class Constructor.
+   *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   Config Factory object.
+   * @param \Drupal\Core\Pager\PagerManagerInterface $pager_manager
+   *   Pager Manager service.
+   * @param \Drupal\auditfiles\ServiceAuditFilesMergeFileReferences $merge_file_references
+   *   ServiceAuditFilesMergeFileReferences service.
    */
   public function __construct(ConfigFactoryInterface $config_factory, PagerManagerInterface $pager_manager, ServiceAuditFilesMergeFileReferences $merge_file_references) {
     $this->configFactoryStorage = $config_factory;

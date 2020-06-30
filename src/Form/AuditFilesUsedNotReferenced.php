@@ -18,7 +18,6 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
  * File used but not referenced functionality.
  */
 class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterface {
-
   use MessengerTrait;
 
   /**
@@ -72,12 +71,7 @@ class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterfa
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    return new static(
-      $container->get('config.factory'),
-      $container->get('auditfiles.used_not_referenced'),
-      $container->get('pager.manager'),
-      $container->get('entity_type.manager')
-    );
+    return new static($container->get('config.factory'), $container->get('auditfiles.used_not_referenced'), $container->get('pager.manager'), $container->get('entity_type.manager'));
   }
 
   /**
@@ -142,7 +136,6 @@ class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterfa
         '#suffix' => '</ul>',
         '#tree' => TRUE,
       ];
-
       // Prepare the list of items to present to the user.
       if (!empty($values)) {
         foreach ($values as $file_id) {
@@ -153,7 +146,7 @@ class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterfa
                 '#type' => 'hidden',
                 '#value' => $file_id,
                 '#prefix' => '<li><strong>' . $file->getFilename() . '</strong> ' . $this->t('will be deleted from the file_usage table.'),
-                '#suffix' => "</li>\n",
+                '#suffix' => "</li>",
               ];
             }
           }
@@ -164,9 +157,7 @@ class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterfa
       }
       $form['#title'] = $this->t('Delete these items from the file_usage table?');
       $form['#attributes']['class'][] = 'confirmation';
-      $form['actions'] = [
-        '#type' => 'actions',
-      ];
+      $form['actions'] = ['#type' => 'actions'];
       $form['actions']['submit'] = [
         '#type' => 'submit',
         '#value' => $this->getConfirmText(),
@@ -241,8 +232,7 @@ class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterfa
   /**
    * Submit form.
    */
-  public function submitForm(array &$form, FormStateInterface $form_state) {
-  }
+  public function submitForm(array &$form, FormStateInterface $form_state) {}
 
   /**
    * Submit for confirmation.
@@ -251,18 +241,13 @@ class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterfa
     if (!empty($form_state->getValue('files'))) {
       foreach ($form_state->getValue('files') as $file_id) {
         if (!empty($file_id)) {
-          $storage = [
-            'files' => $form_state->getValue('files'),
-            'confirm' => TRUE,
-          ];
+          $storage = ['files' => $form_state->getValue('files'), 'confirm' => TRUE];
           $form_state->setStorage($storage);
           $form_state->setRebuild();
         }
       }
       if (!isset($storage)) {
-        $this->messenger()->addError(
-          $this->t('No items were selected to operate on.')
-        );
+        $this->messenger()->addError($this->t('No items were selected to operate on.'));
       }
     }
   }
