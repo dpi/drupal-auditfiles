@@ -14,6 +14,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class AuditFilesConfig extends ConfigFormBase {
 
+  use StringTranslationTrait;
+
   /**
    * The Stream Wrapper Manager service.
    *
