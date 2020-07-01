@@ -5,8 +5,6 @@ namespace Drupal\Tests\auditfiles\Functional;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Tests\TestFileCreationTrait;
 use Drupal\file\Entity\File;
 use Drupal\node\Entity\Node;
 
@@ -17,8 +15,6 @@ use Drupal\node\Entity\Node;
  */
 class AuditFilesUsedNotReferencedTest extends BrowserTestBase {
 
-  use TestFileCreationTrait;
-  use StringTranslationTrait;
 
   /**
    * {@inheritdoc}
@@ -143,19 +139,19 @@ class AuditFilesUsedNotReferencedTest extends BrowserTestBase {
     // Load the report page.
     $this->drupalGet($path);
     // Check for the report title.
-    $session->pageTextContains($this->t("Used not referenced"));
+    $session->pageTextContains("Used not referenced");
     // Check boxes for file IDs to delete from database, and delete.
     $edit = [
       'edit-files-1' => TRUE,
     ];
-    $this->submitForm($edit, $this->t('Delete selected items from the file_usage table'));
+    $this->submitForm($edit, 'Delete selected items from the file_usage table');
     // Check for correct confirmation page and submit.
-    $session->pageTextContains($this->t("Delete these items from the file_usage table?"));
+    $session->pageTextContains("Delete these items from the file_usage table?");
     $edit = [];
-    $this->submitForm($edit, $this->t('Confirm'));
+    $this->submitForm($edit, 'Confirm');
     // Check that target file is no longer listed.
-    $session->pageTextContains($this->t("Used not referenced"));
-    $session->pageTextContains($this->t("Sucessfully deleted File ID : 1 from the file_usage table."));
+    $session->pageTextContains("Used not referenced");
+    $session->pageTextContains("Sucessfully deleted File ID : 1 from the file_usage table.");
   }
 
 }

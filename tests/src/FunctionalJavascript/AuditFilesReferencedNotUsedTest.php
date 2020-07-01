@@ -5,8 +5,6 @@ namespace Drupal\Tests\auditfiles\FunctionalJavascript;
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Tests\TestFileCreationTrait;
 use Drupal\file\Entity\File;
 use Drupal\node\Entity\Node;
 
@@ -16,9 +14,6 @@ use Drupal\node\Entity\Node;
  * @group auditfiles
  */
 class AuditFilesReferencedNotUsedTest extends WebDriverTestBase {
-
-  use TestFileCreationTrait;
-  use StringTranslationTrait;
 
   /**
    * {@inheritdoc}

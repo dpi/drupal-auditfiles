@@ -5,20 +5,13 @@ namespace Drupal\Tests\auditfiles\Functional;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Tests\TestFileCreationTrait;
-use Drupal\Tests\UiHelperTrait;
 
 /**
- * Tests that the "Managed not used" report is reachable with no errors.
+ * Tests that the "Used not managed" report is reachable with no errors.
  *
  * @group auditfiles
  */
 class AuditFilesUsedNotManagedTest extends BrowserTestBase {
-
-  use TestFileCreationTrait;
-  use UiHelperTrait;
-  use StringTranslationTrait;
 
   /**
    * {@inheritdoc}
@@ -113,19 +106,19 @@ class AuditFilesUsedNotManagedTest extends BrowserTestBase {
     // Load the report page.
     $this->drupalGet($path);
     // Check for the report title.
-    $session->pageTextContains($this->t("Used not managed"));
+    $session->pageTextContains("Used not managed");
     // Check box for file ID to delete from database, and delete.
     $edit = [
       'edit-files-1' => TRUE,
     ];
-    $this->submitForm($edit, $this->t('Delete selected items from the file_usage table'));
+    $this->submitForm($edit, 'Delete selected items from the file_usage table');
     // Check for correct confirmation page and submit.
-    $session->pageTextContains($this->t("Delete these items from the file_usage table?"));
+    $session->pageTextContains("Delete these items from the file_usage table?");
     $edit = [];
-    $this->submitForm($edit, $this->t('Confirm'));
+    $this->submitForm($edit, 'Confirm');
     // Check that target file is no longer listed.
-    $session->pageTextContains($this->t("Used not managed"));
-    $session->pageTextContains($this->t("Sucessfully deleted File ID : 1 from the file_usages table."));
+    $session->pageTextContains("Used not managed");
+    $session->pageTextContains("Sucessfully deleted File ID : 1 from the file_usages table.");
   }
 
 }

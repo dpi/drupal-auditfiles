@@ -5,9 +5,7 @@ namespace Drupal\Tests\auditfiles\Functional;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Tests\TestFileCreationTrait;
-use Drupal\Tests\UiHelperTrait;
 
 /**
  * Tests that the "Not in Database" report is reachable with no errors.
@@ -17,8 +15,6 @@ use Drupal\Tests\UiHelperTrait;
 class AuditFilesNotInDatabaseTest extends BrowserTestBase {
 
   use TestFileCreationTrait;
-  use UiHelperTrait;
-  use StringTranslationTrait;
 
   /**
    * {@inheritdoc}
@@ -105,12 +101,12 @@ class AuditFilesNotInDatabaseTest extends BrowserTestBase {
     // Load the report page.
     $this->drupalGet($path);
     // Check for the report title.
-    $session->pageTextContains($this->t("Not in database"));
+    $session->pageTextContains("Not in database");
     // Check that the report table is not empty.
-    $session->elementNotContains('css', '#edit-files', $this->t('No items found'));
-    $session->pageTextNotContains($this->t("Found no files on the server that are not in the database"));
+    $session->elementNotContains('css', '#edit-files', 'No items found');
+    $session->pageTextNotContains("Found no files on the server that are not in the database");
     // Check that at least 36 files were found.
-    $session->elementContains('xpath', '//*[@id="notindatabase"]/div[1]/em', $this->t("Found at least 36 files on the server that are not in the database"));
+    $session->elementContains('xpath', '//*[@id="notindatabase"]/div[1]/em', "Found at least 36 files on the server that are not in the database");
   }
 
   /**
@@ -129,19 +125,19 @@ class AuditFilesNotInDatabaseTest extends BrowserTestBase {
     // Load the report page.
     $this->drupalGet($path);
     // Check for the report title.
-    $session->pageTextContains($this->t("Not in database"));
+    $session->pageTextContains("Not in database");
     // Check box for file to delete from server, and submit form.
     $edit = [
       'edit-files-html-2html' => TRUE,
     ];
-    $this->submitForm($edit, $this->t('Delete selected items from the server'));
+    $this->submitForm($edit, 'Delete selected items from the server');
     // Check for correct confirmation page and submit.
-    $session->pageTextContains($this->t("Delete these files from the server?"));
+    $session->pageTextContains("Delete these files from the server?");
     $edit = [];
-    $this->submitForm($edit, $this->t('Confirm'));
+    $this->submitForm($edit, 'Confirm');
     // Check that target file is no longer listed.
-    $session->pageTextContains($this->t("Not in database"));
-    $session->pageTextContains($this->t("Sucessfully deleted html-2.html from the server."));
+    $session->pageTextContains("Not in database");
+    $session->pageTextContains("Sucessfully deleted html-2.html from the server.");
   }
 
   /**
@@ -160,19 +156,19 @@ class AuditFilesNotInDatabaseTest extends BrowserTestBase {
     // Load the report page.
     $this->drupalGet($path);
     // Check for the report title.
-    $session->pageTextContains($this->t("Not in database"));
+    $session->pageTextContains("Not in database");
     // Check box for file to add to database, and submit form.
     $edit = [
       'edit-files-image-1png' => TRUE,
     ];
-    $this->submitForm($edit, $this->t('Add selected items to the database'));
+    $this->submitForm($edit, 'Add selected items to the database');
     // Check for correct confirmation page and submit.
-    $session->pageTextContains($this->t("Add these files to the database?"));
+    $session->pageTextContains("Add these files to the database?");
     $edit = [];
-    $this->submitForm($edit, $this->t('Confirm'));
+    $this->submitForm($edit, 'Confirm');
     // Check that target file is no longer listed.
-    $session->pageTextContains($this->t("Not in database"));
-    $session->pageTextContains($this->t("Sucessfully added image-1.png to the database."));
+    $session->pageTextContains("Not in database");
+    $session->pageTextContains("Sucessfully added image-1.png to the database.");
   }
 
 }
