@@ -7,7 +7,6 @@ use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Tests\TestFileCreationTrait;
-use Drupal\Tests\UiHelperTrait;
 use Drupal\file\Entity\File;
 use Drupal\node\Entity\Node;
 
@@ -16,7 +15,7 @@ use Drupal\node\Entity\Node;
  *
  * @group auditfiles
  */
-class AuditFilesUsedNotReferenced2Test extends BrowserTestBase {
+class AuditFilesUsedNotReferencedTest extends BrowserTestBase {
 
   use TestFileCreationTrait;
   use StringTranslationTrait;
@@ -72,9 +71,8 @@ class AuditFilesUsedNotReferenced2Test extends BrowserTestBase {
 
     foreach ($values as $key => $value) {
       // Create file_usage entry.
-
       \Drupal::database()->insert('file_usage')->fields([
-        'fid' => $key+1,
+        'fid' => $key + 1,
         'module' => $value[0],
         'type' => $value[1],
         'id' => $value[2],
@@ -94,7 +92,7 @@ class AuditFilesUsedNotReferenced2Test extends BrowserTestBase {
         'type'        => 'article',
         'title'       => 'Sample Node',
         'field_image' => [
-          'target_id' => $key+1,
+          'target_id' => $key + 1,
           'alt' => 'Sample',
           'title' => 'Sample File',
         ],
