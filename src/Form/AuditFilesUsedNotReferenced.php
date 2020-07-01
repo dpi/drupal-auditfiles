@@ -18,6 +18,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
  * File used but not referenced functionality.
  */
 class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterface {
+
   use MessengerTrait;
 
   /**
