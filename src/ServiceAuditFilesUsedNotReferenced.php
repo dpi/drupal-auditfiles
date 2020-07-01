@@ -15,6 +15,7 @@ use Drupal\Core\Entity\EntityFieldManager;
  * List all methods used in files used not managed functionality.
  */
 class ServiceAuditFilesUsedNotReferenced {
+
   use MessengerTrait;
 
   /**

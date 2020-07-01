@@ -3,7 +3,6 @@
 namespace Drupal\auditfiles;
 
 use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
@@ -15,8 +14,14 @@ use Drupal\Core\File\FileSystemInterface;
  */
 class ServiceAuditFilesNotOnServer {
 
-  use StringTranslationTrait;
   use MessengerTrait;
+
+  /**
+   * The Translation service.
+   *
+   * @var \Drupal\Core\StringTranslation\TranslationInterface
+   */
+  protected $stringTranslation;
 
   /**
    * The Configuration Factory.
@@ -132,31 +137,31 @@ class ServiceAuditFilesNotOnServer {
   public function auditfilesNotOnServerGetHeader() {
     return [
       'fid' => [
-        'data' => $this->t('File ID'),
+        'data' => $this->stringTranslation->translate('File ID'),
       ],
       'uid' => [
-        'data' => $this->t('User ID'),
+        'data' => $this->stringTranslation->translate('User ID'),
       ],
       'filename' => [
-        'data' => $this->t('Name'),
+        'data' => $this->stringTranslation->translate('Name'),
       ],
       'uri' => [
-        'data' => $this->t('URI'),
+        'data' => $this->stringTranslation->translate('URI'),
       ],
       'path' => [
-        'data' => $this->t('Path'),
+        'data' => $this->stringTranslation->translate('Path'),
       ],
       'filemime' => [
-        'data' => $this->t('MIME'),
+        'data' => $this->stringTranslation->translate('MIME'),
       ],
       'filesize' => [
-        'data' => $this->t('Size'),
+        'data' => $this->stringTranslation->translate('Size'),
       ],
       'datetime' => [
-        'data' => $this->t('When added'),
+        'data' => $this->stringTranslation->translate('When added'),
       ],
       'status' => [
-        'data' => $this->t('Status'),
+        'data' => $this->stringTranslation->translate('Status'),
       ],
     ];
   }
@@ -171,10 +176,10 @@ class ServiceAuditFilesNotOnServer {
    *   The definition of the batch.
    */
   public function auditfilesNotOnServerBatchDeleteCreateBatch(array $fileids) {
-    $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
+    $batch['error_message'] = $this->stringTranslation->translate('One or more errors were encountered processing the files.');
     $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesNotOnServerBatchFinishBatch';
-    $batch['progress_message'] = $this->t('Completed @current of @total operations.');
-    $batch['title'] = $this->t('Deleting files from the database');
+    $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
+    $batch['title'] = $this->stringTranslation->translate('Deleting files from the database');
     $operations = $file_ids = [];
     foreach ($fileids as $file_id) {
       if ($file_id != 0) {
@@ -205,7 +210,7 @@ class ServiceAuditFilesNotOnServer {
     if (empty($num_rows)) {
 
       $this->messenger()->addWarning(
-        $this->t(
+        $this->stringTranslation->translate(
           'There was a problem deleting the record with file ID %fid from the file_managed table. Check the logs for more information.',
           ['%fid' => $file_id]
         )
@@ -213,7 +218,7 @@ class ServiceAuditFilesNotOnServer {
     }
     else {
       $this->messenger()->addStatus(
-        $this->t(
+        $this->stringTranslation->translate(
           'Sucessfully deleted File ID : %fid from the file_managed table.',
           ['%fid' => $file_id]
         )

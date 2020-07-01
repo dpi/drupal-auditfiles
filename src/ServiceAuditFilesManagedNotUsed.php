@@ -14,14 +14,14 @@ use Drupal\Core\File\FileSystemInterface;
  */
 class ServiceAuditFilesManagedNotUsed {
 
+  use MessengerTrait;
+
   /**
    * The Translation service.
    *
    * @var \Drupal\Core\StringTranslation\TranslationInterface
    */
   protected $stringTranslation;
-
-  use MessengerTrait;
 
   /**
    * The Configuration Factory.

@@ -15,8 +15,14 @@ use Drupal\Core\Database\Connection;
  */
 class ServiceAuditFilesUsedNotManaged {
 
-  use StringTranslationTrait;
   use MessengerTrait;
+
+  /**
+   * The Translation service.
+   *
+   * @var \Drupal\Core\StringTranslation\TranslationInterface
+   */
+  protected $stringTranslation;
 
   /**
    * The Configuration Factory.
@@ -81,7 +87,7 @@ class ServiceAuditFilesUsedNotManaged {
     $result = Link::fromTextAndUrl($file->type . '/' . $file->id, $url)->toString();
     return [
       'fid' => $file->fid,
-      'module' => $file->module . ' ' . $this->t('module'),
+      'module' => $file->module . ' ' . $this->stringTranslation->translate('module'),
       'id' => $result,
       'count' => $file->count,
     ];
@@ -93,16 +99,16 @@ class ServiceAuditFilesUsedNotManaged {
   public function auditfilesUsedNotManagedGetHeader() {
     return [
       'fid' => [
-        'data' => $this->t('File ID'),
+        'data' => $this->stringTranslation->translate('File ID'),
       ],
       'module' => [
-        'data' => $this->t('Used by'),
+        'data' => $this->stringTranslation->translate('Used by'),
       ],
       'id' => [
-        'data' => $this->t('Used in'),
+        'data' => $this->stringTranslation->translate('Used in'),
       ],
       'count' => [
-        'data' => $this->t('Count'),
+        'data' => $this->stringTranslation->translate('Count'),
       ],
     ];
   }
@@ -111,10 +117,10 @@ class ServiceAuditFilesUsedNotManaged {
    * Creates the batch for deleting files from the file_usage table.
    */
   public function auditfilesUsedNotManagedBatchDeleteCreateBatch(array $fileids) {
-    $batch['error_message'] = $this->t('One or more errors were encountered processing the files.');
+    $batch['error_message'] = $this->stringTranslation->translate('One or more errors were encountered processing the files.');
     $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesUsedNotManagedBatchFinishBatch';
-    $batch['progress_message'] = $this->t('Completed @current of @total operations.');
-    $batch['title'] = $this->t('Deleting files from the file_usage table');
+    $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
+    $batch['title'] = $this->stringTranslation->translate('Deleting files from the file_usage table');
     $operations = $file_ids = [];
     foreach ($fileids as $file_id) {
       if ($file_id != 0) {
@@ -143,7 +149,7 @@ class ServiceAuditFilesUsedNotManaged {
     $num_rows = $connection->delete('file_usage')->condition('fid', $file_id)->execute();
     if (empty($num_rows)) {
       $this->messenger()->addWarning(
-        $this->t(
+        $this->stringTranslation->translate(
           'There was a problem deleting the record with file ID %fid from the file_usage table. Check the logs for more information.',
           ['%fid' => $file_id]
         )
@@ -151,7 +157,7 @@ class ServiceAuditFilesUsedNotManaged {
     }
     else {
       $this->messenger()->addStatus(
-        $this->t(
+        $this->stringTranslation->translate(
           'Sucessfully deleted File ID : %fid from the file_usages table.',
           ['%fid' => $file_id]
         )
