@@ -41,7 +41,7 @@ class AuditFilesManagedNotUsedTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp(): void {
+  protected function setUp() {
     parent::setUp();
     // Create user with permissions to manage site configuration and access
     // audit files reports.
