@@ -1,8 +1,8 @@
 <?php
 
-namespace Drupal\Tests\auditfiles\Functional;
+namespace Drupal\Tests\auditfiles\FunctionalJavascript;
 
-use Drupal\Tests\BrowserTestBase;
+use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
 use Drupal\file\Entity\File;
@@ -13,7 +13,7 @@ use Drupal\node\Entity\Node;
  *
  * @group auditfiles
  */
-class AuditFilesUsedNotReferencedTest extends BrowserTestBase {
+class AuditFilesUsedNotReferencedTest extends WebDriverTestBase {
 
 
   /**
@@ -109,14 +109,14 @@ class AuditFilesUsedNotReferencedTest extends BrowserTestBase {
     $path = URL::fromRoute('auditfiles.audit_files_usednotreferenced');
     // Establish session.
     $session = $this->assertSession();
-    // Visit page as anonymous user, should receive a 403.
+    // Visit page as anonymous user, should get Access Denied message.
     $this->drupalGet($path);
-    $session->statusCodeEquals(403);
+    $session->pageTextContains('Access denied');
     // Log in as admin user.
     $this->drupalLogin($this->user);
-    // Test that report page returns a 200 response code.
+    // Test that report page returns the report page.
     $this->drupalGet($path);
-    $session->statusCodeEquals(200);
+    $session->pageTextContains('Used not referenced');
   }
 
   /**
