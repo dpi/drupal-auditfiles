@@ -219,13 +219,13 @@ class ServiceAuditFilesReferencedNotUsed {
    */
   public function auditfilesReferencedNotUsedBatchAddCreateBatch(array $referenceids) {
     $batch['error_message'] = $this->stringTranslation->translate('One or more errors were encountered processing the files.');
-    $batch['finished'] = '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchFinishBatch';
+    $batch['finished'] = '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::finishBatch';
     $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
     $batch['title'] = $this->stringTranslation->translate('Adding files to the file_usage table');
     $operations = [];
     foreach ($referenceids as $reference_id) {
       if (!empty($reference_id)) {
-        $operations[] = ['\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchAddProcessBatch', [$reference_id]];
+        $operations[] = ['\Drupal\auditfiles\Batch\AuditFilesReferencedNotUsedBatchProcess::auditfilesReferencedNotUsedBatchAddProcessBatch', [$reference_id]];
       }
     }
     $batch['operations'] = $operations;
@@ -292,13 +292,13 @@ class ServiceAuditFilesReferencedNotUsed {
    */
   public function auditfilesReferencedNotUsedBatchDeleteCreateBatch(array $referenceids) {
     $batch['error_message'] = $this->stringTranslation->translate('One or more errors were encountered processing the files.');
-    $batch['finished'] = '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchFinishBatch';
+    $batch['finished'] = '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::finishBatch';
     $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
     $batch['title'] = $this->stringTranslation->translate('Deleting file references from their content');
     $operations = $reference_ids = [];
     foreach ($referenceids as $reference_id) {
       if ($reference_id != '') {
-        $operations[] = ['\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchDeleteProcessBatch', [$reference_id]];
+        $operations[] = ['\Drupal\auditfiles\Batch\AuditFilesReferencedNotUsedBatchProcess::auditfilesReferencedNotUsedBatchDeleteProcessBatch', [$reference_id]];
       }
     }
     $batch['operations'] = $operations;

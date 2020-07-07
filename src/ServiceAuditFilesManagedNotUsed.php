@@ -163,14 +163,14 @@ class ServiceAuditFilesManagedNotUsed {
    */
   public function auditfilesManagedNotUsedBatchDeleteCreateBatch(array $fileids) {
     $batch['error_message'] = $this->stringTranslation->translate('One or more errors were encountered processing the files.');
-    $batch['finished'] = '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesManagedNotUsedBatchFinishBatch';
+    $batch['finished'] = '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::finishBatch';
     $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
     $batch['title'] = $this->stringTranslation->translate('Deleting files from the file_managed table');
     $operations = [];
     foreach ($fileids as $file_id) {
       if ($file_id != 0) {
         $operations[] = [
-          '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesManagedNotUsedBatchDeleteProcessBatch',
+          '\Drupal\auditfiles\Batch\AuditFilesManagedNotUsedBatchProcess::auditfilesManagedNotUsedBatchDeleteProcessBatch',
           [$file_id],
         ];
       }

@@ -413,13 +413,13 @@ class ServiceAuditFilesNotInDatabase {
   public function auditfilesNotInDatabaseBatchAddCreateBatch(array $fileids) {
     $batch['title'] = $this->stringTranslation->translate('Adding files to Drupal file management');
     $batch['error_message'] = $this->stringTranslation->translate('One or more errors were encountered processing the files.');
-    $batch['finished'] = "\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesNotInDatabaseBatchFinishBatch";
+    $batch['finished'] = "\Drupal\auditfiles\Batch\AuditFilesBatchProcess::finishBatch";
     $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
     $operations = [];
     foreach ($fileids as $file_id) {
       if (!empty($file_id)) {
         $operations[] = [
-          "\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesNotInDatabaseBatchAddProcessBatch",
+          "\Drupal\auditfiles\Batch\AuditFilesNotInDatabaseBatchProcess::auditfilesNotInDatabaseBatchAddProcessBatch",
           [$file_id],
         ];
       }
@@ -497,14 +497,14 @@ class ServiceAuditFilesNotInDatabase {
   public function auditfilesNotInDatabaseBatchDeleteCreateBatch(array $file_names) {
     $batch['title'] = $this->stringTranslation->translate('Adding files to Drupal file management');
     $batch['error_message'] = $this->stringTranslation->translate('One or more errors were encountered processing the files.');
-    $batch['finished'] = '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesNotInDatabaseBatchFinishBatch';
+    $batch['finished'] = '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::finishBatch';
     $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
     $batch['title'] = $this->stringTranslation->translate('Deleting files from the server');
     $operations = [];
     foreach ($file_names as $file_name) {
       if (!empty($file_name)) {
         $operations[] = [
-          '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesNotInDatabaseBatchDeleteProcessBatch',
+          '\Drupal\auditfiles\Batch\AuditFilesNotInDatabaseBatchProcess::auditfilesNotInDatabaseBatchDeleteProcessBatch',
           [$file_name],
         ];
       }
