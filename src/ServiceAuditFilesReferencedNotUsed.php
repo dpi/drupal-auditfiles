@@ -295,7 +295,7 @@ class ServiceAuditFilesReferencedNotUsed {
     $batch['finished'] = '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::finishBatch';
     $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
     $batch['title'] = $this->stringTranslation->translate('Deleting file references from their content');
-    $operations = $reference_ids = [];
+    $operations = [];
     foreach ($referenceids as $reference_id) {
       if ($reference_id != '') {
         $operations[] = ['\Drupal\auditfiles\Batch\AuditFilesReferencedNotUsedBatchProcess::auditfilesReferencedNotUsedBatchDeleteProcessBatch', [$reference_id]];

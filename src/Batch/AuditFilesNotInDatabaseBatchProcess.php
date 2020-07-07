@@ -26,7 +26,7 @@ class AuditFilesNotInDatabaseBatchProcess {
   protected $notInDatabase;
 
   /**
-   *  Class constructor.
+   * Class constructor.
    *
    * @param \Drupal\auditfiles\ServiceAuditFilesNotInDatabase $not_in_database
    *   Injected ServiceAuditFilesUsedNotManaged service.
@@ -55,22 +55,20 @@ class AuditFilesNotInDatabaseBatchProcess {
   /**
    * Adds filenames referenced in content in file_managed but not in file_usage.
    *
-   * @param string $filename
-   *   File entity ID to delete.
    * @param array $context
    *   Batch context.
    */
-  protected function addDispatch(&$context) {
-    $this->notInDatabase->auditfilesNotInDatabaseBatchAddProcessFile($filename);
-    $context['results'][] = Html::escape($filename);
-    $context['message'] = new TranslatableMarkup('Processed %filename.', ['%filename' => $filename]);
+  protected function addDispatch(array &$context) {
+    $this->notInDatabase->auditfilesNotInDatabaseBatchAddProcessFile($this->fileName);
+    $context['results'][] = Html::escape($this->fileName);
+    $context['message'] = new TranslatableMarkup('Processed %filename.', ['%filename' => $this->fileName]);
   }
 
   /**
    * The batch process for deleting the file.
    *
    * @param string $filename
-   *   File name that to be process.
+   *   File name that needs to be processed.
    * @param array $context
    *   Batch context.
    */
@@ -83,15 +81,13 @@ class AuditFilesNotInDatabaseBatchProcess {
   /**
    * Deletes filenames referenced in content frm file_managed not in file_usage.
    *
-   * @param int $reference_id
-   *   File entity ID to delete.
    * @param array $context
    *   Batch context.
    */
-  protected function deleteDispatch(&$context) {
-    $this->notInDatabase->auditfilesNotInDatabaseBatchDeleteProcessFile($filename);
-    $context['results'][] = Html::escape($filename);
-    $context['message'] = new TranslatableMarkup('Processed %filename.', ['%filename' => $filename]);
+  protected function deleteDispatch(array &$context) {
+    $this->notInDatabase->auditfilesNotInDatabaseBatchDeleteProcessFile($this->fileName);
+    $context['results'][] = Html::escape($this->fileName);
+    $context['message'] = new TranslatableMarkup('Processed %filename.', ['%filename' => $this->fileName]);
   }
 
 }

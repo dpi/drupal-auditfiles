@@ -2,7 +2,6 @@
 
 namespace Drupal\auditfiles\Batch;
 
-use Drupal\Component\Utility\Html;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**

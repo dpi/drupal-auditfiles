@@ -26,7 +26,7 @@ class AuditFilesNotOnServerBatchProcess {
   protected $notOnServer;
 
   /**
-   *  Class constructor.
+   * Class constructor.
    *
    * @param \Drupal\auditfiles\ServiceAuditFilesNotOnServer $not_on_server
    *   Injected ServiceAuditFilesNotOnServer service.
@@ -58,15 +58,13 @@ class AuditFilesNotOnServerBatchProcess {
   /**
    * Processes file removal from file_usage that are not referenced in content.
    *
-   * @param int $file_id
-   *   File entity ID to delete.
    * @param array $context
    *   Batch context.
    */
-  protected function dispatch(&$context) {
-    $this->notOnServer->auditfilesNotOnServerBatchDeleteProcessFile($file_id);
-    $context['results'][] = Html::escape($file_id);
-    $context['message'] = new TranslatableMarkup('Processed file ID %file_id.', ['%file_id' => $file_id]);
+  protected function dispatch(array &$context) {
+    $this->notOnServer->auditfilesNotOnServerBatchDeleteProcessFile($this->fileId);
+    $context['results'][] = Html::escape($this->fileId);
+    $context['message'] = new TranslatableMarkup('Processed file ID %file_id.', ['%file_id' => $this->fileId]);
   }
 
 }

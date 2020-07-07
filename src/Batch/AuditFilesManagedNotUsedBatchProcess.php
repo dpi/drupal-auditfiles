@@ -26,7 +26,7 @@ class AuditFilesManagedNotUsedBatchProcess {
   protected $managedNotUsed;
 
   /**
-   *  Class constructor.
+   * Class constructor.
    *
    * @param \Drupal\auditfiles\ServiceAuditFilesManagedNotUsed $managed_not_used
    *   Injected ServiceAuditFilesManagedNotUsed service.
@@ -53,17 +53,15 @@ class AuditFilesManagedNotUsedBatchProcess {
   }
 
   /**
-   * Processes the removal of files from file_managed that are not in file_usage.
+   * Processes removal of files from file_managed that are not in file_usage.
    *
-   * @param int $file_id
-   *   File entity ID to delete.
    * @param array $context
    *   Batch context.
    */
-  protected function dispatch(&$context) {
-    $this->managedNotUsed->auditfilesManagedNotUsedBatchDeleteProcessFile($file_id);
-    $context['results'][] = Html::escape($file_id);
-    $context['message'] = new TranslatableMarkup('Processed file ID %file_id.', ['%file_id' => $file_id]);
+  protected function dispatch(array &$context) {
+    $this->managedNotUsed->auditfilesManagedNotUsedBatchDeleteProcessFile($this->fileId);
+    $context['results'][] = Html::escape($this->fileId);
+    $context['message'] = new TranslatableMarkup('Processed file ID %file_id.', ['%file_id' => $this->fileId]);
   }
 
 }

@@ -26,11 +26,11 @@ class AuditFilesReferencedNotUsedBatchProcess {
   protected $referencedNotUsed;
 
   /**
-   *  Class constructor.
+   * Class constructor.
    *
    * @param \Drupal\auditfiles\ServiceAuditFilesReferencedNotUsed $referenced_not_used
    *   Injected ServiceAuditFilesUsedNotManaged service.
-   * @param int $file_id
+   * @param int $reference_id
    *   File entity ID to delete.
    */
   public function __construct(ServiceAuditFilesReferencedNotUsed $referenced_not_used, $reference_id) {
@@ -55,15 +55,13 @@ class AuditFilesReferencedNotUsedBatchProcess {
   /**
    * Processes entity reference additions from content entities to file_managed.
    *
-   * @param int $reference_id
-   *   File entity ID to add.
    * @param array $context
    *   Batch context.
    */
-  protected function addDispatch(&$context) {
-    $this->referencedNotUsed->auditfilesReferencedNotUsedBatchAddProcessFile($reference_id);
-    $context['results'][] = Html::escape($reference_id);
-    $context['message'] = new TranslatableMarkup('Processed file ID %file_id.', ['%file_id' => $reference_id]);
+  protected function addDispatch(array &$context) {
+    $this->referencedNotUsed->auditfilesReferencedNotUsedBatchAddProcessFile($this->reference_id);
+    $context['results'][] = Html::escape($this->reference_id);
+    $context['message'] = new TranslatableMarkup('Processed file ID %file_id.', ['%file_id' => $this->reference_id]);
   }
 
   /**
@@ -83,15 +81,13 @@ class AuditFilesReferencedNotUsedBatchProcess {
   /**
    * Processes entity reference deletions from content entities to file_managed.
    *
-   * @param int $reference_id
-   *   File entity ID to delete.
    * @param array $context
    *   Batch context.
    */
-  protected function deleteDispatch(&$context) {
-    $this->referencedNotUsed->auditfilesReferencedNotUsedBatchDeleteProcessFile($reference_id);
-    $context['results'][] = Html::escape($reference_id);
-    $context['message'] = new TranslatableMarkup('Processed file ID %file_id.', ['%file_id' => $reference_id]);
+  protected function deleteDispatch(array &$context) {
+    $this->referencedNotUsed->auditfilesReferencedNotUsedBatchDeleteProcessFile($this->reference_id);
+    $context['results'][] = Html::escape($this->reference_id);
+    $context['message'] = new TranslatableMarkup('Processed file ID %file_id.', ['%file_id' => $this->reference_id]);
   }
 
 }
