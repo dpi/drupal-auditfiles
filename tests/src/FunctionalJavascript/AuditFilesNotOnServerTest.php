@@ -1,8 +1,8 @@
 <?php
 
-namespace Drupal\Tests\auditfiles\Functional;
+namespace Drupal\Tests\auditfiles\FunctionalJavascript;
 
-use Drupal\Tests\BrowserTestBase;
+use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
 use Drupal\file\Entity\File;
@@ -12,7 +12,7 @@ use Drupal\file\Entity\File;
  *
  * @group auditfiles
  */
-class AuditFilesNotOnServerTest extends BrowserTestBase {
+class AuditFilesNotOnServerTest extends WebDriverTestBase {
 
   /**
    * {@inheritdoc}
@@ -63,23 +63,20 @@ class AuditFilesNotOnServerTest extends BrowserTestBase {
 
   /**
    * Tests report page returns correct HTTP response code.
-   *
-   * 403 for anonymous users (also for users without permission).
-   * 200 for authenticated user with 'access audit files reports' perm.
    */
   public function testReportPage() {
     // Form to test.
     $path = URL::fromRoute('auditfiles.audit_files_notonserver');
     // Establish session.
     $session = $this->assertSession();
-    // Visit page as anonymous user, should receive a 403.
+    // Visit page as anonymous user, should get Access Denied message.
     $this->drupalGet($path);
-    $session->statusCodeEquals(403);
+    $session->pageTextContains('Access denied');
     // Log in as admin user.
     $this->drupalLogin($this->user);
-    // Test that report page returns a 200 response code.
+    // Test that report page returns the report page.
     $this->drupalGet($path);
-    $session->statusCodeEquals(200);
+    $session->pageTextContains('Not on server');
   }
 
   /**
