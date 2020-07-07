@@ -223,7 +223,6 @@ class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterfa
       $form['actions']['submit'] = [
         '#type' => 'submit',
         '#value' => $this->t('Delete selected items from the file_usage table'),
-        '#submit' => ['::submissionHandlerDeleteFile'],
       ];
       $form['pager'] = ['#type' => 'pager'];
     }
@@ -231,14 +230,9 @@ class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterfa
   }
 
   /**
-   * Submit form.
-   */
-  public function submitForm(array &$form, FormStateInterface $form_state) {}
-
-  /**
    * Submit for confirmation.
    */
-  public function submissionHandlerDeleteFile(array &$form, FormStateInterface $form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     if (!empty($form_state->getValue('files'))) {
       foreach ($form_state->getValue('files') as $file_id) {
         if (!empty($file_id)) {

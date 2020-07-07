@@ -230,7 +230,6 @@ class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface 
       $form['actions']['submit'] = [
         '#type' => 'submit',
         '#value' => $this->t('Delete selected items from the file_managed table'),
-        '#submit' => ['::submissionHandlerDeleteFromFileManaged'],
       ];
       $form['pager'] = ['#type' => 'pager'];
     }
@@ -238,15 +237,9 @@ class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface 
   }
 
   /**
-   * Submit form.
-   */
-  public function submitForm(array &$form, FormStateInterface $form_state) {
-  }
-
-  /**
    * Submit form delete file managed record.
    */
-  public function submissionHandlerDeleteFromFileManaged(array &$form, FormStateInterface $form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     if (!empty($form_state->getValue('files'))) {
       foreach ($form_state->getValue('files') as $file_id) {
         if (!empty($file_id)) {

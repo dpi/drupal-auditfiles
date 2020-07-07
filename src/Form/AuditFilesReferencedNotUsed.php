@@ -165,7 +165,6 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
         '#type' => 'submit',
         '#value' => $this->getConfirmText(),
         '#button_type' => 'primary',
-        '#submit' => ['::confirmSubmissionHandler'],
       ];
       $form['actions']['cancel'] = ConfirmFormHelper::buildCancelLink($this, $this->getRequest());
       if (!isset($form['#theme'])) {
@@ -240,12 +239,6 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
   /**
    * Submit form.
    */
-  public function submitForm(array &$form, FormStateInterface $form_state) {
-  }
-
-  /**
-   * Submit form.
-   */
   public function submissionHandlerAddToFile(array &$form, FormStateInterface $form_state) {
     if (!empty($form_state->getValue('files'))) {
       foreach ($form_state->getValue('files') as $file_id) {
@@ -294,7 +287,7 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
   /**
    * Delete record from files.
    */
-  public function confirmSubmissionHandler(array &$form, FormStateInterface $form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     $storage = &$form_state->getStorage();
     if ($storage['op'] == 'add') {
       batch_set($this->filesReferencedNotUsed->auditfilesReferencedNotUsedBatchAddCreateBatch($form_state->getValue('changelist')));

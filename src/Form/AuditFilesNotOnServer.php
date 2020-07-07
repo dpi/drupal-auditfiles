@@ -172,7 +172,6 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
         '#type' => 'submit',
         '#value' => $this->getConfirmText(),
         '#button_type' => 'primary',
-        '#submit' => ['::confirmSubmissionHandlerDelete'],
       ];
 
       $form['actions']['cancel'] = ConfirmFormHelper::buildCancelLink($this, $this->getRequest());
@@ -182,6 +181,7 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
       }
       return $form;
     }
+
     $file_ids = $this->auditFilesNotOnServer->auditfilesNotOnServerGetFileList();
     if (!empty($file_ids)) {
       $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
@@ -247,13 +247,6 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
   }
 
   /**
-   * Submit form.
-   */
-  public function submitForm(array &$form, FormStateInterface $form_state) {
-
-  }
-
-  /**
    * Delete record to database.
    */
   public function submissionHandlerDeleteFromDb(array &$form, FormStateInterface $form_state) {
@@ -280,7 +273,7 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
   /**
    * Delete record from database confirm.
    */
-  public function confirmSubmissionHandlerDelete(array &$form, FormStateInterface $form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     batch_set($this->auditFilesNotOnServer->auditfilesNotOnServerBatchDeleteCreateBatch($form_state->getValue('changelist')));
   }
 

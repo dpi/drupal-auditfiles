@@ -165,7 +165,6 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
         '#type' => 'submit',
         '#value' => $this->getConfirmText(),
         '#button_type' => 'primary',
-        '#submit' => ['::confirmSubmissionHandler'],
       ];
       $form['actions']['cancel'] = ConfirmFormHelper::buildCancelLink($this, $this->getRequest());
       // By default, render the form using theme_confirm_form().
@@ -244,13 +243,6 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
   }
 
   /**
-   * Submit form.
-   */
-  public function submitForm(array &$form, FormStateInterface $form_state) {
-
-  }
-
-  /**
    * Add record to database.
    */
   public function submissionHandlerAddRecord(array &$form, FormStateInterface $form_state) {
@@ -301,7 +293,7 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
   /**
    * Delete record from files.
    */
-  public function confirmSubmissionHandler(array &$form, FormStateInterface $form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     $storage = &$form_state->getStorage();
     if ($storage['op'] == 'add') {
       batch_set($this->auditFilesNotInDatabase->auditfilesNotInDatabaseBatchAddCreateBatch($form_state->getValue('changelist')));

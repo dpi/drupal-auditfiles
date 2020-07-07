@@ -127,6 +127,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
     $storage = $form_state->getStorage();
     $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
     if (isset($storage['confirm'])) {
+      // Stage is "confirm", build form and form submit handler.
       if ($storage['stage'] == 'confirm') {
         $header = [
           'origname' => [
@@ -211,6 +212,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
         }
         return $form;
       }
+      // State is "preconfirm", build form and form submit handler.
       elseif ($storage['stage'] == 'preconfirm') {
         $header = [
           'filename' => [
@@ -290,6 +292,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
         }
         return $form;
       }
+
     }
     $file_names = $this->mergeFileReferences->auditfilesMergeFileReferencesGetFileList();
     if (!empty($file_names)) {
@@ -347,7 +350,6 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
       $form['actions']['submit'] = [
         '#type' => 'submit',
         '#value' => $this->t('Merge selected items'),
-        '#submit' => ['::submissionHandlerMergeRecord'],
       ];
       $form['pager'] = ['#type' => 'pager'];
     }
@@ -375,15 +377,9 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
   }
 
   /**
-   * Submit form.
+   * Submit form handler for Merge Records.
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-  }
-
-  /**
-   * Submit form.
-   */
-  public function submissionHandlerMergeRecord(array &$form, FormStateInterface $form_state) {
     $this->configFactoryStorage->getEditable('auditfiles.settings')
       ->set('auditfiles_merge_file_references_show_single_file_names', $form_state->getValue('auditfiles_merge_file_references_show_single_file_names'))->save();
     if (!empty($form_state->getValue('files'))) {
