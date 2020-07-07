@@ -63,9 +63,6 @@ class AuditFilesManagedNotUsedTest extends WebDriverTestBase {
 
   /**
    * Tests report page returns correct HTTP response code.
-   *
-   * 403 for anonymous users (also for users without permission).
-   * 200 for authenticated user with 'access audit files reports' perm.
    */
   public function testReportPage() {
     // Form to test.

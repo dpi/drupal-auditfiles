@@ -8,8 +8,6 @@ use Drupal\auditfiles\ServiceAuditFilesManagedNotUsed;
 
 /**
  * Batch Worker to handle Deleting entity records from file_managed table.
- *
- * @todo Refactor to make a Factory Worker class.
  */
 class AuditFilesManagedNotUsedBatchProcess {
 
@@ -43,16 +41,10 @@ class AuditFilesManagedNotUsedBatchProcess {
   /**
    * Batch process to delete file entities from file_managed not in file_usage.
    *
-   * Used by the Batch API to keep track of and pass data from one operation to
-   * the next.
-   *
    * @param int $file_id
    *   File entity ID to delete.
    * @param array $context
    *   Batch context.
-   *
-   * @todo Called only from ServiceAuditFilesManagedNotUsed, refactor to make a
-   * factory worker on that service.
    */
   public static function auditfilesManagedNotUsedBatchDeleteProcessBatch($file_id, array &$context) {
     $managedNotUsed = \Drupal::service('auditfiles.managed_not_used');
