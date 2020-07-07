@@ -219,7 +219,7 @@ class ServiceAuditFilesReferencedNotUsed {
    */
   public function auditfilesReferencedNotUsedBatchAddCreateBatch(array $referenceids) {
     $batch['error_message'] = $this->stringTranslation->translate('One or more errors were encountered processing the files.');
-    $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchFinishBatch';
+    $batch['finished'] = '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchFinishBatch';
     $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
     $batch['title'] = $this->stringTranslation->translate('Adding files to the file_usage table');
     $operations = $reference_ids = [];
@@ -230,7 +230,7 @@ class ServiceAuditFilesReferencedNotUsed {
     }
     foreach ($reference_ids as $reference_id) {
       $operations[] = [
-        '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchAddProcessBatch',
+        '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchAddProcessBatch',
         [$reference_id],
       ];
     }
@@ -298,7 +298,7 @@ class ServiceAuditFilesReferencedNotUsed {
    */
   public function auditfilesReferencedNotUsedBatchDeleteCreateBatch(array $referenceids) {
     $batch['error_message'] = $this->stringTranslation->translate('One or more errors were encountered processing the files.');
-    $batch['finished'] = '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchFinishBatch';
+    $batch['finished'] = '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchFinishBatch';
     $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
     $batch['title'] = $this->stringTranslation->translate('Deleting file references from their content');
     $operations = $reference_ids = [];
@@ -310,7 +310,7 @@ class ServiceAuditFilesReferencedNotUsed {
     // Fill in the $operations variable.
     foreach ($reference_ids as $reference_id) {
       $operations[] = [
-        '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchDeleteProcessBatch',
+        '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchDeleteProcessBatch',
         [$reference_id],
       ];
     }

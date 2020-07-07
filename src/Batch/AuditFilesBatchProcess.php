@@ -1,9 +1,8 @@
 <?php
 
-namespace Drupal\auditfiles;
+namespace Drupal\auditfiles\Batch;
 
 use Drupal\Component\Utility\Html;
-use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**
@@ -11,15 +10,14 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
  */
 class AuditFilesBatchProcess {
 
-  use MessengerTrait;
-
   /**
    * Called when the batch is completed in 'not in database' functionality.
    */
   public static function auditfilesNotInDatabaseBatchFinishBatch($success, $results, $operations) {
+    $messenger = \Drupal::service('messenger');
     if (!$success) {
       $error_operation = reset($operations);
-      $this->messenger()->addError(
+      $messenger->addError(
         new TranslatableMarkup ('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
@@ -64,9 +62,10 @@ class AuditFilesBatchProcess {
    * Called when the batch is complete in 'Not on server'.
    */
   public static function auditfilesNotOnServerBatchFinishBatch($success, $results, $operations) {
+    $messenger = \Drupal::service('messenger');
     if (!$success) {
       $error_operation = reset($operations);
-      $this->messenger()->addError(
+      $messenger->addError(
         new TranslatableMarkup ('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
@@ -105,9 +104,10 @@ class AuditFilesBatchProcess {
    * The function that is called when the batch is complete.
    */
   public static function auditfilesManagedNotUsedBatchFinishBatch($success, $results, $operations) {
+    $messenger = \Drupal::service('messenger');
     if (!$success) {
       $error_operation = reset($operations);
-      $this->messenger()->addError(
+      $$messenger->addError(
         new TranslatableMarkup ('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
@@ -131,10 +131,10 @@ class AuditFilesBatchProcess {
    * Called when the batch is complete : functionality 'used not managed'.
    */
   public static function auditfilesUsedNotManagedBatchFinishBatch($success, $results, $operations) {
+    $messenger = \Drupal::service('messenger');
     if (!$success) {
       $error_operation = reset($operations);
-
-      $this->messenger()->addError(
+      $messenger->addError(
         new TranslatableMarkup ('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
@@ -158,9 +158,10 @@ class AuditFilesBatchProcess {
    * The function that is called when the batch is complete.
    */
   public static function auditfilesUsedNotReferencedBatchFinishBatch($success, $results, $operations) {
+    $messenger = \Drupal::service('messenger');
     if (!$success) {
       $error_operation = reset($operations);
-      $this->messenger()->addError(
+      $messenger->addError(
         new TranslatableMarkup ('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
@@ -175,9 +176,10 @@ class AuditFilesBatchProcess {
    * The function that is called when the batch is complete.
    */
   public static function auditfilesReferencedNotUsedBatchFinishBatch($success, $results, $operations) {
+    $messenger = \Drupal::service('messenger');
     if (!$success) {
       $error_operation = reset($operations);
-      $this->messenger()->addError(
+      $messenger->addError(
         new TranslatableMarkup ('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
@@ -210,9 +212,10 @@ class AuditFilesBatchProcess {
    * The function that is called when the batch is complete.
    */
   public static function auditfilesMergeFileReferencesBatchFinishBatch($success, $results, $operations) {
+    $messenger = \Drupal::service('messenger');
     if (!$success) {
       $error_operation = reset($operations);
-      $this->messenger()->addError(
+      $messenger->addError(
         new TranslatableMarkup ('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
