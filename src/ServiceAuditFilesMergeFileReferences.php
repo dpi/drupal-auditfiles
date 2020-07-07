@@ -3,7 +3,6 @@
 namespace Drupal\auditfiles;
 
 use Drupal\Core\Entity\EntityStorageInterface;
-use Drupal\file\Entity\File;
 use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Messenger\MessengerTrait;
@@ -11,6 +10,7 @@ use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Datetime\DateFormatter;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
  * Define all methods that used in merge file references functionality.
@@ -55,14 +55,22 @@ class ServiceAuditFilesMergeFileReferences {
   protected $fileSystem;
 
   /**
+   * Entity Type Manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * Define constructor for string translation.
    */
-  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, DateFormatter $date_formatter, FileSystemInterface $file_system) {
+  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, DateFormatter $date_formatter, FileSystemInterface $file_system EntityTypeManagerInterface $entity_type_manager) {
     $this->stringTranslation = $translation;
     $this->configFactory = $config_factory;
     $this->connection = $connection;
     $this->dateFormatter = $date_formatter;
     $this->fileSystem = $file_system;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -230,11 +238,6 @@ class ServiceAuditFilesMergeFileReferences {
       return;
     }
     $file_being_kept_data = reset($file_being_kept_results);
-    $file_being_kept_name_results = $connection->select('file_managed', 'fm')
-      ->fields('fm', ['filename'])
-      ->condition('fid', $file_being_kept)
-      ->execute()
-      ->fetchAll();
     $file_being_merged_results = $connection->select('file_usage', 'fu')
       ->fields('fu', ['module', 'type', 'id', 'count'])
       ->condition('fid', $file_being_merged)
@@ -301,21 +304,21 @@ class ServiceAuditFilesMergeFileReferences {
    *   The file ID of the file to merge.
    */
   public function auditfilesMergeFileReferencesUpdateFileFields($file_being_kept, $file_being_merged) {
-    $file_being_merged_fields = file_get_file_references(File::load($file_being_merged), NULL, EntityStorageInterface::FIELD_LOAD_REVISION, NULL);
+    $file_being_merged_fields = file_get_file_references($this->entityTypeManager->getStorage('file')->load($file_being_merged), NULL, EntityStorageInterface::FIELD_LOAD_REVISION, NULL);
     if (empty($file_being_merged_fields)) {
       return;
     }
     foreach ($file_being_merged_fields as $field_name => $field_references) {
       foreach ($field_references as $entity_type => $type_references) {
         foreach ($type_references as $id => $reference) {
-          $entity = \Drupal::entityTypeManager()->getStorage($entity_type)->load($id);
+          $entity = $this->entityTypeManager->getStorage($entity_type)->load($id);
           if ($entity) {
             $field_items = $entity->get($field_name)->getValue();
             $alt = $field_items[0]['alt'];
             $title = $field_items[0]['title'] ? $field_items[0]['title'] : '';
             foreach ($field_items as $item) {
               if ($item['target_id'] == $file_being_merged) {
-                $file_object_being_kept = File::load($file_being_kept);
+                $file_object_being_kept = $this->entityTypeManager->getStorage('file')->load($file_being_kept);
                 if (!empty($file_object_being_kept) && $entity->get($field_name)->getValue() != $file_being_kept) {
                   $entity->$field_name = [
                     'target_id' => $file_object_being_kept->id(),

@@ -25,4 +25,4 @@ services:
 
   auditfiles.merge_file_references:
     class: Drupal\auditfiles\ServiceAuditFilesMergeFileReferences
-    arguments: ['@string_translation', '@config.factory', '@database', '@date.formatter', '@file_system']
+    arguments: ['@string_translation', '@config.factory', '@database', '@date.formatter', '@file_system', '@entity_type.manager']
