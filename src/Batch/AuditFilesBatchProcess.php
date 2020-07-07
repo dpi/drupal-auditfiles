@@ -45,7 +45,7 @@ class AuditFilesBatchProcess {
    */
   public static function auditfilesNotInDatabaseBatchAddProcessBatch($filename, array &$context) {
     \Drupal::service('auditfiles.not_in_database')->auditfilesNotInDatabaseBatchAddProcessFile($filename);
-    $context['results'][] = $filename;
+    $context['results'][] = Html::escape($filename);
     $context['message'] = new TranslatableMarkup('Processed %filename.', ['%filename' => $filename]);
   }
 
@@ -99,7 +99,7 @@ class AuditFilesBatchProcess {
    */
   public static function auditfilesNotOnServerBatchDeleteProcessBatch($file_id, array &$context) {
     \Drupal::service('auditfiles.not_on_server')->auditfilesNotOnServerBatchDeleteProcessFile($file_id);
-    $context['results'][] = $file_id;
+    $context['results'][] = Html::escape($file_id);
     $context['message'] = new TranslatableMarkup('Processed file ID %file_id.', ['%file_id' => $file_id]);
   }
 
@@ -114,7 +114,7 @@ class AuditFilesBatchProcess {
    */
   public static function auditfilesManagedNotUsedBatchDeleteProcessBatch($file_id, array &$context) {
     \Drupal::service('auditfiles.managed_not_used')->auditfilesManagedNotUsedBatchDeleteProcessFile($file_id);
-    $context['results'][] = $file_id;
+    $context['results'][] = Html::escape($file_id);
     $context['message'] = new TranslatableMarkup('Processed file ID %file_id.', ['%file_id' => $file_id]);
   }
 
