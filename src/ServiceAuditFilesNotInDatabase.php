@@ -302,13 +302,17 @@ class ServiceAuditFilesNotInDatabase {
     $files = trim($config->get('auditfiles_exclude_files') ? $config->get('auditfiles_exclude_files') : '.htaccess');
     if ($files) {
       $exclude_files = explode(';', $files);
-      array_walk($exclude_files, 'self::auditfilesMakePreg', FALSE);
+      foreach ($exclude_files as $key => $value) {
+        $exclude_files[$key] = $this->auditFilesEscapePreg($value, FALSE);
+      }
       $exclusions_array = array_merge($exclusions_array, $exclude_files);
     }
     $paths = trim($config->get('auditfiles_exclude_paths') ? $config->get('auditfiles_exclude_paths') : 'color;css;ctools;js');
     if ($paths) {
       $exclude_paths = explode(';', $paths);
-      array_walk($exclude_paths, 'self::auditfilesMakePreg', TRUE);
+      foreach ($exclude_paths as $key => $value) {
+        $exclude_paths[$key] = $this->auditFilesEscapePreg($value, FALSE);
+      }
       $exclusions_array = array_merge($exclusions_array, $exclude_paths);
     }
     // Exclude other file streams that may be deinfed and in use.
@@ -323,14 +327,18 @@ class ServiceAuditFilesNotInDatabase {
         }
       }
     }
-    array_walk($exclude_streams, 'self::auditfilesMakePreg', FALSE);
+    foreach ($exclude_streams as $key => $value) {
+      $exclude_streams[$key] = $this->auditFilesEscapePreg($value, FALSE);
+    }
     $exclusions_array = array_merge($exclusions_array, $exclude_streams);
     // Create the list of requested extension exclusions. (This is a little more
     // complicated.)
     $extensions = trim($config->get('auditfiles_exclude_extensions') ? $config->get('auditfiles_exclude_extensions') : '');
     if ($extensions) {
       $exclude_extensions = explode(';', $extensions);
-      array_walk($exclude_extensions, 'self::auditfilesMakePreg', FALSE);
+      foreach ($exclude_extensions as $key => $value) {
+        $exclude_extensions[$key] = $this->auditFilesEscapePreg($value, FALSE);
+      }
       $extensions = implode('|', $exclude_extensions);
       $extensions = '(' . $extensions . ')$';
       $exclusions_array[] = $extensions;
@@ -533,20 +541,14 @@ class ServiceAuditFilesNotInDatabase {
    *
    * @param string $element
    *   The string to escape.
-   * @param mixed $key
-   *   The key or index for the array item passed into $element.
    * @param bool $makefilepath
    *   Set to TRUE to change elements to file paths at the same time.
    */
-  public static function auditfilesMakePreg(&$element, $key = '', $makefilepath = FALSE) {
-    if ($makefilepath) {
-      $realpath = \Drupal::service('file_system')
-        ->realpath(file_build_uri($element));
-      if ($realpath) {
-        $element = $realpath;
-      }
+  public function auditfilesEscapePreg($element, $makefilepath = FALSE) {
+    if ($makefilepath && $this->fileSystem->realpath(file_build_uri($element))) {
+      $element = $this->fileSystem->realpath(file_build_uri($element));
     }
-    $element = preg_quote($element);
+    return preg_quote($element);
   }
 
 }
