@@ -5,7 +5,6 @@ namespace Drupal\auditfiles;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
