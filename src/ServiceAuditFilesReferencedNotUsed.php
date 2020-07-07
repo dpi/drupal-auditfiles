@@ -222,17 +222,11 @@ class ServiceAuditFilesReferencedNotUsed {
     $batch['finished'] = '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchFinishBatch';
     $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
     $batch['title'] = $this->stringTranslation->translate('Adding files to the file_usage table');
-    $operations = $reference_ids = [];
+    $operations = [];
     foreach ($referenceids as $reference_id) {
       if (!empty($reference_id)) {
-        $reference_ids[] = $reference_id;
+        $operations[] = ['\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchAddProcessBatch', [$reference_id]];
       }
-    }
-    foreach ($reference_ids as $reference_id) {
-      $operations[] = [
-        '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchAddProcessBatch',
-        [$reference_id],
-      ];
     }
     $batch['operations'] = $operations;
     return $batch;
@@ -304,15 +298,8 @@ class ServiceAuditFilesReferencedNotUsed {
     $operations = $reference_ids = [];
     foreach ($referenceids as $reference_id) {
       if ($reference_id != '') {
-        $reference_ids[] = $reference_id;
+        $operations[] = ['\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchDeleteProcessBatch', [$reference_id]];
       }
-    }
-    // Fill in the $operations variable.
-    foreach ($reference_ids as $reference_id) {
-      $operations[] = [
-        '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesReferencedNotUsedBatchDeleteProcessBatch',
-        [$reference_id],
-      ];
     }
     $batch['operations'] = $operations;
     return $batch;

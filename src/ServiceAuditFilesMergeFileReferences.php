@@ -197,19 +197,8 @@ class ServiceAuditFilesMergeFileReferences {
     $batch['title'] = $this->stringTranslation->translate('Merging files');
     $operations = $file_ids = [];
     foreach ($files_being_merged as $file_id => $file_info) {
-      if ($file_id != 0) {
-        $file_ids[] = $file_id;
-      }
-    }
-    foreach ($file_ids as $file_id) {
-      if ($file_id != $file_being_kept) {
-        $operations[] = [
-          '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesMergeFileReferencesBatchMergeProcessBatch',
-          [
-            $file_being_kept,
-            $file_id,
-          ],
-        ];
+      if ($file_id != 0 && $file_id != $file_being_kept) {
+        $operations[] = ['\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesMergeFileReferencesBatchMergeProcessBatch', [$file_being_kept, $file_id]];
       }
     }
     $batch['operations'] = $operations;

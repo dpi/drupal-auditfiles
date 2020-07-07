@@ -180,17 +180,14 @@ class ServiceAuditFilesNotOnServer {
     $batch['finished'] = '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesNotOnServerBatchFinishBatch';
     $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
     $batch['title'] = $this->stringTranslation->translate('Deleting files from the database');
-    $operations = $file_ids = [];
+    $operations = [];
     foreach ($fileids as $file_id) {
       if ($file_id != 0) {
-        $file_ids[] = $file_id;
+        $operations[] = [
+          '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesNotOnServerBatchDeleteProcessBatch',
+          [$file_id],
+        ];
       }
-    }
-    foreach ($file_ids as $file_id) {
-      $operations[] = [
-        '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesNotOnServerBatchDeleteProcessBatch',
-        [$file_id],
-      ];
     }
     $batch['operations'] = $operations;
     return $batch;

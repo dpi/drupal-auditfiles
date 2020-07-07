@@ -120,18 +120,11 @@ class ServiceAuditFilesUsedNotManaged {
     $batch['finished'] = '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesUsedNotManagedBatchFinishBatch';
     $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
     $batch['title'] = $this->stringTranslation->translate('Deleting files from the file_usage table');
-    $operations = $file_ids = [];
+    $operations = [];
     foreach ($fileids as $file_id) {
       if ($file_id != 0) {
-        $file_ids[] = $file_id;
+        $operations[] = ['\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesUsedNotManagedBatchDeleteProcessBatch', [$file_id]];
       }
-    }
-    // Fill in the $operations variable.
-    foreach ($file_ids as $file_id) {
-      $operations[] = [
-        '\Drupal\auditfiles\Batch\AuditFilesBatchProcess::auditfilesUsedNotManagedBatchDeleteProcessBatch',
-        [$file_id],
-      ];
     }
     $batch['operations'] = $operations;
     return $batch;
