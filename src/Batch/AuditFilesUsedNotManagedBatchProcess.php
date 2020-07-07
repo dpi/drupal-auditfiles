@@ -8,8 +8,6 @@ use Drupal\auditfiles\ServiceAuditFilesUsedNotManaged;
 
 /**
  * Batch Worker to remove files from file_usage not in file_managed table.
- *
- * @todo Refactor to make a Factory Worker class.
  */
 class AuditFilesUsedNotManagedBatchProcess {
 
