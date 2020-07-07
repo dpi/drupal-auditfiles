@@ -13,13 +13,10 @@ class AuditFilesBatchProcess {
   use MessengerTrait;
 
   /**
-   * Called when the batch is completed in 'not in database fumctionality'.
+   * Called when the batch is completed in 'not in database' functionality.
    */
   public static function auditfilesNotInDatabaseBatchFinishBatch($success, $results, $operations) {
-    if ($success) {
-      // Success action.
-    }
-    else {
+    if (!$success) {
       $error_operation = reset($operations);
       $this->messenger()->addError(
         t('An error occurred while processing @operation with arguments : @args',
@@ -60,27 +57,6 @@ class AuditFilesBatchProcess {
     \Drupal::service('auditfiles.not_in_database')->auditfilesNotInDatabaseBatchDeleteProcessFile($filename);
     $context['results'][] = Html::escape($filename);
     $context['message'] = t('Processed %filename.', ['%filename' => $filename]);
-  }
-
-  /**
-   * Escapes any possible regular expression characters in the specified string.
-   *
-   * @param string $element
-   *   The string to escape.
-   * @param mixed $key
-   *   The key or index for the array item passed into $element.
-   * @param bool $makefilepath
-   *   Set to TRUE to change elements to file paths at the same time.
-   */
-  public static function auditfilesMakePreg(&$element, $key = '', $makefilepath = FALSE) {
-    if ($makefilepath) {
-      $realpath = \Drupal::service('file_system')
-        ->realpath(file_build_uri($element));
-      if ($realpath) {
-        $element = $realpath;
-      }
-    }
-    $element = preg_quote($element);
   }
 
   /**

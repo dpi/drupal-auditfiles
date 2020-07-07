@@ -140,9 +140,8 @@ class ServiceAuditFilesNotInDatabase {
         else {
           $file_to_check = $report_file['path_from_files_root'] . DIRECTORY_SEPARATOR . $report_file['file_name'];
         }
-        $file_in_database = $this->auditfilesNotInDatabaseIsFileInDatabase($file_to_check);
         // If the file is not in the database, add to the list for displaying.
-        if (!$file_in_database) {
+        if (!$this->auditfilesNotInDatabaseIsFileInDatabase($file_to_check)) {
           // Gets the file's information (size, date, etc.) and assempbles the.
           // array for the table.
           $reported_files += $this->auditfilesNotInDatabaseFormatRowData($report_file, $real_files_path, $date_format);
@@ -203,10 +202,11 @@ class ServiceAuditFilesNotInDatabase {
   public function auditfilesNotInDatabaseIsFileInDatabase($filepathname) {
     $file_uri = file_build_uri($filepathname);
     $connection = $this->connection;
-    $query = $connection->select('file_managed', 'fm');
-    $query->condition('fm.uri', $file_uri);
-    $query->fields('fm', ['fid']);
-    $fid = $query->execute()->fetchField();
+    $fid = $connection->select('file_managed', 'fm')
+      ->condition('fm.uri', $file_uri)
+      ->fields('fm', ['fid'])
+      ->execute()
+      ->fetchField();
     return empty($fid) ? FALSE : TRUE;
   }
 
@@ -214,13 +214,11 @@ class ServiceAuditFilesNotInDatabase {
    * Add files to record to display in reports.
    */
   public function auditfilesNotInDatabaseFormatRowData($file, $real_path, $date_format) {
-    $filename = $file['file_name'];
-    $filepath = $file['path_from_files_root'];
-    if (empty($filepath)) {
-      $filepathname = $filename;
+    if (empty($file['path_from_files_root'])) {
+      $filepathname = $file['file_name'];
     }
     else {
-      $filepathname = $filepath . DIRECTORY_SEPARATOR . $filename;
+      $filepathname = $file['path_from_files_root'] . DIRECTORY_SEPARATOR . $file['file_name'];
     }
     $real_filepathname = $real_path . DIRECTORY_SEPARATOR . $filepathname;
     $filemime = $this->fileMimeTypeGuesser->guess($real_filepathname);
@@ -234,7 +232,7 @@ class ServiceAuditFilesNotInDatabase {
       'filemime' => empty($filemime) ? '' : $filemime,
       'filesize' => !isset($filesize) ? '' : $filesize,
       'filemodtime' => empty($filemodtime) ? '' : $filemodtime,
-      'filename' => empty($filename) ? '' : $filename,
+      'filename' => empty($file['file_name']) ? '' : $file['file_name'],
     ];
     return $row_data;
   }
@@ -255,29 +253,17 @@ class ServiceAuditFilesNotInDatabase {
     $exclusions = $this->auditfilesGetExclusions();
     // The variable to store the data being returned.
     $file_list = [];
-    if (empty($path)) {
-      $scan_path = $real_files_path;
-    }
-    else {
-      $scan_path = $real_files_path . DIRECTORY_SEPARATOR . $path;
-    }
+    $scan_path = empty($path) ? $real_files_path : $real_files_path . DIRECTORY_SEPARATOR . $path;
     // Get the files in the specified directory.
-    $files = scandir($scan_path);
+    $files = array_diff(scandir($scan_path), ['..', '.']);
     foreach ($files as $file) {
-      if ($file != '.' && $file != '..') {
-        // Check to see if this file should be included.
-        $include_file = $this->auditfilesNotInDatabaseIncludeFile(
-          $real_files_path . DIRECTORY_SEPARATOR . $path,
-            $file,
-            $exclusions
-          );
-        if ($include_file) {
-          // The file is to be included, so add it to the data array.
-          $file_list[] = [
-            'file_name' => $file,
-            'path_from_files_root' => $path,
-          ];
-        }
+      // Check to see if this file should be included.
+      if ($this->auditfilesNotInDatabaseIncludeFile($real_files_path . DIRECTORY_SEPARATOR . $path, $file, $exclusions)) {
+        // The file is to be included, so add it to the data array.
+        $file_list[] = [
+          'file_name' => $file,
+          'path_from_files_root' => $path,
+        ];
       }
     }
     return $file_list;
@@ -316,13 +302,13 @@ class ServiceAuditFilesNotInDatabase {
     $files = trim($config->get('auditfiles_exclude_files') ? $config->get('auditfiles_exclude_files') : '.htaccess');
     if ($files) {
       $exclude_files = explode(';', $files);
-      array_walk($exclude_files, '\\Drupal\\auditfiles\\AuditFilesBatchProcess::auditfilesMakePreg', FALSE);
+      array_walk($exclude_files, 'self::auditfilesMakePreg', FALSE);
       $exclusions_array = array_merge($exclusions_array, $exclude_files);
     }
     $paths = trim($config->get('auditfiles_exclude_paths') ? $config->get('auditfiles_exclude_paths') : 'color;css;ctools;js');
     if ($paths) {
       $exclude_paths = explode(';', $paths);
-      array_walk($exclude_paths, '\\Drupal\\auditfiles\\AuditFilesBatchProcess::auditfilesMakePreg', TRUE);
+      array_walk($exclude_paths, 'self::auditfilesMakePreg', TRUE);
       $exclusions_array = array_merge($exclusions_array, $exclude_paths);
     }
     // Exclude other file streams that may be deinfed and in use.
@@ -337,14 +323,14 @@ class ServiceAuditFilesNotInDatabase {
         }
       }
     }
-    array_walk($exclude_streams, '\\Drupal\\auditfiles\\AuditFilesBatchProcess::auditfilesMakePreg', FALSE);
+    array_walk($exclude_streams, 'self::auditfilesMakePreg', FALSE);
     $exclusions_array = array_merge($exclusions_array, $exclude_streams);
     // Create the list of requested extension exclusions. (This is a little more
     // complicated.)
     $extensions = trim($config->get('auditfiles_exclude_extensions') ? $config->get('auditfiles_exclude_extensions') : '');
     if ($extensions) {
       $exclude_extensions = explode(';', $extensions);
-      array_walk($exclude_extensions, '\\Drupal\\auditfiles\\AuditFilesBatchProcess::auditfilesMakePreg', FALSE);
+      array_walk($exclude_extensions, 'self::auditfilesMakePreg', FALSE);
       $extensions = implode('|', $exclude_extensions);
       $extensions = '(' . $extensions . ')$';
       $exclusions_array[] = $extensions;
@@ -422,17 +408,13 @@ class ServiceAuditFilesNotInDatabase {
     $batch['finished'] = "\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesNotInDatabaseBatchFinishBatch";
     $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
     $operations = [];
-    $file_ids = [];
     foreach ($fileids as $file_id) {
       if (!empty($file_id)) {
-        $file_ids[] = $file_id;
+        $operations[] = [
+          "\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesNotInDatabaseBatchAddProcessBatch",
+          [$file_id],
+        ];
       }
-    }
-    foreach ($file_ids as $file_id) {
-      $operations[] = [
-        "\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesNotInDatabaseBatchAddProcessBatch",
-        [$file_id],
-      ];
     }
     $batch['operations'] = $operations;
     return $batch;
@@ -511,17 +493,13 @@ class ServiceAuditFilesNotInDatabase {
     $batch['progress_message'] = $this->stringTranslation->translate('Completed @current of @total operations.');
     $batch['title'] = $this->stringTranslation->translate('Deleting files from the server');
     $operations = [];
-    $filenames = [];
     foreach ($file_names as $file_name) {
       if (!empty($file_name)) {
-        $filenames[] = $file_name;
+        $operations[] = [
+          '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesNotInDatabaseBatchDeleteProcessBatch',
+          [$file_name],
+        ];
       }
-    }
-    foreach ($filenames as $filename) {
-      $operations[] = [
-        '\Drupal\auditfiles\AuditFilesBatchProcess::auditfilesNotInDatabaseBatchDeleteProcessBatch',
-        [$filename],
-      ];
     }
     $batch['operations'] = $operations;
     return $batch;
@@ -548,6 +526,27 @@ class ServiceAuditFilesNotInDatabase {
         $this->stringTranslation->translate('Failed to delete %file from the server.', ['%file' => $filename])
       );
     }
+  }
+
+  /**
+   * Escapes any possible regular expression characters in the specified string.
+   *
+   * @param string $element
+   *   The string to escape.
+   * @param mixed $key
+   *   The key or index for the array item passed into $element.
+   * @param bool $makefilepath
+   *   Set to TRUE to change elements to file paths at the same time.
+   */
+  public static function auditfilesMakePreg(&$element, $key = '', $makefilepath = FALSE) {
+    if ($makefilepath) {
+      $realpath = \Drupal::service('file_system')
+        ->realpath(file_build_uri($element));
+      if ($realpath) {
+        $element = $realpath;
+      }
+    }
+    $element = preg_quote($element);
   }
 
 }
