@@ -59,7 +59,7 @@ class AuditFilesUsedNotReferencedBatchProcess {
    *   Batch context.
    */
   protected function dispatch(array &$context) {
-    $this->usedNotReferenced->->auditfilesUsedNotReferencedBatchDeleteProcessFile($this->fileId);
+    $this->usedNotReferenced->auditfilesUsedNotReferencedBatchDeleteProcessFile($this->fileId);
     $context['results'][] = Html::escape($this->fileId);
     $context['message'] = new TranslatableMarkup('Processed file ID %file_id.', ['%file_id' => $this->fileId]);
   }

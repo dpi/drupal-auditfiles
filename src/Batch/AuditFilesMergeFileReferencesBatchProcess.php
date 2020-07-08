@@ -76,7 +76,7 @@ class AuditFilesMergeFileReferencesBatchProcess {
   protected function dispatch(array &$context) {
     $this->mergeFileReferences->auditfilesMergeFileReferencesBatchMergeProcessFile($this->fileId, $this->fileIds);
     $context['results'][] = Html::escape($this->fileId);
-    $context['results'][] = Html::escape($this->filesIds)
+    $context['results'][] = Html::escape($this->filesIds);
     $context['message'] = new TranslatableMarkup(
       'Merged file ID %file_being_merged into file ID %file_being_kept.',
       [

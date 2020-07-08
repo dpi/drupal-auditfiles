@@ -64,7 +64,7 @@ class ServiceAuditFilesMergeFileReferences {
   /**
    * Define constructor for string translation.
    */
-  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, DateFormatter $date_formatter, FileSystemInterface $file_system EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, DateFormatter $date_formatter, FileSystemInterface $file_system, EntityTypeManagerInterface $entity_type_manager) {
     $this->stringTranslation = $translation;
     $this->configFactory = $config_factory;
     $this->connection = $connection;
