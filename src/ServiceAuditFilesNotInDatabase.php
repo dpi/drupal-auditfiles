@@ -551,8 +551,9 @@ class ServiceAuditFilesNotInDatabase {
       $configStream = $this->configFactory->get('auditfiles.settings')->get('auditfiles_file_system_path');
       $file_system_stream = $configStream ? $configStream : "public";
       $realpath = $this->fileSystem->realpath("$file_system_stream://$element") ? $this->fileSystem->realpath("$file_system_stream://$element") : $this->fileSystem->realpath(file_build_uri($element));
+      return preg_quote($realpath);
     }
-    return preg_quote($realpath);
+    return preg_quote($element);
   }
 
 }
