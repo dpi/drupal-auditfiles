@@ -122,9 +122,10 @@ class ServiceAuditFilesNotInDatabase {
    */
   public function auditfilesNotInDatabaseGetReportsFiles() {
     $config = $this->configFactory->get('auditfiles.settings');
+    $exclusions = $this->auditFilesGetExclusions();
     $report_files = [];
     $reported_files = [];
-    $this->auditfilesNotInDatabaseGetFilesForReport('', $report_files);
+    $this->auditfilesNotInDatabaseGetFilesForReport('', $report_files, $exclusions);
     if (!empty($report_files)) {
       // Get the static paths necessary for processing the files.
       $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
@@ -154,13 +155,13 @@ class ServiceAuditFilesNotInDatabase {
   /**
    * Get files for report.
    */
-  public function auditfilesNotInDatabaseGetFilesForReport($path, array &$report_files) {
+  public function auditfilesNotInDatabaseGetFilesForReport($path, array &$report_files, $exclusions) {
     $config = $this->configFactory->get('auditfiles.settings');
     $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
     $real_files_path = $real_files_path = $this->fileSystem->realpath($file_system_stream . '://');
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
     if ($maximum_records > 0 && count($report_files) < $maximum_records) {
-      $new_files = $this->auditfilesNotInDatabaseGetFiles($path);
+      $new_files = $this->auditfilesNotInDatabaseGetFiles($path, $exclusions);
       if (!empty($new_files)) {
         foreach ($new_files as $file) {
           // Check if the current item is a directory or a file.
@@ -178,7 +179,7 @@ class ServiceAuditFilesNotInDatabase {
             else {
               $file_path = $path . DIRECTORY_SEPARATOR . $file['file_name'];
             }
-            $this->auditfilesNotInDatabaseGetFilesForReport($file_path, $report_files);
+            $this->auditfilesNotInDatabaseGetFilesForReport($file_path, $report_files, $exclusions);
           }
           else {
             // The item is a file, so add it to the list.
@@ -242,15 +243,16 @@ class ServiceAuditFilesNotInDatabase {
    *
    * @param string $path
    *   The path to search for files in.
+   * @param string $exclusions
+   *   The imploded list of exclusions from configuration.
    *
    * @return array
    *   The list of files and diretories found in the given path.
    */
-  public function auditfilesNotInDatabaseGetFiles($path) {
+  public function auditfilesNotInDatabaseGetFiles($path, $exclusions) {
     $config = $this->configFactory->get('auditfiles.settings');
     $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
     $real_files_path = $real_files_path = $this->fileSystem->realpath($file_system_stream . '://');
-    $exclusions = $this->auditfilesGetExclusions();
     // The variable to store the data being returned.
     $file_list = [];
     $scan_path = empty($path) ? $real_files_path : $real_files_path . DIRECTORY_SEPARATOR . $path;
@@ -294,7 +296,7 @@ class ServiceAuditFilesNotInDatabase {
    * with a preg_* function.
    *
    * @return string
-   *   The excluions.
+   *   The exclusions.
    */
   public function auditfilesGetExclusions() {
     $config = $this->configFactory->get('auditfiles.settings');
@@ -546,9 +548,11 @@ class ServiceAuditFilesNotInDatabase {
    */
   public function auditfilesEscapePreg($element, $makefilepath = FALSE) {
     if ($makefilepath && $this->fileSystem->realpath(file_build_uri($element))) {
-      $element = $this->fileSystem->realpath(file_build_uri($element));
+      $configStream = $this->configFactory->get('auditfiles.settings')->get('auditfiles_file_system_path');
+      $file_system_stream = $configStream ? $configStream : "public";
+      $realpath = $this->fileSystem->realpath("$file_system_stream://$element") ? $this->fileSystem->realpath("$file_system_stream://$element") : $this->fileSystem->realpath(file_build_uri($element));
     }
-    return preg_quote($element);
+    return preg_quote($realpath);
   }
 
 }
