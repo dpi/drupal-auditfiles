@@ -16,7 +16,7 @@ class AuditFilesUsedNotManagedTest extends WebDriverTestBase {
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['node', 'file', 'user', 'auditfiles'];
+  protected static $modules = ['node', 'field', 'file', 'user', 'auditfiles'];
 
   /**
    * User with admin privileges.
@@ -114,6 +114,7 @@ class AuditFilesUsedNotManagedTest extends WebDriverTestBase {
     $edit = [];
     $this->submitForm($edit, 'Confirm');
     // Check that target file is no longer listed.
+    $session->waitForElementVisible('css', '#audit-files-used-not-managed');
     $session->pageTextContains("Used not managed");
     $session->pageTextContains("Sucessfully deleted File ID : 1 from the file_usages table.");
   }

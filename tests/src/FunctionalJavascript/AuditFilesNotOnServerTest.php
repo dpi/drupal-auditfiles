@@ -17,7 +17,7 @@ class AuditFilesNotOnServerTest extends WebDriverTestBase {
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['node', 'file', 'user', 'auditfiles'];
+  protected static $modules = ['node', 'field', 'file', 'user', 'auditfiles'];
 
   /**
    * User with admin privileges.
@@ -106,6 +106,7 @@ class AuditFilesNotOnServerTest extends WebDriverTestBase {
     $edit = [];
     $this->submitForm($edit, 'Confirm');
     // Check that target file is no longer listed.
+    $session->waitForElementVisible('css', '#audit-files-not-on-server');
     $session->pageTextContains("Not on server");
     $session->pageTextContains("Sucessfully deleted File ID : 1 from the file_managed table.");
   }

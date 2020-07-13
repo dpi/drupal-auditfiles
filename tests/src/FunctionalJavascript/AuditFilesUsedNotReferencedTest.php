@@ -7,6 +7,9 @@ use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
 use Drupal\file\Entity\File;
 use Drupal\node\Entity\Node;
+use Drupal\node\Entity\NodeType;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\field\Entity\FieldConfig;
 
 /**
  * Tests that the "Managed not used" report is reachable with no errors.
@@ -15,16 +18,10 @@ use Drupal\node\Entity\Node;
  */
 class AuditFilesUsedNotReferencedTest extends WebDriverTestBase {
 
-
   /**
    * {@inheritdoc}
    */
-  protected $profile = 'standard';
-
-  /**
-   * {@inheritdoc}
-   */
-  protected static $modules = ['auditfiles'];
+  protected static $modules = ['node', 'field', 'file', 'user', 'auditfiles'];
 
   /**
    * User with admin privileges.
@@ -57,6 +54,48 @@ class AuditFilesUsedNotReferencedTest extends WebDriverTestBase {
     unset($all_rids[array_search(RoleInterface::AUTHENTICATED_ID, $all_rids)]);
     // Save role IDs.
     $this->rid = reset($all_rids);
+
+    // Create node based content type with image field
+    $bundle = 'article';
+    $fieldName = 'field_image';
+
+    // Create the content type.
+    $content_type = NodeType::create([
+      'type' => $bundle,
+      'name' => 'Test Article',
+    ]);
+    $content_type->save();
+
+    // Define the field storage.
+    $fieldStorage = FieldStorageConfig::create([
+      'field_name' => $fieldName,
+      'entity_type' => 'node',
+      'type' => 'file',
+      'settings' => [
+        'uri_scheme' => 'public',
+        'target_type' => 'file',
+      ],
+      'cardinality' => 1,
+      'indexes' => [
+        'target_id' => [
+          'target_id',
+        ],
+      ],
+    ]);
+    $fieldStorage->save();
+
+    // Create the field instance.
+    $field = FieldConfig::create([
+      'field_storage' => $fieldStorage,
+      'bundle' => $bundle,
+      'settings' => [
+        'file_directory' => 'test_images',
+        'file_extensions' => 'png gif jpg jpeg',
+      ],
+      'handler' => 'default:file',
+    ]);
+    $field->save();
+
 
     // Array of data for file_usage, files_managed, and entity node creation.
     $values = [
@@ -150,6 +189,7 @@ class AuditFilesUsedNotReferencedTest extends WebDriverTestBase {
     $edit = [];
     $this->submitForm($edit, 'Confirm');
     // Check that target file is no longer listed.
+    $session->waitForElementVisible('css', '#audit-files-used-not-referenced');
     $session->pageTextContains("Used not referenced");
     $session->pageTextContains("Sucessfully deleted File ID : 1 from the file_usage table.");
   }

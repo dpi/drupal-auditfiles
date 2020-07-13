@@ -21,7 +21,6 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
  */
 class ServiceAuditFilesNotInDatabase {
 
-
   use MessengerTrait;
 
   /**
@@ -37,6 +36,7 @@ class ServiceAuditFilesNotInDatabase {
    * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
   protected $configFactory;
+
   /**
    * The database connection.
    *
@@ -313,7 +313,7 @@ class ServiceAuditFilesNotInDatabase {
     if ($paths) {
       $exclude_paths = explode(';', $paths);
       foreach ($exclude_paths as $key => $value) {
-        $exclude_paths[$key] = $this->auditFilesEscapePreg($value, FALSE);
+        $exclude_paths[$key] = $this->auditFilesEscapePreg($value, TRUE);
       }
       $exclusions_array = array_merge($exclusions_array, $exclude_paths);
     }
@@ -547,11 +547,13 @@ class ServiceAuditFilesNotInDatabase {
    *   Set to TRUE to change elements to file paths at the same time.
    */
   public function auditfilesEscapePreg($element, $makefilepath = FALSE) {
-    if ($makefilepath && $this->fileSystem->realpath(file_build_uri($element))) {
-      $configStream = $this->configFactory->get('auditfiles.settings')->get('auditfiles_file_system_path');
-      $file_system_stream = $configStream ? $configStream : "public";
-      $realpath = $this->fileSystem->realpath("$file_system_stream://$element") ? $this->fileSystem->realpath("$file_system_stream://$element") : $this->fileSystem->realpath(file_build_uri($element));
-      return preg_quote($realpath);
+
+    if ($makefilepath) {
+      $config = $this->configFactory->get('auditfiles.settings');
+      $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
+      if ($this->fileSystem->realpath("$file_system_stream://$element")) {
+        return preg_quote($this->fileSystem->realpath("$file_system_stream://$element"));
+      }
     }
     return preg_quote($element);
   }

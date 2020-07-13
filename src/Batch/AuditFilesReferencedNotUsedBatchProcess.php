@@ -59,9 +59,9 @@ class AuditFilesReferencedNotUsedBatchProcess {
    *   Batch context.
    */
   protected function addDispatch(array &$context) {
-    $this->referencedNotUsed->auditfilesReferencedNotUsedBatchAddProcessFile($this->reference_id);
-    $context['results'][] = Html::escape($this->reference_id);
-    $context['message'] = new TranslatableMarkup('Processed file ID %file_id.', ['%file_id' => $this->reference_id]);
+    $this->referencedNotUsed->auditfilesReferencedNotUsedBatchAddProcessFile($this->referenceId);
+    $context['results'][] = Html::escape($this->referenceId);
+    $context['message'] = new TranslatableMarkup('Processed file ID %file_id.', ['%file_id' => $this->referenceId]);
   }
 
   /**
@@ -85,9 +85,9 @@ class AuditFilesReferencedNotUsedBatchProcess {
    *   Batch context.
    */
   protected function deleteDispatch(array &$context) {
-    $this->referencedNotUsed->auditfilesReferencedNotUsedBatchDeleteProcessFile($this->reference_id);
-    $context['results'][] = Html::escape($this->reference_id);
-    $context['message'] = new TranslatableMarkup('Processed file ID %file_id.', ['%file_id' => $this->reference_id]);
+    $this->referencedNotUsed->auditfilesReferencedNotUsedBatchDeleteProcessFile($this->referenceId);
+    $context['results'][] = Html::escape($this->referenceId);
+    $context['message'] = new TranslatableMarkup('Processed file ID %file_id.', ['%file_id' => $this->referenceId]);
   }
 
 }

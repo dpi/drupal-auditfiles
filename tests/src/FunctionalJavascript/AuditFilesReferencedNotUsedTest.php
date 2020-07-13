@@ -7,6 +7,9 @@ use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
 use Drupal\file\Entity\File;
 use Drupal\node\Entity\Node;
+use Drupal\node\Entity\NodeType;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\field\Entity\FieldConfig;
 
 /**
  * Tests that the "Referenced not used" report is reachable with no errors.
@@ -18,12 +21,7 @@ class AuditFilesReferencedNotUsedTest extends WebDriverTestBase {
   /**
    * {@inheritdoc}
    */
-  protected $profile = 'standard';
-
-  /**
-   * {@inheritdoc}
-   */
-  protected static $modules = ['auditfiles'];
+  protected static $modules = ['node', 'field', 'file', 'user', 'auditfiles', 'views'];
 
   /**
    * User with admin privileges.
@@ -56,6 +54,47 @@ class AuditFilesReferencedNotUsedTest extends WebDriverTestBase {
     unset($all_rids[array_search(RoleInterface::AUTHENTICATED_ID, $all_rids)]);
     // Save role IDs.
     $this->rid = reset($all_rids);
+
+    // Create node based content type with image field
+    $bundle = 'article';
+    $fieldName = 'field_image';
+
+    // Create the content type.
+    $content_type = NodeType::create([
+      'type' => $bundle,
+      'name' => 'Test Article',
+    ]);
+    $content_type->save();
+
+    // Define the field storage.
+    $fieldStorage = FieldStorageConfig::create([
+      'field_name' => $fieldName,
+      'entity_type' => 'node',
+      'type' => 'file',
+      'settings' => [
+        'uri_scheme' => 'public',
+        'target_type' => 'file',
+      ],
+      'cardinality' => 1,
+      'indexes' => [
+        'target_id' => [
+          'target_id',
+        ],
+      ],
+    ]);
+    $fieldStorage->save();
+
+    // Create the field instance.
+    $field = FieldConfig::create([
+      'field_storage' => $fieldStorage,
+      'bundle' => $bundle,
+      'settings' => [
+        'file_directory' => 'test_images',
+        'file_extensions' => 'png gif jpg jpeg',
+      ],
+      'handler' => 'default:file',
+    ]);
+    $field->save();
 
     // Array of data for file_usage, files_managed, and entity node creation.
     $values = [
@@ -125,6 +164,13 @@ class AuditFilesReferencedNotUsedTest extends WebDriverTestBase {
    * file in the file_usage table.
    */
   public function testFileEntityCanBeAddedToFileUsageTable() {
+    /**
+    $path = URL::fromRoute('');
+    $session = $this->assertSession();
+    $this->drupalLogin($this->user)
+    $this->drupalGet($path);
+    $this->elementExists('css', '#views-form-content-page-1');
+    **/
     // Delete file_usage entry.
     \Drupal::database()->query("DELETE FROM {file_usage} WHERE type='node' AND fid='1'")->execute();
     // Form to test.
@@ -186,7 +232,7 @@ class AuditFilesReferencedNotUsedTest extends WebDriverTestBase {
     $edit = [];
     $this->submitForm($edit, 'Confirm');
     // Check that target file is no longer listed.
-    $session->waitForId('#audit-files-referenced-not-used');
+    $session->waitForElementVisible('css', '#audit-files-referenced-not-used');
     $session->pageTextContains("Referenced not used");
     $session->elementNotExists('css', '#edit-files-node-field-imagefield-image-target-id1node1');
     $session->pageTextContains("file ID 1 deleted successfully.");
