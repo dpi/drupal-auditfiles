@@ -5,31 +5,34 @@ namespace Drupal\Tests\auditfiles\Functional;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Tests\TestFileCreationTrait;
-use Drupal\Tests\UiHelperTrait;
 use Drupal\file\Entity\File;
 use Drupal\node\Entity\Node;
+use Drupal\node\Entity\NodeType;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\Tests\file\Functional\FileFieldCreationTrait;
 
 /**
  * Tests that the "Managed not used" report is reachable with no errors.
  *
  * @group auditfiles
  */
-class AuditFilesUsedNotReferenced2Test extends BrowserTestBase {
+class AuditFilesUsedNotReferencedTest extends BrowserTestBase {
 
   use TestFileCreationTrait;
-  use StringTranslationTrait;
+  use FileFieldCreationTrait;
 
   /**
    * {@inheritdoc}
    */
-  protected $profile = 'standard';
-
-  /**
-   * {@inheritdoc}
-   */
-  protected static $modules = ['auditfiles'];
+  protected static $modules = [
+    'node',
+    'field',
+    'file',
+    'image',
+    'user',
+    'auditfiles',
+  ];
 
   /**
    * User with admin privileges.
@@ -55,48 +58,59 @@ class AuditFilesUsedNotReferenced2Test extends BrowserTestBase {
    */
   protected function setUp(): void {
     parent::setUp();
-    // Create user with permissions to manage site configuration and access
-    // audit files reports.
+    // Create user with permissions to access audit files reports.
     $this->user = $this->drupalCreateUser(['access audit files reports']);
     $all_rids = $this->user->getRoles();
     unset($all_rids[array_search(RoleInterface::AUTHENTICATED_ID, $all_rids)]);
     // Save role IDs.
     $this->rid = reset($all_rids);
 
-    // Array of data for file_usage, files_managed, and entity node creation.
-    $values = [
-      ['file', 'node', 1, 1],
-      ['file', 'node', 2, 1],
-      ['file', 'node', 3, 1],
-    ];
+    // Creating the content type.
+    // Create node based content type with image field.
+    $bundle = 'article';
+    $fieldName = 'field_image';
 
-    foreach ($values as $key => $value) {
-      // Create file_usage entry.
+    // Create the content type.
+    $content_type = NodeType::create([
+      'type' => $bundle,
+      'name' => 'Test Article',
+    ]);
+    $content_type->save();
 
-      \Drupal::database()->insert('file_usage')->fields([
-        'fid' => $key+1,
-        'module' => $value[0],
-        'type' => $value[1],
-        'id' => $value[2],
-        'count' => $value[3],
-      ])->execute();
-
-      // Create file_managed entry.
-      $fileno = $key + 1;
-      $path = "public://example_$fileno.png";
-      $image = File::create([
-        'uri' => $path,
-        'status' => TRUE,
-      ]);
-      $image->save();
-
+    // Replaces call to $this->createFileField from FileFieldCreationTrait.
+    // Can't use FileFieldCreationTrait method because it has "type" hardcoded
+    // as "file", and we need type "image".
+    $settings = ['cardinality' => 1, 'file_directory' => 'test_images', 'file_extensions' => 'png gif jpg jpeg txt'];
+    $field_storage = FieldStorageConfig::create([
+      'entity_type' => 'node',
+      'field_name' => $fieldName,
+      'type' => 'image',
+      'settings' => $settings,
+      'cardinality' => $settings['cardinality'],
+    ]);
+    $field_storage
+      ->save();
+    $this
+      ->attachFileField($fieldName, 'node', $bundle, $settings, []);
+    // End of $this->createFileField substitute call
+    // End of Create the content type.
+    // Next setup step...
+    // Create files & nodes.
+    $files = $this->getTestFiles('image');
+    $counter = 0;
+    foreach ($files as $file) {
+      $file->filesize = filesize($file->uri);
+      $file->status = TRUE;
+      $file->filename = $file->uri;
+      $newfile = File::create((array) $file);
+      $newfile->save();
+      $counter++;
       $node = Node::create([
         'type'        => 'article',
-        'title'       => 'Sample Node',
+        'title'       => 'Sample Node ' . $counter,
         'field_image' => [
-          'target_id' => $key+1,
-          'alt' => 'Sample',
-          'title' => 'Sample File',
+          'target_id' => $counter,
+          'alt' => 'Sample ' . $counter,
         ],
       ]);
       $node->save();
@@ -117,11 +131,13 @@ class AuditFilesUsedNotReferenced2Test extends BrowserTestBase {
     $session = $this->assertSession();
     // Visit page as anonymous user, should receive a 403.
     $this->drupalGet($path);
+    $session->pageTextContains('Access denied');
     $session->statusCodeEquals(403);
     // Log in as admin user.
     $this->drupalLogin($this->user);
     // Test that report page returns a 200 response code.
     $this->drupalGet($path);
+    $session->pageTextContains("Used not referenced");
     $session->statusCodeEquals(200);
   }
 
@@ -145,19 +161,23 @@ class AuditFilesUsedNotReferenced2Test extends BrowserTestBase {
     // Load the report page.
     $this->drupalGet($path);
     // Check for the report title.
-    $session->pageTextContains($this->t("Used not referenced"));
+    $session->pageTextContains("Used not referenced");
+    $session->elementExists('css', '#audit-files-used-not-referenced');
+    $session->elementExists('css', '#edit-files-1');
     // Check boxes for file IDs to delete from database, and delete.
     $edit = [
       'edit-files-1' => TRUE,
     ];
-    $this->submitForm($edit, $this->t('Delete selected items from the file_usage table'));
+    $this->submitForm($edit, 'Delete selected items from the file_usage table');
     // Check for correct confirmation page and submit.
-    $session->pageTextContains($this->t("Delete these items from the file_usage table?"));
+    $session->pageTextContains("Delete these items from the file_usage table?");
     $edit = [];
-    $this->submitForm($edit, $this->t('Confirm'));
+    $this->submitForm($edit, 'Confirm');
     // Check that target file is no longer listed.
-    $session->pageTextContains($this->t("Used not referenced"));
-    $session->pageTextContains($this->t("Sucessfully deleted File ID : 1 from the file_usage table."));
+    $session->pageTextContains("Used not referenced");
+    $session->pageTextContains("Sucessfully deleted File ID : 1 from the file_usage table.");
+    $session->elementNotExists('css', '#edit-files-1');
+    $session->pageTextContains("No items found.");
   }
 
 }

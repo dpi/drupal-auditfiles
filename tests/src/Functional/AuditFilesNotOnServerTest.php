@@ -5,9 +5,7 @@ namespace Drupal\Tests\auditfiles\Functional;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Tests\TestFileCreationTrait;
-use Drupal\Tests\UiHelperTrait;
 use Drupal\file\Entity\File;
 
 /**
@@ -18,8 +16,6 @@ use Drupal\file\Entity\File;
 class AuditFilesNotOnServerTest extends BrowserTestBase {
 
   use TestFileCreationTrait;
-  use UiHelperTrait;
-  use StringTranslationTrait;
 
   /**
    * {@inheritdoc}
@@ -81,11 +77,13 @@ class AuditFilesNotOnServerTest extends BrowserTestBase {
     $session = $this->assertSession();
     // Visit page as anonymous user, should receive a 403.
     $this->drupalGet($path);
+    $session->pageTextContains('Access denied');
     $session->statusCodeEquals(403);
     // Log in as admin user.
     $this->drupalLogin($this->user);
     // Test that report page returns a 200 response code.
     $this->drupalGet($path);
+    $session->pageTextContains('Not on server');
     $session->statusCodeEquals(200);
   }
 
@@ -105,19 +103,25 @@ class AuditFilesNotOnServerTest extends BrowserTestBase {
     // Load the report page.
     $this->drupalGet($path);
     // Check for the report title.
-    $session->pageTextContains($this->t("Not on server"));
+    $session->pageTextContains("Not on server");
+    $session->pageTextContains("Found at least 3 files in the database that are not on the server.");
+    $session->elementExists('css', '#audit-files-not-on-server');
+    $session->elementExists('css', '#edit-files-1');
     // Check box for file ID to delete from database, and delete.
     $edit = [
       'edit-files-1' => TRUE,
     ];
-    $this->submitForm($edit, $this->t('Delete selected items from the database'));
+    $this->submitForm($edit, 'Delete selected items from the database');
     // Check for correct confirmation page and submit.
-    $session->pageTextContains($this->t("Delete these items from the database?"));
+    $session->pageTextContains("Delete these items from the database?");
+    $session->pageTextContains("example_0.png and all usages will be deleted from the database.");
     $edit = [];
-    $this->submitForm($edit, $this->t('Confirm'));
+    $this->submitForm($edit, 'Confirm');
     // Check that target file is no longer listed.
-    $session->pageTextContains($this->t("Not on server"));
-    $session->pageTextContains($this->t("Sucessfully deleted File ID : 1 from the file_managed table."));
+    $session->pageTextContains("Not on server");
+    $session->pageTextContains("Sucessfully deleted File ID : 1 from the file_managed table.");
+    $session->pageTextContains("Found at least 2 files in the database that are not on the server.");
+    $session->elementNotExists('css', '#edit-files-1');
   }
 
 }
