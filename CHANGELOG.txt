@@ -1,4 +1,11 @@
-8.x-2.9
+8.x-2.x-dev
+
+    Issue #3154446 by lhridley: Automated test:  AuditFilesNotInDatabase Report
+    Issue #3158966 by lhridley: Backporting bug fixes and test suite from 8.x-3.x to 8.x-2.x
+    Issue #3154441 by lhridley: Add Automated Tests to project
+    Issue #3155727 by lhridley: Automated test:  AuditFilesReferencedNotUsed Report
+
+8.x-2.9, 8.x-2.10 (both are currently unpublished)
 
 Issue #3154441: Add Automated Tests to project
 Issue #3155728 by lhridley: Automated test:  AuditFilesUsedNotReferenced Report
