@@ -251,7 +251,7 @@ class ServiceAuditFilesReferencedNotUsed {
       'count' => 1,
     ];
     // Make sure the file is not already in the database.
-    $query = 'SELECT fid FROM file_usage
+    $query = 'SELECT fid FROM {file_usage}
     WHERE fid = :fid AND module = :module AND type = :type AND id = :id';
     $existing_file = $connection->query(
       $query,
