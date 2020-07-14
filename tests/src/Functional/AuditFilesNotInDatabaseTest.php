@@ -1,8 +1,8 @@
 <?php
 
-namespace Drupal\Tests\auditfiles\FunctionalJavascript;
+namespace Drupal\Tests\auditfiles\Functional;
 
-use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
+use Drupal\Tests\BrowserTestBase;
 use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
 use Drupal\Tests\TestFileCreationTrait;
@@ -12,7 +12,7 @@ use Drupal\Tests\TestFileCreationTrait;
  *
  * @group auditfiles
  */
-class AuditFilesNotInDatabaseTest extends WebDriverTestBase {
+class AuditFilesNotInDatabaseTest extends BrowserTestBase {
 
   use TestFileCreationTrait;
 
@@ -43,7 +43,7 @@ class AuditFilesNotInDatabaseTest extends WebDriverTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
     // Create user with permissions to manage site configuration and access
     // audit files reports.
@@ -66,20 +66,23 @@ class AuditFilesNotInDatabaseTest extends WebDriverTestBase {
 
   /**
    * Tests report page returns correct HTTP response code.
+   *
+   * 403 for anonymous users (also for users without permission).
+   * 200 for authenticated user with 'administer site configuration' perm.
    */
   public function testReportPage() {
     // Form to test.
     $path = URL::fromRoute('auditfiles.notindatabase');
     // Establish session.
     $session = $this->assertSession();
-    // Visit page as anonymous user, should get Access Denied message.
+    // Visit page as anonymous user, should receive a 403.
     $this->drupalGet($path);
-    $session->pageTextContains('Access denied');
+    $session->statusCodeEquals(403);
     // Log in as admin user.
     $this->drupalLogin($this->user);
-    // Test that report page returns the report page.
+    // Test that report page returns a 200 response code.
     $this->drupalGet($path);
-    $session->pageTextContains('Not in database');
+    $session->statusCodeEquals(200);
   }
 
   /**
@@ -123,6 +126,7 @@ class AuditFilesNotInDatabaseTest extends WebDriverTestBase {
     $this->drupalGet($path);
     // Check for the report title.
     $session->pageTextContains("Not in database");
+    $session->elementExists('css', '#edit-files-html-2html');
     // Check box for file to delete from server, and submit form.
     $edit = [
       'edit-files-html-2html' => TRUE,
@@ -133,9 +137,9 @@ class AuditFilesNotInDatabaseTest extends WebDriverTestBase {
     $edit = [];
     $this->submitForm($edit, 'Confirm');
     // Check that target file is no longer listed.
-    $session->waitForElementVisible('css', '#notindatabase');
     $session->pageTextContains("Not in database");
     $session->pageTextContains("Sucessfully deleted html-2.html from the server.");
+    $session->elementNotExists('css', '#edit-files-html-2html');
   }
 
   /**
@@ -155,6 +159,7 @@ class AuditFilesNotInDatabaseTest extends WebDriverTestBase {
     $this->drupalGet($path);
     // Check for the report title.
     $session->pageTextContains("Not in database");
+    $session->elementExists('css', '#edit-files-image-1png');
     // Check box for file to add to database, and submit form.
     $edit = [
       'edit-files-image-1png' => TRUE,
@@ -165,9 +170,9 @@ class AuditFilesNotInDatabaseTest extends WebDriverTestBase {
     $edit = [];
     $this->submitForm($edit, 'Confirm');
     // Check that target file is no longer listed.
-    $session->waitForElementVisible('css', '#notindatabase');
     $session->pageTextContains("Not in database");
     $session->pageTextContains("Sucessfully added image-1.png to the database.");
+    $session->elementNotExists('css', '#edit-files-image-1png');
   }
 
 }

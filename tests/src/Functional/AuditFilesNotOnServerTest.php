@@ -1,23 +1,26 @@
 <?php
 
-namespace Drupal\Tests\auditfiles\FunctionalJavascript;
+namespace Drupal\Tests\auditfiles\Functional;
 
-use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
+use Drupal\Tests\BrowserTestBase;
 use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
+use Drupal\Tests\TestFileCreationTrait;
 use Drupal\file\Entity\File;
 
 /**
- * Tests that the "Managed not used" report is reachable with no errors.
+ * Tests that the "Not on server" report is reachable with no errors.
  *
  * @group auditfiles
  */
-class AuditFilesManagedNotUsedTest extends WebDriverTestBase {
+class AuditFilesNotOnServerTest extends BrowserTestBase {
+
+  use TestFileCreationTrait;
 
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['node', 'field', 'file', 'user', 'auditfiles'];
+  protected static $modules = ['node', 'file', 'user', 'auditfiles'];
 
   /**
    * User with admin privileges.
@@ -41,7 +44,7 @@ class AuditFilesManagedNotUsedTest extends WebDriverTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
     // Create user with permissions to manage site configuration and access
     // audit files reports.
@@ -63,32 +66,36 @@ class AuditFilesManagedNotUsedTest extends WebDriverTestBase {
 
   /**
    * Tests report page returns correct HTTP response code.
+   *
+   * 403 for anonymous users (also for users without permission).
+   * 200 for authenticated user with 'access audit files reports' perm.
    */
   public function testReportPage() {
     // Form to test.
-    $path = URL::fromRoute('auditfiles.audit_files_managednotused');
+    $path = URL::fromRoute('auditfiles.audit_files_notonserver');
     // Establish session.
     $session = $this->assertSession();
-    // Visit page as anonymous user, should get Access Denied message.
+    // Visit page as anonymous user, should receive a 403.
     $this->drupalGet($path);
     $session->pageTextContains('Access denied');
+    $session->statusCodeEquals(403);
     // Log in as admin user.
     $this->drupalLogin($this->user);
-    // Test that report page returns the report page.
+    // Test that report page returns a 200 response code.
     $this->drupalGet($path);
-    $session->pageTextContains('Managed not used');
+    $session->pageTextContains('Not on server');
+    $session->statusCodeEquals(200);
   }
 
   /**
    * Tests that an orphan file can be deleted.
    *
-   * An "orphan" file entity is one with an entry in the
-   * file_managed table that has no corresponding file in the
-   * file_usage table.
+   * An "orphan" file is one in the file system that has no corresponding record
+   * in the database.
    */
   public function testFileEntityCanBeDeleted() {
     // Form to test.
-    $path = URL::fromRoute('auditfiles.audit_files_managednotused');
+    $path = URL::fromRoute('auditfiles.audit_files_notonserver');
     // Establish session.
     $session = $this->assertSession();
     // Log in as admin user.
@@ -96,20 +103,25 @@ class AuditFilesManagedNotUsedTest extends WebDriverTestBase {
     // Load the report page.
     $this->drupalGet($path);
     // Check for the report title.
-    $session->pageTextContains("Managed not used");
+    $session->pageTextContains("Not on server");
+    $session->pageTextContains("Found at least 3 files in the database that are not on the server.");
+    $session->elementExists('css', '#audit-files-not-on-server');
+    $session->elementExists('css', '#edit-files-1');
     // Check box for file ID to delete from database, and delete.
     $edit = [
       'edit-files-1' => TRUE,
     ];
-    $this->submitForm($edit, 'Delete selected items from the file_managed table');
+    $this->submitForm($edit, 'Delete selected items from the database');
     // Check for correct confirmation page and submit.
-    $session->pageTextContains("Delete these items from the file_managed table?");
+    $session->pageTextContains("Delete these items from the database?");
+    $session->pageTextContains("example_0.png and all usages will be deleted from the database.");
     $edit = [];
     $this->submitForm($edit, 'Confirm');
     // Check that target file is no longer listed.
-    $session->waitForElementVisible('css', '#audit-files-managed-not-used');
-    $session->pageTextContains("Managed not used");
+    $session->pageTextContains("Not on server");
     $session->pageTextContains("Sucessfully deleted File ID : 1 from the file_managed table.");
+    $session->pageTextContains("Found at least 2 files in the database that are not on the server.");
+    $session->elementNotExists('css', '#edit-files-1');
   }
 
 }
