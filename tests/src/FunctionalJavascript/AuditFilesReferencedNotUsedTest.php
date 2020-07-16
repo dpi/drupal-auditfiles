@@ -21,7 +21,7 @@ class AuditFilesReferencedNotUsedTest extends WebDriverTestBase {
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['node', 'field', 'file', 'user', 'auditfiles', 'views'];
+  protected static $modules = ['node', 'field', 'file', 'user', 'auditfiles'];
 
   /**
    * User with admin privileges.
@@ -55,7 +55,7 @@ class AuditFilesReferencedNotUsedTest extends WebDriverTestBase {
     // Save role IDs.
     $this->rid = reset($all_rids);
 
-    // Create node based content type with image field
+    // Create node based content type with image field.
     $bundle = 'article';
     $fieldName = 'field_image';
 
@@ -164,13 +164,6 @@ class AuditFilesReferencedNotUsedTest extends WebDriverTestBase {
    * file in the file_usage table.
    */
   public function testFileEntityCanBeAddedToFileUsageTable() {
-    /**
-    $path = URL::fromRoute('');
-    $session = $this->assertSession();
-    $this->drupalLogin($this->user)
-    $this->drupalGet($path);
-    $this->elementExists('css', '#views-form-content-page-1');
-    **/
     // Delete file_usage entry.
     \Drupal::database()->query("DELETE FROM {file_usage} WHERE type='node' AND fid='1'")->execute();
     // Form to test.
