@@ -164,13 +164,6 @@ class AuditFilesReferencedNotUsedTest extends WebDriverTestBase {
    * file in the file_usage table.
    */
   public function testFileEntityCanBeAddedToFileUsageTable() {
-    /**
-    $path = URL::fromRoute('');
-    $session = $this->assertSession();
-    $this->drupalLogin($this->user)
-    $this->drupalGet($path);
-    $this->elementExists('css', '#views-form-content-page-1');
-    **/
     // Delete file_usage entry.
     \Drupal::database()->query("DELETE FROM {file_usage} WHERE type='node' AND fid='1'")->execute();
     // Form to test.

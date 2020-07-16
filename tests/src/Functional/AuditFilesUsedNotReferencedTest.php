@@ -80,7 +80,11 @@ class AuditFilesUsedNotReferencedTest extends BrowserTestBase {
     // Replaces call to $this->createFileField from FileFieldCreationTrait.
     // Can't use FileFieldCreationTrait method because it has "type" hardcoded
     // as "file", and we need type "image".
-    $settings = ['cardinality' => 1, 'file_directory' => 'test_images', 'file_extensions' => 'png gif jpg jpeg txt'];
+    $settings = [
+      'cardinality' => 1,
+      'file_directory' => 'test_images',
+      'file_extensions' => 'png gif jpg jpeg txt'
+    ];
     $field_storage = FieldStorageConfig::create([
       'entity_type' => 'node',
       'field_name' => $fieldName,

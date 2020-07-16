@@ -201,7 +201,7 @@ class ServiceAuditFilesNotInDatabase {
    *   Returns TRUE if the file was found in the database, or FALSE, if not.
    */
   public function auditfilesNotInDatabaseIsFileInDatabase($filepathname) {
-    $file_uri = file_build_uri($filepathname);
+    $file_uri = $this->auditfilesBuildUri($filepathname);
     $connection = $this->connection;
     $fid = $connection->select('file_managed', 'fm')
       ->condition('fm.uri', $file_uri)
@@ -441,7 +441,7 @@ class ServiceAuditFilesNotInDatabase {
     $file = new \StdClass();
     $file->uid = $user->get('uid')->value;
     $file->filename = trim(basename($filepathname));
-    $file->uri = file_build_uri($filepathname);
+    $file->uri = $this->auditfilesBuildUri($filepathname);
     $real_filenamepath = $this->fileSystem->realpath($file->uri);
     $file->filemime = $this->fileMimeTypeGuesser->guess($real_filenamepath);
     $file->filesize = filesize($real_filenamepath);
@@ -556,6 +556,15 @@ class ServiceAuditFilesNotInDatabase {
       }
     }
     return preg_quote($element);
+  }
+
+  /**
+   * Returns the internal path to the given file.
+   */
+  public function auditfilesBuildUri($file_pathname) {
+    $config = $this->configFactory->get('auditfiles.settings');
+    $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
+    return "$file_system_stream://$file_pathname";
   }
 
 }
