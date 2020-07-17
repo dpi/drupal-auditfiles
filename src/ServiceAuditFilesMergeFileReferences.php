@@ -82,14 +82,16 @@ class ServiceAuditFilesMergeFileReferences {
   public function auditfilesMergeFileReferencesGetFileList() {
     $config = $this->configFactory->get('auditfiles.settings');
     $connection = $this->connection;
-    $result_set = [];
-    $query = 'SELECT fid, filename FROM {file_managed} ORDER BY filename ASC';
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
+    $result_set = [];
+    $query = $connection->select('file_managed', 'fm')->fields('fm', ['fid', 'filename'])->orderBy('filename', 'ASC');
+
     if ($maximum_records > 0) {
-      $query .= ' LIMIT ' . $maximum_records;
+      $query->range(0, $maximum_records);
     }
-    $files = $connection->query($query)->fetchAllKeyed();
-    $show_single_file_names = $config->get('auditfiles_merge_file_references_show_single_file_names') ? $config->get('auditfiles_merge_file_references_show_single_file_names') : 0;
+    $files = $$query->execute()->fetchAllKeyed();
+    $show_single_file_names = $config->get('auditfiles_merge_file_references_show_single_file_names') ?
+      $config->get('auditfiles_merge_file_references_show_single_file_names') : 0;
     foreach ($files as $file_id => $file_name) {
       if ($show_single_file_names) {
         $result_set[] = $file_name;

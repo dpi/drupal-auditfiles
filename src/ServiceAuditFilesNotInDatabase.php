@@ -317,7 +317,7 @@ class ServiceAuditFilesNotInDatabase {
       }
       $exclusions_array = array_merge($exclusions_array, $exclude_paths);
     }
-    // Exclude other file streams that may be deinfed and in use.
+    // Exclude other file streams that may be defined and in use.
     $exclude_streams = [];
     $auditfiles_file_system_path = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
     $file_system_paths = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::LOCAL);

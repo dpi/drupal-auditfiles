@@ -64,13 +64,16 @@ class ServiceAuditFilesUsedNotManaged {
     // file_managed table.
     $connection = $this->connection;
     $config = $this->configFactory->get('auditfiles.settings');
-    $query = 'SELECT DISTINCT fid FROM {file_usage} fu WHERE fid NOT IN (SELECT fid FROM {file_managed})';
-    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
-
-    if ($maximum_records > 0) {
-      $query .= ' LIMIT ' . $maximum_records;
+    $fm_query = $connection->select('file_managed', 'fm')->fields('fm', ['fid'])->execute()->fetchCol();
+    $query = $connection->select('file_usage', 'fu')->fields('fu', ['fid']);
+    if (!empty($fm_query)) {
+      $query->condition('fu.fid', $fm_query, 'NOT IN');
     }
-    return $connection->query($query)->fetchCol();
+    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
+    if ($maximum_records > 0) {
+      $query->range(0, $maximum_records);
+    }
+    return $query->execute()->fetchCol();
   }
 
   /**
@@ -79,8 +82,8 @@ class ServiceAuditFilesUsedNotManaged {
   public function auditfilesUsedNotManagedGetFileData($file_id) {
     // Get the file information for the specified file ID from the database.
     $connection = $this->connection;
-    $query = 'SELECT * FROM {file_usage} WHERE fid = ' . $file_id;
-    $file = $connection->query($query)->fetchObject();
+    $query = 'SELECT * FROM {file_usage} WHERE fid = :file_id';
+    $file = $connection->query($query, ['file_id' => $file_id])->fetchObject();
 
     $url = Url::fromUri('internal:/' . $file->type . '/' . $file->id);
     $result = Link::fromTextAndUrl($file->type . '/' . $file->id, $url)->toString();

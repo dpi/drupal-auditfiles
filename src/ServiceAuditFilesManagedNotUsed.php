@@ -70,13 +70,18 @@ class ServiceAuditFilesManagedNotUsed {
    */
   public function auditfilesManagedNotUsedGetFileList() {
     $config = $this->configFactory->get('auditfiles.settings');
-    $connection = $this->connection;
-    $query = 'SELECT fid FROM {file_managed} WHERE fid NOT IN (SELECT fid FROM {file_usage})';
     $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
-    if ($maximum_records > 0) {
-      $query .= ' LIMIT ' . $maximum_records;
+    $connection = $this->connection;
+    $fu_query = $connection->select('file_usage', 'fu')->fields('fu', ['fid'])->execute()->fetchCol();
+    $query = $connection->select('file_managed', 'fm')->fields('fm', ['fid']);
+    if (!empty($fu_query)) {
+      $query->condition('fm.fid', $fu_query, 'NOT IN');
     }
-    return $connection->query($query)->fetchCol();
+    if ($maximum_records > 0) {
+      $query->range(0, $maximum_records);
+    }
+    return $query->execute()->fetchCol();
+
   }
 
   /**

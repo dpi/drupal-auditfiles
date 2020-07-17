@@ -144,7 +144,7 @@ class AuditFilesConfig extends ConfigFormBase {
     $form['auditfiles_report_options']['auditfiles_report_options_items_per_page'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Number of items per page'),
-      '#default_value' => $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50,
+      '#default_value' => $config->get('auditfiles_report_options_items_per_page'),
       '#size' => 10,
       '#description' => $this->t('Enter an integer representing the number of items to display on each page of a report.<br /> If there are more than this number on a page, then a pager will be used to display the additional items.<br /> Set this to 0 to show all items on a single page.'),
     ];
@@ -152,7 +152,7 @@ class AuditFilesConfig extends ConfigFormBase {
     $form['auditfiles_report_options']['auditfiles_report_options_maximum_records'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Maximum records'),
-      '#default_value' => $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250,
+      '#default_value' => $config->get('auditfiles_report_options_maximum_records'),
       '#size' => 10,
       '#description' => $this->t('Enter an integer representing the maximum number of records to return for each report.<br /> If any of the reports are timing out, set this to some positive integer to limit the number of records that are queried in the database. For reports where the limit is reached, a button to batch process the loading of the page will be available that will allow all records to be retrieved without timing out.<br /> Set this to 0 for no limit.'),
     ];
@@ -160,7 +160,7 @@ class AuditFilesConfig extends ConfigFormBase {
     $form['auditfiles_report_options']['auditfiles_report_options_batch_size'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Batch size'),
-      '#default_value' => $config->get('auditfiles_report_options_batch_size') ? $config->get('auditfiles_report_options_batch_size') : 1000,
+      '#default_value' => $config->get('auditfiles_report_options_batch_size'),
       '#size' => 10,
       '#description' => $this->t('If you have a lot of files (100,000+), it will take an exponentially longer amount of time and memory to retrieve file data the longer it goes through the batch process. Decreasing the the number of files loaded, by setting this to a positive, non-zero integer, will keep the batch process down to a reasonable amount of time.<br /> Set this to 0 for no limit.'),
     ];

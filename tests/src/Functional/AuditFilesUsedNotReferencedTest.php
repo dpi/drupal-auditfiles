@@ -83,7 +83,7 @@ class AuditFilesUsedNotReferencedTest extends BrowserTestBase {
     $settings = [
       'cardinality' => 1,
       'file_directory' => 'test_images',
-      'file_extensions' => 'png gif jpg jpeg txt'
+      'file_extensions' => 'png gif jpg jpeg txt',
     ];
     $field_storage = FieldStorageConfig::create([
       'entity_type' => 'node',
