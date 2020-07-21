@@ -89,7 +89,7 @@ class ServiceAuditFilesMergeFileReferences {
     if ($maximum_records > 0) {
       $query->range(0, $maximum_records);
     }
-    $files = $$query->execute()->fetchAllKeyed();
+    $files = $query->execute()->fetchAllKeyed();
     $show_single_file_names = $config->get('auditfiles_merge_file_references_show_single_file_names') ?
       $config->get('auditfiles_merge_file_references_show_single_file_names') : 0;
     foreach ($files as $file_id => $file_name) {
