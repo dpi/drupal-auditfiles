@@ -6,7 +6,6 @@ use Drupal\Tests\BrowserTestBase;
 use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
 use Drupal\Tests\TestFileCreationTrait;
-use Drupal\file\Entity\File;
 
 /**
  * Tests that the "Managed not used" report is reachable with no errors.
@@ -90,7 +89,7 @@ class AuditFilesConfigTest extends BrowserTestBase {
     $this->drupalGet($path);
     // Check for the report title.
     $session->pageTextContains("Audit Files");
-    // Check for form elements
+    // Check for form elements.
     $session->elementExists('css', '#edit-auditfiles-file-system-path');
     $session->elementExists('css', '#edit-auditfiles-file-system-path > option:nth-child(1)');
     $session->elementAttributeContains('css', '#edit-auditfiles-file-system-path > option:nth-child(1)', 'value', 'public');
@@ -149,7 +148,7 @@ class AuditFilesConfigTest extends BrowserTestBase {
     // Check page content.
     // Check for the report title.
     $session->pageTextContains("Audit Files");
-    // Check for form elements
+    // Check for form elements.
     $session->elementAttributeExists('css', '#edit-auditfiles-file-system-path > option:nth-child(1)', 'selected');
     $session->elementAttributeContains('css', '#edit-auditfiles-file-system-path > option:nth-child(1)', 'selected', 'selected');
     $session->elementAttributeContains('css', '#edit-auditfiles-exclude-files', 'value', '.htaccess');
@@ -157,11 +156,12 @@ class AuditFilesConfigTest extends BrowserTestBase {
     $session->elementAttributeContains('css', '#edit-auditfiles-exclude-paths', 'value', 'color;css;ctools;js');
     $session->elementAttributeContains('css', '#edit-auditfiles-include-domains', 'value', '');
     $session->elementAttributeExists('css', '#edit-auditfiles-report-options-date-format > option:nth-child(1)', 'value');
-    $session->elementAttributeContains('css', '#edit-auditfiles-report-options-date-format > option:nth-child(1)', 'value', 'fallback');    
+    $session->elementAttributeContains('css', '#edit-auditfiles-report-options-date-format > option:nth-child(1)', 'value', 'fallback');
     $session->elementAttributeExists('css', '#edit-auditfiles-report-options-date-format > option:nth-child(1)', 'selected');
     $session->elementAttributeContains('css', '#edit-auditfiles-report-options-date-format > option:nth-child(1)', 'selected', 'selected');
     $session->elementAttributeContains('css', '#edit-auditfiles-report-options-items-per-page', 'value', '50');
     $session->elementAttributeContains('css', '#edit-auditfiles-report-options-maximum-records', 'value', '250');
     $session->elementAttributeContains('css', '#edit-auditfiles-report-options-batch-size', 'value', '1000');
   }
+
 }
