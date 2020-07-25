@@ -63,14 +63,17 @@ class ServiceAuditFilesUsedNotReferenced {
    *   The file IDs.
    */
   public function auditfilesUsedNotReferencedGetFileList() {
-    $config = $this->configFactory->get('auditfiles.settings');
+
     $connection = $this->connection;
-    $query = 'SELECT DISTINCT fid FROM {file_usage} fu';
-    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
+    $config = $this->configFactory->get('auditfiles.settings');
+    $maximum_records = $config->get('auditfiles_report_options_maximum_records');
+    $query = $connection->select('file_usage', 'fu')
+      ->fields('fu', ['fid'])
+      ->distinct();
     if ($maximum_records > 0) {
-      $query .= ' LIMIT ' . $maximum_records;
+      $query->range(0, $maximum_records);
     }
-    $files_in_file_usage = $connection->query($query)->fetchCol();
+    $files_in_file_usage = $query->execute()->fetchCol();
     $files_in_fields = $field_data = [];
     $fields[] = $this->entityFieldManager->getFieldMapByFieldType('image');
     $fields[] = $this->entityFieldManager->getFieldMapByFieldType('file');

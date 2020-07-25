@@ -66,7 +66,7 @@ class ServiceAuditFilesNotOnServer {
   public function auditfilesNotOnServerGetFileList() {
     $config = $this->configFactory->get('auditfiles.settings');
     $file_ids = [];
-    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
+    $maximum_records = $config->get('auditfiles_report_options_maximum_records');
     $connection = $this->connection;
     $query = $connection->select('file_managed', 'fm');
     $query->orderBy('changed', 'DESC');

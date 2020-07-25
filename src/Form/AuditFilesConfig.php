@@ -87,21 +87,21 @@ class AuditFilesConfig extends ConfigFormBase {
     $form['auditfiles_exclusions']['auditfiles_exclude_files'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Exclude these files'),
-      '#default_value' => trim($config->get('auditfiles_exclude_files') ? $config->get('auditfiles_exclude_files') : '.htaccess'),
+      '#default_value' => trim($config->get('auditfiles_exclude_files')),
       '#description' => $this->t('Enter a list of files to exclude, each separated by the semi-colon character (;).'),
     ];
 
     $form['auditfiles_exclusions']['auditfiles_exclude_extensions'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Exclude these extensions'),
-      '#default_value' => trim($config->get('auditfiles_exclude_extensions') ? $config->get('auditfiles_exclude_extensions') : ''),
+      '#default_value' => trim($config->get('auditfiles_exclude_extensions')),
       '#description' => $this->t('Enter a list of extensions to exclude, each separated by the semi-colon character (;). Do not include the leading dot.'),
     ];
 
     $form['auditfiles_exclusions']['auditfiles_exclude_paths'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Exclude these paths'),
-      '#default_value' => trim($config->get('auditfiles_exclude_paths') ? $config->get('auditfiles_exclude_paths') : 'color;css;ctools;js'),
+      '#default_value' => trim($config->get('auditfiles_exclude_paths')),
       '#description' => $this->t('Enter a list of paths to exclude, each separated by the semi-colon character (;). Do not include the leading slash.'),
     ];
 
@@ -113,7 +113,7 @@ class AuditFilesConfig extends ConfigFormBase {
     $form['auditfiles_domains']['auditfiles_include_domains'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Include references to these domains'),
-      '#default_value' => trim($config->get('auditfiles_include_domains') ? $config->get('auditfiles_include_domains') : ''),
+      '#default_value' => trim($config->get('auditfiles_include_domains')),
       '#size' => 80,
       '#maxlength' => 1024,
       '#description' => $this->t('Enter a list of domains (e.g., www.example.com) pointing to your website, each separated by the semi-colon character (;). <br />When scanning content for file references (such as &lt;img&gt;tags), any absolute references using these domains will be included and rewritten to use relative references. Absolute references to domains not in this list will be considered to be external references and will not be audited or rewritten.'),
@@ -139,25 +139,25 @@ class AuditFilesConfig extends ConfigFormBase {
     ];
 
     $form['auditfiles_report_options']['auditfiles_report_options_items_per_page'] = [
-      '#type' => 'textfield',
+      '#type' => 'number',
       '#title' => $this->t('Number of items per page'),
-      '#default_value' => $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50,
+      '#default_value' => $config->get('auditfiles_report_options_items_per_page'),
       '#size' => 10,
       '#description' => $this->t('Enter an integer representing the number of items to display on each page of a report.<br /> If there are more than this number on a page, then a pager will be used to display the additional items.<br /> Set this to 0 to show all items on a single page.'),
     ];
 
     $form['auditfiles_report_options']['auditfiles_report_options_maximum_records'] = [
-      '#type' => 'textfield',
+      '#type' => 'number',
       '#title' => $this->t('Maximum records'),
-      '#default_value' => $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250,
+      '#default_value' => $config->get('auditfiles_report_options_maximum_records'),
       '#size' => 10,
       '#description' => $this->t('Enter an integer representing the maximum number of records to return for each report.<br /> If any of the reports are timing out, set this to some positive integer to limit the number of records that are queried in the database. For reports where the limit is reached, a button to batch process the loading of the page will be available that will allow all records to be retrieved without timing out.<br /> Set this to 0 for no limit.'),
     ];
 
     $form['auditfiles_report_options']['auditfiles_report_options_batch_size'] = [
-      '#type' => 'textfield',
+      '#type' => 'number',
       '#title' => $this->t('Batch size'),
-      '#default_value' => $config->get('auditfiles_report_options_batch_size') ? $config->get('auditfiles_report_options_batch_size') : 1000,
+      '#default_value' => $config->get('auditfiles_report_options_batch_size'),
       '#size' => 10,
       '#description' => $this->t('If you have a lot of files (100,000+), it will take an exponentially longer amount of time and memory to retrieve file data the longer it goes through the batch process. Decreasing the the number of files loaded, by setting this to a positive, non-zero integer, will keep the batch process down to a reasonable amount of time.<br /> Set this to 0 for no limit.'),
     ];

@@ -106,13 +106,16 @@ class ServiceAuditFilesReferencedNotUsed {
         $column = $value['column'];
         $entity_type = $value['entity_type'];
         if ($this->connection->schema()->tableExists($table)) {
-          $query = 'SELECT entity_id, ' . $column . ' FROM {' . $table . '}';
-          $query .= ' WHERE ' . $column . ' NOT IN (SELECT DISTINCT fid FROM {file_usage})';
-          $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
-          if ($maximum_records > 0) {
-            $query .= ' LIMIT ' . $maximum_records;
+          $fu_query = $connection->select('file_usage', 'fu')->fields('fu', ['fid'])->execute()->fetchCol();
+          $query = $connection->select($table, 't')->fields('t', ['entity_id', $column]);
+          if (!empty($fu_query)) {
+            $query->condition('t.' . $column, $fu_query, 'NOT IN');
           }
-          $file_references = $connection->query($query)->fetchAll();
+          $maximum_records = $config->get('auditfiles_report_options_maximum_records');
+          if ($maximum_records > 0) {
+            $query->range(0, $maximum_records);
+          }
+          $file_references = $query->execute()->fetchAll();
           foreach ($file_references as $file_reference) {
             $reference_id = $table . '.' . $column . '.' . $file_reference->entity_id . '.' . $entity_type . '.' . $file_reference->{$column};
             $files_referenced[$reference_id] = [

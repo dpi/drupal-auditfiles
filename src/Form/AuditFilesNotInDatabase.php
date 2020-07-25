@@ -180,7 +180,7 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
     $rows = $this->auditFilesNotInDatabase->auditfilesNotInDatabaseGetReportsFiles();
     if (!empty($rows)) {
       // Set up the pager.
-      $items_per_page = $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
+      $items_per_page = $config->get('auditfiles_report_options_items_per_page');
       if (!empty($items_per_page)) {
         $current_page = $this->pagerManager->createPager(count($rows), $items_per_page)->getCurrentPage();
         // Break the total data set into page sized chunks.
@@ -189,7 +189,7 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
     }
     // Define the form.
     // Setup the record count and related messages.
-    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
+    $maximum_records = $config->get('auditfiles_report_options_maximum_records');
     $form_count = '';
     if (!empty($rows)) {
       if ($maximum_records > 0) {
