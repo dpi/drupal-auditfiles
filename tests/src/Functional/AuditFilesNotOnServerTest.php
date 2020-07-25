@@ -12,6 +12,7 @@ use Drupal\file\Entity\File;
  * Tests that the "Not on server" report is reachable with no errors.
  *
  * @group auditfiles
+ * @group auditfilesfunctional
  */
 class AuditFilesNotOnServerTest extends BrowserTestBase {
 

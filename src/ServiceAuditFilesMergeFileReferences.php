@@ -55,7 +55,7 @@ class ServiceAuditFilesMergeFileReferences {
   protected $fileSystem;
 
   /**
-   * Entity Type Manager service.
+   * The Entity Type Manager service.
    *
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */

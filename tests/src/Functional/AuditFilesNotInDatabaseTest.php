@@ -11,6 +11,7 @@ use Drupal\Tests\TestFileCreationTrait;
  * Tests that the "Not in Database" report is reachable with no errors.
  *
  * @group auditfiles
+ * @group auditfilesfunctional
  */
 class AuditFilesNotInDatabaseTest extends BrowserTestBase {
 

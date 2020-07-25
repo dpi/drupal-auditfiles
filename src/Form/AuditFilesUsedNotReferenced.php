@@ -179,7 +179,7 @@ class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterfa
     }
     // Set up the pager.
     if (!empty($rows)) {
-      $items_per_page = $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
+      $items_per_page = $config->get('auditfiles_report_options_items_per_page');
       if (!empty($items_per_page)) {
         $current_page = $this->pagerManager->createPager(count($rows), $items_per_page)->getCurrentPage();
         // Break the total data set into page sized chunks.
@@ -187,7 +187,7 @@ class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterfa
       }
     }
     // Setup the record count and related messages.
-    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
+    $maximum_records = $config->get('auditfiles_report_options_maximum_records');
     if (!empty($rows)) {
       if ($maximum_records > 0) {
         $file_count_message = $this->t('Found at least @count files in the file_usage table that are not referenced in content.');

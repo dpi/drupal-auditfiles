@@ -179,13 +179,13 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
       }
     }
     if (!empty($rows)) {
-      $items_per_page = $config->get('auditfiles_report_options_items_per_page') ? $config->get('auditfiles_report_options_items_per_page') : 50;
+      $items_per_page = $config->get('auditfiles_report_options_items_per_page');
       if (!empty($items_per_page)) {
         $current_page = $this->pagerManager->createPager(count($rows), $items_per_page)->getCurrentPage();
         $pages = array_chunk($rows, $items_per_page, TRUE);
       }
     }
-    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
+    $maximum_records = $config->get('auditfiles_report_options_maximum_records');
     if (!empty($rows)) {
       if ($maximum_records > 0) {
         $file_count_message = $this->t('Found at least @count files referenced in content that are not in the file_usage table.');

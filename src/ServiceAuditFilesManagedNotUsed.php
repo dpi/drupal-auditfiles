@@ -70,7 +70,7 @@ class ServiceAuditFilesManagedNotUsed {
    */
   public function auditfilesManagedNotUsedGetFileList() {
     $config = $this->configFactory->get('auditfiles.settings');
-    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
+    $maximum_records = $config->get('auditfiles_report_options_maximum_records');
     $connection = $this->connection;
     $fu_query = $connection->select('file_usage', 'fu')->fields('fu', ['fid'])->execute()->fetchCol();
     $query = $connection->select('file_managed', 'fm')->fields('fm', ['fid']);

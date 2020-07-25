@@ -128,7 +128,7 @@ class ServiceAuditFilesNotInDatabase {
     $this->auditfilesNotInDatabaseGetFilesForReport('', $report_files, $exclusions);
     if (!empty($report_files)) {
       // Get the static paths necessary for processing the files.
-      $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
+      $file_system_stream = $config->get('auditfiles_file_system_path');
       // The full file system path to the Drupal root directory.
       $real_files_path = $this->fileSystem->realpath($file_system_stream . '://');
       // Get the chosen date format for displaying the file dates with.
@@ -157,9 +157,9 @@ class ServiceAuditFilesNotInDatabase {
    */
   public function auditfilesNotInDatabaseGetFilesForReport($path, array &$report_files, $exclusions) {
     $config = $this->configFactory->get('auditfiles.settings');
-    $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
+    $file_system_stream = $config->get('auditfiles_file_system_path');
     $real_files_path = $real_files_path = $this->fileSystem->realpath($file_system_stream . '://');
-    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
+    $maximum_records = $config->get('auditfiles_report_options_maximum_records');
     if ($maximum_records > 0 && count($report_files) < $maximum_records) {
       $new_files = $this->auditfilesNotInDatabaseGetFiles($path, $exclusions);
       if (!empty($new_files)) {
@@ -251,7 +251,7 @@ class ServiceAuditFilesNotInDatabase {
    */
   public function auditfilesNotInDatabaseGetFiles($path, $exclusions) {
     $config = $this->configFactory->get('auditfiles.settings');
-    $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
+    $file_system_stream = $config->get('auditfiles_file_system_path');
     $real_files_path = $real_files_path = $this->fileSystem->realpath($file_system_stream . '://');
     // The variable to store the data being returned.
     $file_list = [];
@@ -301,7 +301,7 @@ class ServiceAuditFilesNotInDatabase {
   public function auditfilesGetExclusions() {
     $config = $this->configFactory->get('auditfiles.settings');
     $exclusions_array = [];
-    $files = trim($config->get('auditfiles_exclude_files') ? $config->get('auditfiles_exclude_files') : '.htaccess');
+    $files = $config->get('auditfiles_exclude_files');
     if ($files) {
       $exclude_files = explode(';', $files);
       foreach ($exclude_files as $key => $value) {
@@ -309,7 +309,7 @@ class ServiceAuditFilesNotInDatabase {
       }
       $exclusions_array = array_merge($exclusions_array, $exclude_files);
     }
-    $paths = trim($config->get('auditfiles_exclude_paths') ? $config->get('auditfiles_exclude_paths') : 'color;css;ctools;js');
+    $paths = $config->get('auditfiles_exclude_paths');
     if ($paths) {
       $exclude_paths = explode(';', $paths);
       foreach ($exclude_paths as $key => $value) {
@@ -319,7 +319,7 @@ class ServiceAuditFilesNotInDatabase {
     }
     // Exclude other file streams that may be defined and in use.
     $exclude_streams = [];
-    $auditfiles_file_system_path = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
+    $auditfiles_file_system_path = $config->get('auditfiles_file_system_path');
     $file_system_paths = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::LOCAL);
     foreach ($file_system_paths as $file_system_path_id => $file_system_path) {
       if ($file_system_path_id != $auditfiles_file_system_path) {
@@ -335,7 +335,7 @@ class ServiceAuditFilesNotInDatabase {
     $exclusions_array = array_merge($exclusions_array, $exclude_streams);
     // Create the list of requested extension exclusions. (This is a little more
     // complicated.)
-    $extensions = trim($config->get('auditfiles_exclude_extensions') ? $config->get('auditfiles_exclude_extensions') : '');
+    $extensions = $config->get('auditfiles_exclude_extensions');
     if ($extensions) {
       $exclude_extensions = explode(';', $extensions);
       foreach ($exclude_extensions as $key => $value) {
@@ -523,7 +523,7 @@ class ServiceAuditFilesNotInDatabase {
    */
   public function auditfilesNotInDatabaseBatchDeleteProcessFile($filename) {
     $config = $this->configFactory->get('auditfiles.settings');
-    $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
+    $file_system_stream = $config->get('auditfiles_file_system_path');
     $real_files_path = $this->fileSystem->realpath($file_system_stream . '://');
 
     if ($this->fileSystem->delete($real_files_path . DIRECTORY_SEPARATOR . $filename)) {
@@ -550,7 +550,7 @@ class ServiceAuditFilesNotInDatabase {
 
     if ($makefilepath) {
       $config = $this->configFactory->get('auditfiles.settings');
-      $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
+      $file_system_stream = $config->get('auditfiles_file_system_path');
       if ($this->fileSystem->realpath("$file_system_stream://$element")) {
         return preg_quote($this->fileSystem->realpath("$file_system_stream://$element"));
       }
@@ -563,7 +563,7 @@ class ServiceAuditFilesNotInDatabase {
    */
   public function auditfilesBuildUri($file_pathname) {
     $config = $this->configFactory->get('auditfiles.settings');
-    $file_system_stream = $config->get('auditfiles_file_system_path') ? $config->get('auditfiles_file_system_path') : 'public';
+    $file_system_stream = $config->get('auditfiles_file_system_path');
     return "$file_system_stream://$file_pathname";
   }
 

@@ -90,21 +90,21 @@ class AuditFilesConfig extends ConfigFormBase {
     $form['auditfiles_exclusions']['auditfiles_exclude_files'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Exclude these files'),
-      '#default_value' => trim($config->get('auditfiles_exclude_files') ? $config->get('auditfiles_exclude_files') : '.htaccess'),
+      '#default_value' => $config->get('auditfiles_exclude_files'),
       '#description' => $this->t('Enter a list of files to exclude, each separated by the semi-colon character (;).'),
     ];
 
     $form['auditfiles_exclusions']['auditfiles_exclude_extensions'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Exclude these extensions'),
-      '#default_value' => trim($config->get('auditfiles_exclude_extensions') ? $config->get('auditfiles_exclude_extensions') : ''),
+      '#default_value' => $config->get('auditfiles_exclude_extensions'),
       '#description' => $this->t('Enter a list of extensions to exclude, each separated by the semi-colon character (;). Do not include the leading dot.'),
     ];
 
     $form['auditfiles_exclusions']['auditfiles_exclude_paths'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Exclude these paths'),
-      '#default_value' => trim($config->get('auditfiles_exclude_paths') ? $config->get('auditfiles_exclude_paths') : 'color;css;ctools;js'),
+      '#default_value' => $config->get('auditfiles_exclude_paths'),
       '#description' => $this->t('Enter a list of paths to exclude, each separated by the semi-colon character (;). Do not include the leading slash.'),
     ];
 
@@ -116,7 +116,7 @@ class AuditFilesConfig extends ConfigFormBase {
     $form['auditfiles_domains']['auditfiles_include_domains'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Include references to these domains'),
-      '#default_value' => trim($config->get('auditfiles_include_domains') ? $config->get('auditfiles_include_domains') : ''),
+      '#default_value' => $config->get('auditfiles_include_domains'),
       '#size' => 80,
       '#maxlength' => 1024,
       '#description' => $this->t('Enter a list of domains (e.g., www.example.com) pointing to your website, each separated by the semi-colon character (;). <br />When scanning content for file references (such as &lt;img&gt;tags), any absolute references using these domains will be included and rewritten to use relative references. Absolute references to domains not in this list will be considered to be external references and will not be audited or rewritten.'),
@@ -136,13 +136,13 @@ class AuditFilesConfig extends ConfigFormBase {
     $form['auditfiles_report_options']['auditfiles_report_options_date_format'] = [
       '#type' => 'select',
       '#title' => 'Date format',
-      '#default_value' => $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : '',
+      '#default_value' => $config->get('auditfiles_report_options_date_format'),
       '#options' => $date_formats,
       '#description' => $this->t('Select the date format to use when displaying file dates in the reports.'),
     ];
 
     $form['auditfiles_report_options']['auditfiles_report_options_items_per_page'] = [
-      '#type' => 'textfield',
+      '#type' => 'number',
       '#title' => $this->t('Number of items per page'),
       '#default_value' => $config->get('auditfiles_report_options_items_per_page'),
       '#size' => 10,
@@ -150,7 +150,7 @@ class AuditFilesConfig extends ConfigFormBase {
     ];
 
     $form['auditfiles_report_options']['auditfiles_report_options_maximum_records'] = [
-      '#type' => 'textfield',
+      '#type' => 'number',
       '#title' => $this->t('Maximum records'),
       '#default_value' => $config->get('auditfiles_report_options_maximum_records'),
       '#size' => 10,
@@ -158,7 +158,7 @@ class AuditFilesConfig extends ConfigFormBase {
     ];
 
     $form['auditfiles_report_options']['auditfiles_report_options_batch_size'] = [
-      '#type' => 'textfield',
+      '#type' => 'number',
       '#title' => $this->t('Batch size'),
       '#default_value' => $config->get('auditfiles_report_options_batch_size'),
       '#size' => 10,
