@@ -1,5 +1,6 @@
 8.x-2.x-dev
 
+Issue #3154095 by lhridley: Upgrade path from Version 8.x-1.x to 8.x-2.x
 Issue #3160596 by lhridley: Automated Test:  AuditFilesConfig functionality
 Issue #3157995 by lhridley, LpSolit, TR: Parameters set to 0 (no limit) are not saved
 Issue #3157812 by lhridley, LpSolit: Path is always assumed to be the default one, causing dataloss
