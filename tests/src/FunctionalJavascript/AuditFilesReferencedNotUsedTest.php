@@ -15,6 +15,7 @@ use Drupal\field\Entity\FieldConfig;
  * Tests that the "Referenced not used" report is reachable with no errors.
  *
  * @group auditfiles
+ * @group auditfilesfunctionaljs
  */
 class AuditFilesReferencedNotUsedTest extends WebDriverTestBase {
 

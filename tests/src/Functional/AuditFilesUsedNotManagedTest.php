@@ -11,6 +11,7 @@ use Drupal\Tests\TestFileCreationTrait;
  * Tests that the "Used not managed" report is reachable with no errors.
  *
  * @group auditfiles
+ * @group auditfilesfunctional
  */
 class AuditFilesUsedNotManagedTest extends BrowserTestBase {
 

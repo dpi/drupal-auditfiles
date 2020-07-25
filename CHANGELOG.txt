@@ -1,5 +1,6 @@
 8.x-2.x-dev
 
+Issue #3157995 by lhridley, LpSolit, TR: Parameters set to 0 (no limit) are not saved
 Issue #3157812 by lhridley, LpSolit: Path is always assumed to be the default one, causing dataloss
 Issue #3154446 by lhridley: Automated test:  AuditFilesNotInDatabase Report
 Issue #3158966 by lhridley: Backporting bug fixes and test suite from 8.x-3.x to 8.x-2.x

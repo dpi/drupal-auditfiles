@@ -12,6 +12,7 @@ use Drupal\file\Entity\File;
  * Tests that the "Managed not used" report is reachable with no errors.
  *
  * @group auditfiles
+ * @group auditfilesfunctional
  */
 class AuditFilesManagedNotUsedTest extends BrowserTestBase {
 

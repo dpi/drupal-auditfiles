@@ -16,6 +16,7 @@ use Drupal\Tests\file\Functional\FileFieldCreationTrait;
  * Tests that the "Managed not used" report is reachable with no errors.
  *
  * @group auditfiles
+ * @group auditfilesfunctional
  */
 class AuditFilesUsedNotReferencedTest extends BrowserTestBase {
 
