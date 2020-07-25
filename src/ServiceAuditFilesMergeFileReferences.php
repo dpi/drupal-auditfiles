@@ -82,7 +82,7 @@ class ServiceAuditFilesMergeFileReferences {
   public function auditfilesMergeFileReferencesGetFileList() {
     $config = $this->configFactory->get('auditfiles.settings');
     $connection = $this->connection;
-    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
+    $maximum_records = $config->get('auditfiles_report_options_maximum_records');
     $result_set = [];
     $query = $connection->select('file_managed', 'fm')->fields('fm', ['fid', 'filename'])->orderBy('filename', 'ASC');
 

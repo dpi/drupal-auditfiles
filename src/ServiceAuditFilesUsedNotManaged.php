@@ -69,7 +69,7 @@ class ServiceAuditFilesUsedNotManaged {
     if (!empty($fm_query)) {
       $query->condition('fu.fid', $fm_query, 'NOT IN');
     }
-    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
+    $maximum_records = $config->get('auditfiles_report_options_maximum_records');
     if ($maximum_records > 0) {
       $query->range(0, $maximum_records);
     }

@@ -65,7 +65,7 @@ class ServiceAuditFilesUsedNotReferenced {
   public function auditfilesUsedNotReferencedGetFileList() {
     $connection = $this->connection;
     $config = $this->configFactory->get('auditfiles.settings');
-    $maximum_records = $config->get('auditfiles_report_options_maximum_records') ? $config->get('auditfiles_report_options_maximum_records') : 250;
+    $maximum_records = $config->get('auditfiles_report_options_maximum_records');
     $query = $connection->select('file_usage', 'fu')
       ->fields('fu', ['fid'])
       ->distinct();
