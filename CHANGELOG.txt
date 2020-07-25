@@ -1,4 +1,4 @@
-8.x-2.x-dev
+8.x-2.11
 
 Issue #3154095 by lhridley: Upgrade path from Version 8.x-1.x to 8.x-2.x
 Issue #3160596 by lhridley: Automated Test:  AuditFilesConfig functionality
