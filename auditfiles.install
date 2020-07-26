@@ -29,3 +29,12 @@ function auditfiles_update_8001() {
     }
   }
 }
+
+/**
+ * Remove auditfiles_report_options_batch_size from configuration.
+ */
+function auditfiles_update_8002() {
+  $config = \Drupal::service('config.factory')
+    ->getEditable('auditfiles.settings');
+  $config->clear('auditfiles_report_options_batch_size')->save();
+}

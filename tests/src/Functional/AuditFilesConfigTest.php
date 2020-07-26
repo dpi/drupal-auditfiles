@@ -110,8 +110,7 @@ class AuditFilesConfigTest extends BrowserTestBase {
     $session->elementAttributeContains('css', '#edit-auditfiles-report-options-items-per-page', 'value', '50');
     $session->elementExists('css', '#edit-auditfiles-report-options-maximum-records');
     $session->elementAttributeContains('css', '#edit-auditfiles-report-options-maximum-records', 'value', '250');
-    $session->elementExists('css', '#edit-auditfiles-report-options-batch-size');
-    $session->elementAttributeContains('css', '#edit-auditfiles-report-options-batch-size', 'value', '1000');
+    $session->elementNotExists('css', '#edit-auditfiles-report-options-batch-size');
   }
 
   /**
@@ -139,7 +138,6 @@ class AuditFilesConfigTest extends BrowserTestBase {
       'edit-auditfiles-report-options-date-format' => 'fallback',
       'edit-auditfiles-report-options-items-per-page' => '50',
       'edit-auditfiles-report-options-maximum-records' => '250',
-      'edit-auditfiles-report-options-batch-size' => '1000',
     ];
     // Submit configuration form.
     $this->submitForm($edit, 'Save configuration');
@@ -161,7 +159,6 @@ class AuditFilesConfigTest extends BrowserTestBase {
     $session->elementAttributeContains('css', '#edit-auditfiles-report-options-date-format > option:nth-child(1)', 'selected', 'selected');
     $session->elementAttributeContains('css', '#edit-auditfiles-report-options-items-per-page', 'value', '50');
     $session->elementAttributeContains('css', '#edit-auditfiles-report-options-maximum-records', 'value', '250');
-    $session->elementAttributeContains('css', '#edit-auditfiles-report-options-batch-size', 'value', '1000');
   }
 
 }

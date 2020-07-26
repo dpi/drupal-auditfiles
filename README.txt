@@ -143,21 +143,17 @@ You receive the following error messages:
    on line 0
 
  * (And a number of "Notice: Undefined index:..." messages.)
-   Set the "Maximum records" and "Batch size" settings on the Audit Files
-   administrative settings configuration page (admin/config/system/auditfiles),
-   and then use the "Load all records" button on the report that is producing
-   the error. See the "Limiting Features Explained" section above for more
-   information.
+   Set the "Maximum records" setting on the Audit Files administrative settings
+   configuration page (admin/config/system/auditfiles), and then use the "Load
+   all records" button on the report that is producing the error.
 
 You receive the following error messages:
 
  * Fatal error: Maximum execution time of [some number] seconds exceeded in
    [path to report file] on line [line number]
-   Set the "Maximum records" and "Batch size" settings on the Audit Files
-   administrative settings configuration page (admin/config/system/auditfiles),
-   and then use the "Load all records" button on the report that is producing
-   the error. See the Limiting Features Explained section above for more
-   information.
+   Set the "Maximum records" setting on the Audit Files administrative settings
+   configuration page (admin/config/system/auditfiles), and then use the "Load
+   all records" button on the report that is producing the error.
 
 
 MAINTAINERS
@@ -173,7 +169,3 @@ Previous maintainers:
  * Jason Flatt (oadaeh) - https://www.drupal.org/user/4649
  * keshav kumar (keshav.k) - https://www.drupal.org/u/keshavk
  * Stuart Greenfield (Stuart Greenfield) - https://www.drupal.org/user/54866
-
-Supporting organization:
-
- gai Technologies Pvt Ltd - https://www.drupal.org/gai-technologies-pvt-ltd

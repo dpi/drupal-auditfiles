@@ -28,6 +28,3 @@ auditfiles.settings:
     auditfiles_report_options_maximum_records:
       type: integer
       label: 'Maximum records'
-    auditfiles_report_options_batch_size:
-      type: integer
-      label: 'Batch size'

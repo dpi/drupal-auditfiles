@@ -157,14 +157,6 @@ class AuditFilesConfig extends ConfigFormBase {
       '#description' => $this->t('Enter an integer representing the maximum number of records to return for each report.<br /> If any of the reports are timing out, set this to some positive integer to limit the number of records that are queried in the database. For reports where the limit is reached, a button to batch process the loading of the page will be available that will allow all records to be retrieved without timing out.<br /> Set this to 0 for no limit.'),
     ];
 
-    $form['auditfiles_report_options']['auditfiles_report_options_batch_size'] = [
-      '#type' => 'number',
-      '#title' => $this->t('Batch size'),
-      '#default_value' => $config->get('auditfiles_report_options_batch_size'),
-      '#size' => 10,
-      '#description' => $this->t('If you have a lot of files (100,000+), it will take an exponentially longer amount of time and memory to retrieve file data the longer it goes through the batch process. Decreasing the the number of files loaded, by setting this to a positive, non-zero integer, will keep the batch process down to a reasonable amount of time.<br /> Set this to 0 for no limit.'),
-    ];
-
     $form['actions']['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Submit'),
@@ -184,7 +176,6 @@ class AuditFilesConfig extends ConfigFormBase {
       ->set('auditfiles_include_domains', $form_state->getValue('auditfiles_include_domains'))
       ->set('auditfiles_report_options_items_per_page', $form_state->getValue('auditfiles_report_options_items_per_page'))
       ->set('auditfiles_report_options_maximum_records', $form_state->getValue('auditfiles_report_options_maximum_records'))
-      ->set('auditfiles_report_options_batch_size', $form_state->getValue('auditfiles_report_options_batch_size'))
       ->set('auditfiles_report_options_date_format', $form_state->getValue('auditfiles_report_options_date_format'))
       ->save();
     parent::submitForm($form, $form_state);
