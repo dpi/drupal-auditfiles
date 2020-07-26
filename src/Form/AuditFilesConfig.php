@@ -169,14 +169,14 @@ class AuditFilesConfig extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->config('auditfiles.settings')
-      ->set('auditfiles_file_system_path', $form_state->getValue('auditfiles_file_system_path'))
-      ->set('auditfiles_exclude_files', $form_state->getValue('auditfiles_exclude_files'))
-      ->set('auditfiles_exclude_extensions', $form_state->getValue('auditfiles_exclude_extensions'))
-      ->set('auditfiles_exclude_paths', $form_state->getValue('auditfiles_exclude_paths'))
-      ->set('auditfiles_include_domains', $form_state->getValue('auditfiles_include_domains'))
-      ->set('auditfiles_report_options_items_per_page', $form_state->getValue('auditfiles_report_options_items_per_page'))
-      ->set('auditfiles_report_options_maximum_records', $form_state->getValue('auditfiles_report_options_maximum_records'))
-      ->set('auditfiles_report_options_date_format', $form_state->getValue('auditfiles_report_options_date_format'))
+      ->set('auditfiles_file_system_path', trim($form_state->getValue('auditfiles_file_system_path')))
+      ->set('auditfiles_exclude_files', trim($form_state->getValue('auditfiles_exclude_files')))
+      ->set('auditfiles_exclude_extensions', trim($form_state->getValue('auditfiles_exclude_extensions')))
+      ->set('auditfiles_exclude_paths', trim($form_state->getValue('auditfiles_exclude_paths')))
+      ->set('auditfiles_include_domains', trim($form_state->getValue('auditfiles_include_domains')))
+      ->set('auditfiles_report_options_items_per_page', trim($form_state->getValue('auditfiles_report_options_items_per_page')))
+      ->set('auditfiles_report_options_maximum_records', trim($form_state->getValue('auditfiles_report_options_maximum_records')))
+      ->set('auditfiles_report_options_date_format', trim($form_state->getValue('auditfiles_report_options_date_format')))
       ->save();
     parent::submitForm($form, $form_state);
   }
