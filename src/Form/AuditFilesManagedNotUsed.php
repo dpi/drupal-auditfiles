@@ -180,7 +180,7 @@ class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface 
     $config = $this->configFactoryStorage->get('auditfiles.settings');
     $file_ids = $this->filesManagedNotUsed->auditfilesManagedNotUsedGetFileList();
     if (!empty($file_ids)) {
-      $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
+      $date_format = $config->get('auditfiles_report_options_date_format');
       foreach ($file_ids as $file_id) {
         $rows[$file_id] = $this->filesManagedNotUsed->auditfilesManagedNotUsedGetFileData($file_id, $date_format);
       }

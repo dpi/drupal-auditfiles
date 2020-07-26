@@ -5,5 +5,5 @@ auditfiles_exclude_paths: color;css;ctools;js
 auditfiles_include_domains: ''
 auditfiles_report_options_items_per_page: 50
 auditfiles_report_options_maximum_records: 250
-auditfiles_report_options_date_format: ''
+auditfiles_report_options_date_format: 'long'
 

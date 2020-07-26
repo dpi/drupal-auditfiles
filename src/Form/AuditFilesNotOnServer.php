@@ -184,7 +184,7 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
 
     $file_ids = $this->auditFilesNotOnServer->auditfilesNotOnServerGetFileList();
     if (!empty($file_ids)) {
-      $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
+      $date_format = $config->get('auditfiles_report_options_date_format');
       foreach ($file_ids as $file_id) {
         $row = $this->auditFilesNotOnServer->auditfilesNotOnServerGetFileData($file_id, $date_format);
         if (isset($row)) {

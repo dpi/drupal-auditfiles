@@ -38,3 +38,15 @@ function auditfiles_update_8002() {
     ->getEditable('auditfiles.settings');
   $config->clear('auditfiles_report_options_batch_size')->save();
 }
+
+/**
+ * Reset config parameter for date format to "long".
+ */
+function auditfiles_update_8003() {
+  $config = \Drupal::service('config.factory')
+    ->getEditable('auditfiles.settings');
+  $value = $config->get('auditfiles_report_options_date_format');
+  if ($value == '') {
+    $config->set('auditfiles_report_options_date_format', 'long')->save();
+  }
+}

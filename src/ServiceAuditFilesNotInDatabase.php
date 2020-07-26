@@ -132,7 +132,7 @@ class ServiceAuditFilesNotInDatabase {
       // The full file system path to the Drupal root directory.
       $real_files_path = $this->fileSystem->realpath($file_system_stream . '://');
       // Get the chosen date format for displaying the file dates with.
-      $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
+      $date_format = $config->get('auditfiles_report_options_date_format');
       foreach ($report_files as $report_file) {
         // Check to see if the file is in the database.
         if (empty($report_file['path_from_files_root'])) {

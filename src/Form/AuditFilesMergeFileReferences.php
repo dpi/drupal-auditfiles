@@ -125,7 +125,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
     $config = $this->configFactoryStorage->get('auditfiles.settings');
     $connection = Database::getConnection();
     $storage = $form_state->getStorage();
-    $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
+    $date_format = $config->get('auditfiles_report_options_date_format');
     if (isset($storage['confirm'])) {
       // Stage is "confirm", build form and form submit handler.
       if ($storage['stage'] == 'confirm') {
@@ -296,7 +296,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
     }
     $file_names = $this->mergeFileReferences->auditfilesMergeFileReferencesGetFileList();
     if (!empty($file_names)) {
-      $date_format = $config->get('auditfiles_report_options_date_format') ? $config->get('auditfiles_report_options_date_format') : 'long';
+      $date_format = $config->get('auditfiles_report_options_date_format');
       foreach ($file_names as $file_name) {
         $rows[$file_name] = $this->mergeFileReferences->auditfilesMergeFileReferencesGetFileData($file_name, $date_format);
       }
