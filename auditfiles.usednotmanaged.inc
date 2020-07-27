@@ -335,7 +335,7 @@ function _auditfiles_used_not_managed_batch_display_process_files(array &$contex
     $file_list = array_slice($context['results']['file_list'], 0, 20, TRUE);
 
     $query = 'SELECT fid, module, type, id, count
-      FROM file_usage
+      FROM {file_usage}
       WHERE fid IN (:file_list)';
     $files_list = db_query($query, array(':file_list' => $file_list))->fetchAll();
 

@@ -380,7 +380,7 @@ function _auditfiles_merge_file_references_batch_display_get_files($show_single_
   else {
     $query = '
       SELECT COUNT(fid) AS file_count, filename
-      FROM file_managed
+      FROM {file_managed}
       WHERE filename > :filename
       GROUP BY filename
       HAVING file_count > 1';

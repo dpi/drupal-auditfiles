@@ -584,7 +584,7 @@ function _auditfiles_not_in_database_batch_add_process_file($filepathname) {
   $file->timestamp = REQUEST_TIME;
 
   // Make sure the file is not already in the database.
-  $query = 'SELECT fid FROM file_managed WHERE uri = :uri';
+  $query = 'SELECT fid FROM {file_managed} WHERE uri = :uri';
   $existing_file = db_query($query, array(':uri' => $file->uri))->fetchAll();
   if (empty($existing_file)) {
     // The file is not already in the database, so add it.

@@ -256,7 +256,7 @@ function _auditfiles_used_not_referenced_batch_display_get_operations() {
       $column = $field['storage']['details']['sql']['FIELD_LOAD_CURRENT'][$table]['fid'];
       $field['column'] = $column;
 
-      $query = "SELECT t.$column FROM {$table} AS t INNER JOIN {file_usage} AS f ON f.fid = t.$column";
+      $query = "SELECT t.$column FROM {{$table}} AS t INNER JOIN {file_usage} AS f ON f.fid = t.$column";
       $results = db_query($query)->fetchAll();
       $field['results'] = $results;
 
@@ -584,7 +584,7 @@ function _auditfiles_used_not_referenced_get_file_list() {
       // Get the column name in the database table for the field.
       $column = $field['storage']['details']['sql']['FIELD_LOAD_CURRENT'][$table]['fid'];
 
-      $query = "SELECT t.$column FROM {$table} AS t INNER JOIN {file_usage} AS f ON f.fid = t.$column";
+      $query = "SELECT t.$column FROM {{$table}} AS t INNER JOIN {file_usage} AS f ON f.fid = t.$column";
       $result = db_query($query);
 
       foreach ($result as $fid) {

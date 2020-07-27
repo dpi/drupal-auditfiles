@@ -353,7 +353,7 @@ function _auditfiles_not_on_server_batch_display_process_files($date_format, arr
     $file_list = array_slice($context['results']['file_list'], 0, 20, TRUE);
 
     $query = 'SELECT fid, uid, filename, uri, filemime, filesize, timestamp, status
-      FROM file_managed
+      FROM {file_managed}
       WHERE fid IN (:file_list)';
     $files_list = db_query($query, array(':file_list' => $file_list))->fetchAll();
 

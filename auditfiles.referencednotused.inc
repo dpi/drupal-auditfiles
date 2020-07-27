@@ -621,7 +621,7 @@ function _auditfiles_referenced_not_used_batch_add_process_file($reference_id) {
   );
 
   // Make sure the file is not already in the database.
-  $query = 'SELECT fid FROM file_usage
+  $query = 'SELECT fid FROM {file_usage}
     WHERE fid = :fid AND module = :module AND type = :type AND id = :id';
   $existing_file = db_query(
     $query,
