@@ -250,10 +250,10 @@ function _auditfiles_used_not_referenced_batch_display_get_operations() {
     // spcifying the field types.
     if (!empty($field['type']) && ($field['type'] == 'file' || $field['type'] == 'image')) {
       // Get the database table name for the field.
-      $table = key($field['storage']['details']['sql']['FIELD_LOAD_CURRENT']);
+      $table = key($field['storage']['details']['sql'][FIELD_LOAD_CURRENT]);
       $field['table'] = $table;
       // Get the column name in the database table for the field.
-      $column = $field['storage']['details']['sql']['FIELD_LOAD_CURRENT'][$table]['fid'];
+      $column = $field['storage']['details']['sql'][FIELD_LOAD_CURRENT][$table]['fid'];
       $field['column'] = $column;
 
       $query = "SELECT t.$column FROM {{$table}} AS t INNER JOIN {file_usage} AS f ON f.fid = t.$column";
@@ -580,9 +580,9 @@ function _auditfiles_used_not_referenced_get_file_list() {
     // spcifying the field types.
     if (!empty($field['type']) && ($field['type'] == 'file' || $field['type'] == 'image')) {
       // Get the database table name for the field.
-      $table = key($field['storage']['details']['sql']['FIELD_LOAD_CURRENT']);
+      $table = key($field['storage']['details']['sql'][FIELD_LOAD_CURRENT]);
       // Get the column name in the database table for the field.
-      $column = $field['storage']['details']['sql']['FIELD_LOAD_CURRENT'][$table]['fid'];
+      $column = $field['storage']['details']['sql'][FIELD_LOAD_CURRENT][$table]['fid'];
 
       $query = "SELECT t.$column FROM {{$table}} AS t INNER JOIN {file_usage} AS f ON f.fid = t.$column";
       $result = db_query($query);

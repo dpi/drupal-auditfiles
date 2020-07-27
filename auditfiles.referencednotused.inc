@@ -262,10 +262,10 @@ function _auditfiles_referenced_not_used_batch_display_get_operations() {
     // spcifying the field types.
     if (!empty($field['type']) && ($field['type'] == 'file' || $field['type'] == 'image')) {
       // Get the database table name for the field.
-      $table = key($field['storage']['details']['sql']['FIELD_LOAD_CURRENT']);
+      $table = key($field['storage']['details']['sql'][FIELD_LOAD_CURRENT]);
       $field['table'] = $table;
       // Get the column name in the database table for the field.
-      $column = $field['storage']['details']['sql']['FIELD_LOAD_CURRENT'][$table]['fid'];
+      $column = $field['storage']['details']['sql'][FIELD_LOAD_CURRENT][$table]['fid'];
       $field['column'] = $column;
       // Save the data for use in the operation.
       $file_fields[$field_name] = $field;
@@ -315,9 +315,9 @@ function _auditfiles_referenced_not_used_batch_display_get_files(array $file_fie
       $context['sandbox']['file_fields'] = $file_fields;
       $file_field = array_shift($context['sandbox']['file_fields']);
       // Get the database table name for the field.
-      $context['sandbox']['table'] = key($file_field['storage']['details']['sql']['FIELD_LOAD_CURRENT']);
+      $context['sandbox']['table'] = key($file_field['storage']['details']['sql'][FIELD_LOAD_CURRENT]);
       // Get the column name in the database table for the field.
-      $context['sandbox']['column'] = $file_field['storage']['details']['sql']['FIELD_LOAD_CURRENT'][$context['sandbox']['table']]['fid'];
+      $context['sandbox']['column'] = $file_field['storage']['details']['sql'][FIELD_LOAD_CURRENT][$context['sandbox']['table']]['fid'];
     }
   }
   if (!isset($context['results']['file_list'])) {
@@ -344,9 +344,9 @@ function _auditfiles_referenced_not_used_batch_display_get_files(array $file_fie
     else {
       $file_field = array_shift($context['sandbox']['file_fields']);
       // Get the database table name for the field.
-      $context['sandbox']['table'] = key($file_field['storage']['details']['sql']['FIELD_LOAD_CURRENT']);
+      $context['sandbox']['table'] = key($file_field['storage']['details']['sql'][FIELD_LOAD_CURRENT]);
       // Get the column name in the database table for the field.
-      $context['sandbox']['column'] = $file_field['storage']['details']['sql']['FIELD_LOAD_CURRENT'][$context['sandbox']['table']]['fid'];
+      $context['sandbox']['column'] = $file_field['storage']['details']['sql'][FIELD_LOAD_CURRENT][$context['sandbox']['table']]['fid'];
     }
   }
   else {
@@ -763,9 +763,9 @@ function _auditfiles_referenced_not_used_get_file_list() {
     // field types.
     if (!empty($field['type']) && ($field['type'] == 'file' || $field['type'] == 'image')) {
       // Get the database table name for the field.
-      $table = key($field['storage']['details']['sql']['FIELD_LOAD_CURRENT']);
+      $table = key($field['storage']['details']['sql'][FIELD_LOAD_CURRENT]);
       // Get the column name in the database table for the field.
-      $column = $field['storage']['details']['sql']['FIELD_LOAD_CURRENT'][$table]['fid'];
+      $column = $field['storage']['details']['sql'][FIELD_LOAD_CURRENT][$table]['fid'];
 
       // Get the records from the specified field table.
       $query = 'SELECT entity_id, entity_type, ' . $column . ' FROM {' . $table . '}';
