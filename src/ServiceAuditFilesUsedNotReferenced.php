@@ -106,14 +106,12 @@ class ServiceAuditFilesUsedNotReferenced {
       if ($this->connection->schema()->tableExists($table)) {
         $query = "SELECT t.$column FROM {{$table}} AS t INNER JOIN {file_usage} AS f ON f.fid = t.$column";
         $result = $connection->query($query)->fetchCol();
-        foreach ($result as $fid) {
-          if (in_array($fid, $files_in_file_usage)) {
-            $files_in_fields[] = $fid;
-          }
-        }
+        // Exclude files which are in use.
+        $files_in_file_usage = array_diff($files_in_file_usage, $result);
       }
     }
-    return array_diff($files_in_file_usage, $files_in_fields);
+    // Return unused files.
+    return $files_in_file_usage;
   }
 
   /**
