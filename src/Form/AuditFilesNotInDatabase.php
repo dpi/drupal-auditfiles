@@ -9,7 +9,6 @@ use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\auditfiles\ServiceAuditFilesNotInDatabase;
 use Drupal\Core\Pager\PagerManagerInterface;
 
@@ -17,8 +16,6 @@ use Drupal\Core\Pager\PagerManagerInterface;
  * Form for Not in database functionality.
  */
 class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
-
-  use MessengerTrait;
 
   /**
    * The Config.

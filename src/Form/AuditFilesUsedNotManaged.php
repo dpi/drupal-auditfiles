@@ -9,7 +9,6 @@ use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\auditfiles\ServiceAuditFilesUsedNotManaged;
 use Drupal\Core\Pager\PagerManagerInterface;
 
@@ -17,8 +16,6 @@ use Drupal\Core\Pager\PagerManagerInterface;
  * Class for file used but not managed.
  */
 class AuditFilesUsedNotManaged extends FormBase implements ConfirmFormInterface {
-
-  use MessengerTrait;
 
   /**
    * The Config.

@@ -10,7 +10,6 @@ use Drupal\Core\Url;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Pager\PagerManagerInterface;
 use Drupal\auditfiles\ServiceAuditFilesMergeFileReferences;
 
@@ -18,8 +17,6 @@ use Drupal\auditfiles\ServiceAuditFilesMergeFileReferences;
  * Form for merge file references.
  */
 class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInterface {
-
-  use MessengerTrait;
 
   /**
    * The Config.
