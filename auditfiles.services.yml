@@ -17,7 +17,7 @@ services:
 
   auditfiles.used_not_referenced:
     class: Drupal\auditfiles\ServiceAuditFilesUsedNotReferenced
-    arguments: ['@string_translation', '@config.factory', '@database', '@entity_field.manager']
+    arguments: ['@string_translation', '@config.factory', '@database', '@entity_field.manager', '@entity_type.manager']
 
   auditfiles.referenced_not_used:
     class: Drupal\auditfiles\ServiceAuditFilesReferencedNotUsed

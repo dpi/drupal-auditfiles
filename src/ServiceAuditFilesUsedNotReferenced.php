@@ -10,6 +10,7 @@ use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityFieldManager;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
  * List all methods used in files used not managed functionality.
@@ -47,13 +48,21 @@ class ServiceAuditFilesUsedNotReferenced {
   protected $entityFieldManager;
 
   /**
+   * The entity_type.manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * Define constructor.
    */
-  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, EntityFieldManager $entity_field_manager) {
+  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection, EntityFieldManager $entity_field_manager, EntityTypeManagerInterface $entity_type_manager) {
     $this->stringTranslation = $translation;
     $this->configFactory = $config_factory;
     $this->connection = $connection;
     $this->entityFieldManager = $entity_field_manager;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -80,7 +89,12 @@ class ServiceAuditFilesUsedNotReferenced {
     foreach ($fields as $value) {
       foreach ($value as $table_prefix => $entity_type) {
         foreach ($entity_type as $key1 => $value1) {
-          $field_data[$count]['table'] = $table_prefix . '__' . $key1;
+          if ($this->entityTypeManager->getStorage($table_prefix)->getEntityType()->isRevisionable()) {
+            $field_data[$count]['table'] = $table_prefix . '_revision__' . $key1;
+          }
+          else {
+            $field_data[$count]['table'] = $table_prefix . '__' . $key1;
+          }
           $field_data[$count]['column'] = $key1 . '_target_id';
           $count++;
         }
