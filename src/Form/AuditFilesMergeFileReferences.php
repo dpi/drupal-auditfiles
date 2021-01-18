@@ -9,6 +9,7 @@ use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Datetime\DateFormatter;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Pager\PagerManagerInterface;
@@ -43,6 +44,13 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
   protected $mergeFileReferences;
 
   /**
+   * The Date Formatter.
+   *
+   * @var Drupal\Core\Datetime\DateFormatter
+   */
+  protected $dateFormatter;
+
+  /**
    * Class Constructor.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -51,11 +59,14 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
    *   Pager Manager service.
    * @param \Drupal\auditfiles\ServiceAuditFilesMergeFileReferences $merge_file_references
    *   ServiceAuditFilesMergeFileReferences service.
+   * @param \Drupal\Core\Datetime\DateFormatter $date_formatter
+   *   Date Formatter service.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, PagerManagerInterface $pager_manager, ServiceAuditFilesMergeFileReferences $merge_file_references) {
+  public function __construct(ConfigFactoryInterface $config_factory, PagerManagerInterface $pager_manager, ServiceAuditFilesMergeFileReferences $merge_file_references, DateFormatter $date_formatter) {
     $this->configFactoryStorage = $config_factory;
     $this->pagerManager = $pager_manager;
     $this->mergeFileReferences = $merge_file_references;
+    $this->dateFormatter = $date_formatter;
   }
 
   /**
@@ -65,7 +76,8 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
     return new static(
       $container->get('config.factory'),
       $container->get('pager.manager'),
-      $container->get('auditfiles.merge_file_references')
+      $container->get('auditfiles.merge_file_references'),
+      $container->get('date.formatter')
     );
   }
 
