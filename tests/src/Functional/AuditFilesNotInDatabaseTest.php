@@ -73,7 +73,7 @@ class AuditFilesNotInDatabaseTest extends BrowserTestBase {
    */
   public function testReportPage() {
     // Form to test.
-    $path = URL::fromRoute('auditfiles.notindatabase');
+    $path = Url::fromRoute('auditfiles.notindatabase');
     // Establish session.
     $session = $this->assertSession();
     // Visit page as anonymous user, should receive a 403.
@@ -94,7 +94,7 @@ class AuditFilesNotInDatabaseTest extends BrowserTestBase {
    */
   public function testFileNotInDatabase() {
     // Form to test.
-    $path = URL::fromRoute('auditfiles.notindatabase');
+    $path = Url::fromRoute('auditfiles.notindatabase');
     // Establish session.
     $session = $this->assertSession();
     // Log in as admin user.
@@ -118,7 +118,7 @@ class AuditFilesNotInDatabaseTest extends BrowserTestBase {
    */
   public function testFileCanBeDeleted() {
     // Form to test.
-    $path = URL::fromRoute('auditfiles.notindatabase');
+    $path = Url::fromRoute('auditfiles.notindatabase');
     // Establish session.
     $session = $this->assertSession();
     // Log in as admin user.
@@ -151,7 +151,7 @@ class AuditFilesNotInDatabaseTest extends BrowserTestBase {
    */
   public function testFileCanBeAdded() {
     // Form to test.
-    $path = URL::fromRoute('auditfiles.notindatabase');
+    $path = Url::fromRoute('auditfiles.notindatabase');
     // Establish session.
     $session = $this->assertSession();
     // Log in as admin user.

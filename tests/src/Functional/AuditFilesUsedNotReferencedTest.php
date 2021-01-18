@@ -131,7 +131,7 @@ class AuditFilesUsedNotReferencedTest extends BrowserTestBase {
    */
   public function testReportPage() {
     // Form to test.
-    $path = URL::fromRoute('auditfiles.audit_files_usednotreferenced');
+    $path = Url::fromRoute('auditfiles.audit_files_usednotreferenced');
     // Establish session.
     $session = $this->assertSession();
     // Visit page as anonymous user, should receive a 403.
@@ -158,7 +158,7 @@ class AuditFilesUsedNotReferencedTest extends BrowserTestBase {
     \Drupal::database()->query("DELETE FROM {node__field_image} WHERE field_image_target_id='1'")->execute();
     \Drupal::database()->query("DELETE FROM {node_revision__field_image} WHERE field_image_target_id='1'")->execute();
     // Form to test.
-    $path = URL::fromRoute('auditfiles.audit_files_usednotreferenced');
+    $path = Url::fromRoute('auditfiles.audit_files_usednotreferenced');
     // Establish session.
     $session = $this->assertSession();
     // Log in as admin user.

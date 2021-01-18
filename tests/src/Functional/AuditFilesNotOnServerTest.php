@@ -73,7 +73,7 @@ class AuditFilesNotOnServerTest extends BrowserTestBase {
    */
   public function testReportPage() {
     // Form to test.
-    $path = URL::fromRoute('auditfiles.audit_files_notonserver');
+    $path = Url::fromRoute('auditfiles.audit_files_notonserver');
     // Establish session.
     $session = $this->assertSession();
     // Visit page as anonymous user, should receive a 403.
@@ -96,7 +96,7 @@ class AuditFilesNotOnServerTest extends BrowserTestBase {
    */
   public function testFileEntityCanBeDeleted() {
     // Form to test.
-    $path = URL::fromRoute('auditfiles.audit_files_notonserver');
+    $path =Url::fromRoute('auditfiles.audit_files_notonserver');
     // Establish session.
     $session = $this->assertSession();
     // Log in as admin user.

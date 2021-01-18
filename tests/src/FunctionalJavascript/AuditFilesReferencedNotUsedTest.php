@@ -144,7 +144,7 @@ class AuditFilesReferencedNotUsedTest extends WebDriverTestBase {
    */
   public function testReportPage() {
     // Form to test.
-    $path = URL::fromRoute('auditfiles.audit_files_referencednotused');
+    $path = Url::fromRoute('auditfiles.audit_files_referencednotused');
     // Establish session.
     $session = $this->assertSession();
     // Visit page as anonymous user, should get Access Denied message.
@@ -168,7 +168,7 @@ class AuditFilesReferencedNotUsedTest extends WebDriverTestBase {
     // Delete file_usage entry.
     \Drupal::database()->query("DELETE FROM {file_usage} WHERE type='node' AND fid='1'")->execute();
     // Form to test.
-    $path = URL::fromRoute('auditfiles.audit_files_referencednotused');
+    $path = Url::fromRoute('auditfiles.audit_files_referencednotused');
     // Establish session.
     $session = $this->assertSession();
     // Log in as admin user.
@@ -205,7 +205,7 @@ class AuditFilesReferencedNotUsedTest extends WebDriverTestBase {
     \Drupal::database()->query("DELETE FROM {file_usage} WHERE type='node' AND fid='1'")->execute();
 
     // Form to test.
-    $path = URL::fromRoute('auditfiles.audit_files_referencednotused');
+    $path = Url::fromRoute('auditfiles.audit_files_referencednotused');
     // Establish session.
     $session = $this->assertSession();
     // Log in as admin user.
