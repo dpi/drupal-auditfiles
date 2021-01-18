@@ -323,8 +323,8 @@ class ServiceAuditFilesNotInDatabase {
     $file_system_paths = $this->streamWrapperManager->getWrappers(StreamWrapperInterface::LOCAL);
     foreach ($file_system_paths as $file_system_path_id => $file_system_path) {
       if ($file_system_path_id != $auditfiles_file_system_path) {
-        $uri = $file_system_path_id . '://';
-        if ($wrapper = $this->streamWrapperManager->getViaUri($uri)) {
+        $wrapper = $this->streamWrapperManager->getViaUri($file_system_path_id . '://');
+        if ($wrapper && $wrapper->realpath()) {
           $exclude_streams[] = $wrapper->realpath();
         }
       }
