@@ -21,7 +21,7 @@ class AuditFilesBatchProcess {
     }
     else {
       $error_operation = reset($operations);
-      $this->messenger()->addError(
+      $self::messenger()->addError(
         t('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
@@ -92,7 +92,7 @@ class AuditFilesBatchProcess {
     }
     else {
       $error_operation = reset($operations);
-      $this->messenger()->addError(
+      $self::messenger()->addError(
         t('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
@@ -133,7 +133,7 @@ class AuditFilesBatchProcess {
   public static function auditfilesManagedNotUsedBatchFinishBatch($success, $results, $operations) {
     if (!$success) {
       $error_operation = reset($operations);
-      $this->messenger()->addError(
+      $self::messenger()->addError(
         t('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
@@ -160,7 +160,7 @@ class AuditFilesBatchProcess {
     if (!$success) {
       $error_operation = reset($operations);
 
-      $this->messenger()->addError(
+      $self::messenger()->addError(
         t('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
@@ -186,7 +186,7 @@ class AuditFilesBatchProcess {
   public static function auditfilesUsedNotReferencedBatchFinishBatch($success, $results, $operations) {
     if (!$success) {
       $error_operation = reset($operations);
-      $this->messenger()->addError(
+      $self::messenger()->addError(
         t('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
@@ -203,7 +203,7 @@ class AuditFilesBatchProcess {
   public static function auditfilesReferencedNotUsedBatchFinishBatch($success, $results, $operations) {
     if (!$success) {
       $error_operation = reset($operations);
-      $this->messenger()->addError(
+      $self::messenger()->addError(
         t('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
@@ -238,7 +238,7 @@ class AuditFilesBatchProcess {
   public static function auditfilesMergeFileReferencesBatchFinishBatch($success, $results, $operations) {
     if (!$success) {
       $error_operation = reset($operations);
-      $this->messenger()->addError(
+      $self::messenger()->addError(
         t('An error occurred while processing @operation with arguments : @args',
           [
             '@operation' => $error_operation[0],
