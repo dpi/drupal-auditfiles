@@ -124,7 +124,7 @@ class ServiceAuditFilesNotOnServer {
       'filemime' => $file->filemime,
       'filesize' => number_format($file->filesize),
       'datetime' => $this->dateFormatter->format($file->created, $date_format),
-      'status' => ($file->status = 1) ? 'Permanent' : 'Temporary',
+      'status' => ($file->status == 1) ? 'Permanent' : 'Temporary',
     ];
   }
 
