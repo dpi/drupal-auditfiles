@@ -188,7 +188,10 @@ class ServiceAuditFilesUsedNotReferenced {
     $operations = [];
     foreach ($fileids as $file_id) {
       if ($file_id != 0) {
-        $operations[] = ['\Drupal\auditfiles\Batch\AuditFilesUsedNotReferencedBatchProcess::auditfilesUsedNotReferencedBatchDeleteProcessBatch', [$file_id]];
+        $operations[] = [
+          '\Drupal\auditfiles\Batch\AuditFilesUsedNotReferencedBatchProcess::auditfilesUsedNotReferencedBatchDeleteProcessBatch',
+          [$file_id],
+        ];
       }
     }
     $batch['operations'] = $operations;
