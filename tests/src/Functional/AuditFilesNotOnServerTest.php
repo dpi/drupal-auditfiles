@@ -96,7 +96,7 @@ class AuditFilesNotOnServerTest extends BrowserTestBase {
    */
   public function testFileEntityCanBeDeleted() {
     // Form to test.
-    $path =Url::fromRoute('auditfiles.audit_files_notonserver');
+    $path = Url::fromRoute('auditfiles.audit_files_notonserver');
     // Establish session.
     $session = $this->assertSession();
     // Log in as admin user.

@@ -1,11 +1,11 @@
 <?php
 
-use Drupal\user\Entity\Role;
-
 /**
  * @file
  * This file is used to write install Uninstall hooks that used in the module.
  */
+
+use Drupal\user\Entity\Role;
 
 /**
  * Hook_uninstall().
@@ -19,7 +19,7 @@ function auditfiles_uninstall() {
  */
 function auditfiles_update_8001() {
   $roles = Role::loadMultiple();
-  foreach ($roles as $role => $roleObj) {
+  foreach ($roles as $roleObj) {
     if ($roleObj->hasPermission('administer site configuration')) {
       $roleObj->grantPermission('configure audit files reports');
       $roleObj->grantPermission('access audit files reports');

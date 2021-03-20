@@ -82,7 +82,7 @@ class ServiceAuditFilesUsedNotReferenced {
       $query->range(0, $maximum_records);
     }
     $files_in_file_usage = $query->execute()->fetchCol();
-    $files_in_fields = $field_data = [];
+    $field_data = [];
     $fields[] = $this->entityFieldManager->getFieldMapByFieldType('image');
     $fields[] = $this->entityFieldManager->getFieldMapByFieldType('file');
     $count = 0;
