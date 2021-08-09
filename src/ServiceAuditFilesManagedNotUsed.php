@@ -2,12 +2,14 @@
 
 namespace Drupal\auditfiles;
 
-use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Datetime\DateFormatter;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Link;
+use Drupal\Core\Messenger\MessengerTrait;
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Core\Url;
 
 /**
  * Service managed not used functions.
@@ -120,7 +122,7 @@ class ServiceAuditFilesManagedNotUsed {
       'fid' => $file->fid,
       'uid' => $file->uid,
       'filename' => $file->filename,
-      'uri' => $file->uri,
+      'uri' => Link::fromTextAndUrl($file->uri, Url::fromUri(file_create_url($file->uri), ['attributes' => ['target' => '_blank']])),
       'path' => $this->fileSystem->realpath($file->uri),
       'filemime' => $file->filemime,
       'filesize' => number_format($file->filesize),

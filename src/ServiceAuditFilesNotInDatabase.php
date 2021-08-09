@@ -2,19 +2,21 @@
 
 namespace Drupal\auditfiles;
 
-use Drupal\Core\StreamWrapper\StreamWrapperInterface;
-use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Core\Messenger\MessengerTrait;
-use Drupal\Core\Database\Connection;
-use Drupal\Core\StreamWrapper\StreamWrapperManager;
-use Drupal\Core\Datetime\DateFormatter;
-use Drupal\Core\File\FileSystemInterface;
-use Drupal\Core\Session\AccountProxy;
-use Drupal\Core\ProxyClass\File\MimeType\MimeTypeGuesser;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Component\Uuid\UuidInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Database\Connection;
+use Drupal\Core\Datetime\DateFormatter;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Link;
+use Drupal\Core\Messenger\MessengerTrait;
+use Drupal\Core\ProxyClass\File\MimeType\MimeTypeGuesser;
+use Drupal\Core\Session\AccountProxy;
+use Drupal\Core\StreamWrapper\StreamWrapperInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperManager;
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Core\Url;
 
 /**
  * Define all methods that are used on Files not in database functionality.
@@ -145,6 +147,7 @@ class ServiceAuditFilesNotInDatabase {
         if (!$this->auditfilesNotInDatabaseIsFileInDatabase($file_to_check)) {
           // Gets the file's information (size, date, etc.) and assempbles the.
           // array for the table.
+          $report_file['uri'] = file_create_url(sprintf('%s://%s', $file_system_stream, $file_to_check));
           $reported_files += $this->auditfilesNotInDatabaseFormatRowData($report_file, $real_files_path, $date_format);
         }
       }
@@ -229,7 +232,7 @@ class ServiceAuditFilesNotInDatabase {
     }
     // Format the data for the table row.
     $row_data[$filepathname] = [
-      'filepathname' => empty($filepathname) ? '' : $filepathname,
+      'filepathname' => empty($filepathname) ? '' : Link::fromTextAndUrl($filepathname, Url::fromUri($file['uri'], ['attributes' => ['target' => '_blank']])),
       'filemime' => empty($filemime) ? '' : $filemime,
       'filesize' => !isset($filesize) ? '' : $filesize,
       'filemodtime' => empty($filemodtime) ? '' : $filemodtime,

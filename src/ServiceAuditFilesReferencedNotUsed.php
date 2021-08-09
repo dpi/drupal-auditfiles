@@ -2,14 +2,14 @@
 
 namespace Drupal\auditfiles;
 
-use Drupal\Core\Link;
-use Drupal\Core\Url;
-use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityFieldManager;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Link;
+use Drupal\Core\Messenger\MessengerTrait;
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Core\Url;
 
 /**
  * List all methods used in referenced not used functionality.
@@ -171,7 +171,7 @@ class ServiceAuditFilesReferencedNotUsed {
     // information to the row, too.
     $file_managed = $this->entityTypeManager->getStorage('file')->load($result->{$row_data['column']});
     if (!empty($file_managed)) {
-      $row['uri'] = $file_managed->getFileuri();
+      $row['uri'] = Link::fromTextAndUrl($file_managed->getFileuri(), Url::fromUri(file_create_url($file_managed->getFileuri()), ['attributes' => ['target' => '_blank']]));
       $row['filename'] = ['data' => $file_managed->getFilename(), 'hidden' => TRUE];
       $row['filemime'] = $file_managed->getMimeType();
       $row['filesize'] = $file_managed->getSize();
