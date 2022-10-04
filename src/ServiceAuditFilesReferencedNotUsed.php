@@ -171,7 +171,7 @@ class ServiceAuditFilesReferencedNotUsed {
     // information to the row, too.
     $file_managed = $this->entityTypeManager->getStorage('file')->load($result->{$row_data['column']});
     if (!empty($file_managed)) {
-      $row['uri'] = $file_managed->getFileuri();
+      $row['uri'] = Link::fromTextAndUrl($file_managed->getFileuri(), Url::fromUri(file_create_url($file_managed->getFileuri()), ['attributes' => ['target' => '_blank']]));
       $row['filename'] = ['data' => $file_managed->getFilename(), 'hidden' => TRUE];
       $row['filemime'] = $file_managed->getMimeType();
       $row['filesize'] = $file_managed->getSize();

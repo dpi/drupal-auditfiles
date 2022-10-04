@@ -158,7 +158,11 @@ class ServiceAuditFilesUsedNotReferenced {
       }
       $usage .= '</ul>';
       $usage = new FormattableMarkup($usage, []);
-      $row = ['fid' => $file_id, 'uri' => $file_managed->uri, 'usage' => $usage];
+      $row = [
+        'fid' => $file_id,
+        'uri' => Link::fromTextAndUrl($file_managed->uri, Url::fromUri(file_create_url($file_managed->uri), ['attributes' => ['target' => '_blank']])),
+        'usage' => $usage,
+      ];
     }
     return $row;
   }
