@@ -9,7 +9,7 @@ use Drupal\Core\Form\ConfirmFormHelper;
 use Drupal\Core\Url;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Datetime\DateFormatter;
+use Drupal\Core\Datetime\DateFormatterInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Pager\PagerManagerInterface;
 use Drupal\auditfiles\ServiceAuditFilesMergeFileReferences;
@@ -43,7 +43,7 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
   /**
    * The Date Formatter.
    *
-   * @var Drupal\Core\Datetime\DateFormatter
+   * @var \Drupal\Core\Datetime\DateFormatterInterface
    */
   protected $dateFormatter;
 
@@ -56,10 +56,10 @@ class AuditFilesMergeFileReferences extends FormBase implements ConfirmFormInter
    *   Pager Manager service.
    * @param \Drupal\auditfiles\ServiceAuditFilesMergeFileReferences $merge_file_references
    *   ServiceAuditFilesMergeFileReferences service.
-   * @param \Drupal\Core\Datetime\DateFormatter $date_formatter
+   * @param \Drupal\Core\Datetime\DateFormatterInterface $date_formatter
    *   Date Formatter service.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, PagerManagerInterface $pager_manager, ServiceAuditFilesMergeFileReferences $merge_file_references, DateFormatter $date_formatter) {
+  public function __construct(ConfigFactoryInterface $config_factory, PagerManagerInterface $pager_manager, ServiceAuditFilesMergeFileReferences $merge_file_references, DateFormatterInterface $date_formatter) {
     $this->configFactoryStorage = $config_factory;
     $this->pagerManager = $pager_manager;
     $this->mergeFileReferences = $merge_file_references;

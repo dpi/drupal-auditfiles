@@ -49,13 +49,13 @@ class AuditFilesNotOnServer extends FormBase implements ConfirmFormInterface {
   /**
    * Class Constructor.
    *
-   * @param Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   Configuration service.
-   * @param Drupal\auditfiles\ServiceAuditFilesNotOnServer $audit_files_nos
+   * @param \Drupal\auditfiles\ServiceAuditFilesNotOnServer $audit_files_nos
    *   The auditfiles.not_on_server service.
-   * @param Drupal\Core\Pager\PagerManagerInterface $pager_manager
+   * @param \Drupal\Core\Pager\PagerManagerInterface $pager_manager
    *   Pager Manager service.
-   * @param Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   Entity Type Manager service.
    */
   public function __construct(ConfigFactoryInterface $config_factory, ServiceAuditFilesNotOnServer $audit_files_nos, PagerManagerInterface $pager_manager, EntityTypeManagerInterface $entity_type_manager) {

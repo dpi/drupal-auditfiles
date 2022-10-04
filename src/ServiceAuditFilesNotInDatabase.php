@@ -2,19 +2,19 @@
 
 namespace Drupal\auditfiles;
 
-use Drupal\Core\StreamWrapper\StreamWrapperInterface;
-use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Core\Messenger\MessengerTrait;
-use Drupal\Core\Database\Connection;
-use Drupal\Core\StreamWrapper\StreamWrapperManager;
-use Drupal\Core\Datetime\DateFormatter;
-use Drupal\Core\File\FileSystemInterface;
-use Drupal\Core\Session\AccountProxy;
-use Drupal\Core\ProxyClass\File\MimeType\MimeTypeGuesser;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Component\Uuid\UuidInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Database\Connection;
+use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Messenger\MessengerTrait;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Symfony\Component\Mime\MimeTypeGuesserInterface;
 
 /**
  * Define all methods that are used on Files not in database functionality.
@@ -61,14 +61,14 @@ class ServiceAuditFilesNotInDatabase {
   /**
    * Current user.
    *
-   * @var \Drupal\Core\Session\AccountProxy
+   * @var \Drupal\Core\Session\AccountInterface
    */
   protected $currentUser;
 
   /**
    * Mime Type Guesser service.
    *
-   * @var \Drupal\Core\ProxyClass\File\MimeType\MimeTypeGuesser
+   * @var \Symfony\Component\Mime\MimeTypeGuesserInterface
    */
   protected $fileMimeTypeGuesser;
 
@@ -89,7 +89,7 @@ class ServiceAuditFilesNotInDatabase {
   /**
    * The Date Formatter.
    *
-   * @var \Drupal\Core\Datetime\DateFormatter
+   * @var \Drupal\Core\Datetime\DateFormatterInterface
    */
   protected $dateFormatter;
 
@@ -103,7 +103,7 @@ class ServiceAuditFilesNotInDatabase {
   /**
    * Define constructor for string translation.
    */
-  public function __construct(TranslationInterface $translation, ConfigFactoryInterface $config_factory, Connection $connection, StreamWrapperManager $stream_wrapper_manager, FileSystemInterface $file_system, AccountProxy $current_user, MimeTypeGuesser $file_mime_type_guesser, TimeInterface $time, UuidInterface $uuid, DateFormatter $date_formatter, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(TranslationInterface $translation, ConfigFactoryInterface $config_factory, Connection $connection, StreamWrapperManagerInterface $stream_wrapper_manager, FileSystemInterface $file_system, AccountInterface $current_user, MimeTypeGuesserInterface $file_mime_type_guesser, TimeInterface $time, UuidInterface $uuid, DateFormatterInterface $date_formatter, EntityTypeManagerInterface $entity_type_manager) {
     $this->stringTranslation = $translation;
     $this->configFactory = $config_factory;
     $this->connection = $connection;

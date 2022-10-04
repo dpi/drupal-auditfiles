@@ -49,13 +49,13 @@ class AuditFilesUsedNotReferenced extends FormBase implements ConfirmFormInterfa
   /**
    * Class Constructor.
    *
-   * @param Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The configuration service.
-   * @param Drupal\auditfiles\ServiceAuditFilesUsedNotReferenced $files_used_not_referenced
+   * @param \Drupal\auditfiles\ServiceAuditFilesUsedNotReferenced $files_used_not_referenced
    *   The auditfiles.used_not_referenced service.
-   * @param Drupal\Core\Pager\PagerManagerInterface $pager_manager
+   * @param \Drupal\Core\Pager\PagerManagerInterface $pager_manager
    *   The pager.manager service.
-   * @param Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity_type.manager service.
    */
   public function __construct(ConfigFactoryInterface $config_factory, ServiceAuditFilesUsedNotReferenced $files_used_not_referenced, PagerManagerInterface $pager_manager, EntityTypeManagerInterface $entity_type_manager) {

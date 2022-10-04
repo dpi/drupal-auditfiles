@@ -41,11 +41,11 @@ class AuditFilesNotInDatabase extends FormBase implements ConfirmFormInterface {
   /**
    * The constructor.
    *
-   * @param Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The config factory storage service.
-   * @param Drupal\auditfiles\ServiceAuditFilesNotInDatabase $audit_files_nid
+   * @param \Drupal\auditfiles\ServiceAuditFilesNotInDatabase $audit_files_nid
    *   The auditfiles.not_in_database service.
-   * @param Drupal\Core\Pager\PagerManagerInterface $pager_manager
+   * @param \Drupal\Core\Pager\PagerManagerInterface $pager_manager
    *   The pager.manager service.
    */
   public function __construct(ConfigFactoryInterface $config_factory, ServiceAuditFilesNotInDatabase $audit_files_nid, PagerManagerInterface $pager_manager) {

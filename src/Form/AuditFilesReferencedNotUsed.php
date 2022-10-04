@@ -27,7 +27,7 @@ class AuditFilesReferencedNotUsed extends FormBase implements ConfirmFormInterfa
   /**
    * The auditfiles.referenced_not_used service.
    *
-   * @var Drupal\auditfiles\ServiceAuditFilesReferencedNotUsed
+   * @var \Drupal\auditfiles\ServiceAuditFilesReferencedNotUsed
    */
   protected $filesReferencedNotUsed;
 

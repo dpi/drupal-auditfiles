@@ -2,12 +2,12 @@
 
 namespace Drupal\auditfiles;
 
-use Drupal\Core\Link;
-use Drupal\Core\Url;
-use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Core\Messenger\MessengerTrait;
-use Drupal\Core\Config\ConfigFactory;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Link;
+use Drupal\Core\Messenger\MessengerTrait;
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Core\Url;
 
 /**
  * Form for Files used not managed functionality.
@@ -26,7 +26,7 @@ class ServiceAuditFilesUsedNotManaged {
   /**
    * The Configuration Factory.
    *
-   * @var \Drupal\Core\Config\ConfigFactory
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
   protected $configFactory;
 
@@ -42,12 +42,12 @@ class ServiceAuditFilesUsedNotManaged {
    *
    * @param \Drupal\Core\StringTranslation\TranslationInterface $translation
    *   A Tranlation Serevice object.
-   * @param \Drupal\Core\Config\ConfigFactory $config_factory
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   A configuration factory object.
    * @param \Drupal\Core\Database\Connection $connection
    *   A database connection for queries.
    */
-  public function __construct(TranslationInterface $translation, ConfigFactory $config_factory, Connection $connection) {
+  public function __construct(TranslationInterface $translation, ConfigFactoryInterface $config_factory, Connection $connection) {
     $this->stringTranslation = $translation;
     $this->configFactory = $config_factory;
     $this->connection = $connection;

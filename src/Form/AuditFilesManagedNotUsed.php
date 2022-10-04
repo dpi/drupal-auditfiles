@@ -28,7 +28,7 @@ class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface 
   /**
    * The auditfiles.managed_not_used service.
    *
-   * @var Drupal\auditfiles\ServiceAuditFilesManagedNotUsed
+   * @var \Drupal\auditfiles\ServiceAuditFilesManagedNotUsed
    */
   protected $filesManagedNotUsed;
 
@@ -49,13 +49,13 @@ class AuditFilesManagedNotUsed extends FormBase implements ConfirmFormInterface 
   /**
    * Class constructor.
    *
-   * @param Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The configuration service.
-   * @param Drupal\auditfiles\ServiceAuditFilesManagedNotUsed $files_managed_not_used
+   * @param \Drupal\auditfiles\ServiceAuditFilesManagedNotUsed $files_managed_not_used
    *   The auditfiles.managed_not_used service.
-   * @param Drupal\Core\Pager\PagerManagerInterface $pager_manager
+   * @param \Drupal\Core\Pager\PagerManagerInterface $pager_manager
    *   The pager.manager service.
-   * @param Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity_type.manager service.
    */
   public function __construct(ConfigFactoryInterface $config_factory, ServiceAuditFilesManagedNotUsed $files_managed_not_used, PagerManagerInterface $pager_manager, EntityTypeManagerInterface $entity_type_manager) {
